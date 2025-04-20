@@ -40,3 +40,112 @@ C#大作业团队仓库——武汉大学学生互助交流平台
 ### c) 其他讨论区（食堂区、图书馆区等）
 - **功能**：除了课程讨论区，平台还支持多个主题讨论区，如“食堂区”、“图书馆区”等，用户可以针对不同的兴趣或话题发布帖子。
 - **讨论区管理**：每个讨论区有专门的管理员，可以删除违规内容，禁止恶意用户发言。
+
+
+
+
+
+1. 用户表
+
+| 字段名          | 数据类型         | 说明            |
+| ------------ | ------------ | ------------- |
+| UserId       | INT          | 主键，用户唯一标识     |
+| Username     | VARCHAR(50)  | 用户名           |
+| PasswordHash | VARCHAR(255) | 密码的哈希值        |
+| Email        | VARCHAR(100) | 邮箱            |
+| ProfilePic   | VARCHAR(255) | 头像 URL        |
+| Role         | VARCHAR(20)  | 用户角色（如用户、管理员） |
+| CreatedAt    | DATETIME     | 用户注册时间        |
+| LastLogin    | DATETIME     | 最后登录时间        |
+
+2. 聊天表（私聊、群聊和公域聊天）
+
+| 字段名         | 数据类型         | 说明                                 |
+| ----------- | ------------ | ---------------------------------- |
+| ChatId      | INT          | 主键，聊天唯一标识                          |
+| ChatName    | VARCHAR(100) | 聊天名称（用于群聊）                         |
+| ChatType    | VARCHAR(20)  | 聊天类型（如 "private"、"group"、"public"） |
+| CreatedBy   | INT          | 外键，创建者的 UserId                     |
+| CreatedAt   | DATETIME     | 创建时间                               |
+| Description | TEXT         | 群聊描述（群聊时使用）                        |
+
+3. 消息表
+
+| 字段名         | 数据类型        | 说明                            |
+| ----------- | ----------- | ----------------------------- |
+| MessageId   | INT         | 主键，消息唯一标识                     |
+| ChatId      | INT         | 外键，关联到聊天表                     |
+| SenderId    | INT         | 外键，发送者的 UserId                |
+| Message     | TEXT        | 消息内容                          |
+| MessageType | VARCHAR(20) | 消息类型（如 "text"、"image"、"file"） |
+| SentAt      | DATETIME    | 发送时间                          |
+
+
+4. 用户群聊关联表
+
+记录每个用户与不同聊天的关联，用于群聊和私聊的成员管理
+
+| 字段名      | 数据类型     | 说明             |
+| -------- | -------- | -------------- |
+| UserId   | INT      | 外键，用户的 UserId  |
+| ChatId   | INT      | 外键，聊天的 ChatId  |
+| JoinDate | DATETIME | 加入聊天的时间        |
+| IsAdmin  | BOOLEAN  | 是否是管理员（仅对群聊有效） |
+5. 帖子表（用于存储用户在不同讨论区发布的帖子：相关课程）
+
+| 字段名       | 数据类型         | 说明                |
+| --------- | ------------ | ----------------- |
+| PostId    | INT          | 主键，帖子唯一标识         |
+| UserId    | INT          | 外键，发帖人的 UserId    |
+| Title     | VARCHAR(100) | 帖子标题              |
+| Content   | TEXT         | 帖子内容              |
+| CreatedAt | DATETIME     | 帖子创建时间            |
+| UpdatedAt | DATETIME     | 帖子更新时间（如果编辑过的话）   |
+| Category  | VARCHAR(50)  | 讨论区类别（如课程讨论、食堂区等） |
+|           |              | 细分类别（课程、食堂）       |
+|           |              |                   |
+
+6. 评论表
+
+| 字段名       | 数据类型     | 说明                       |
+| --------- | -------- | ------------------------ |
+| CommentId | INT      | 主键，评论唯一标识                |
+| PostId    | INT      | 外键，关联到帖子表                |
+| UserId    | INT      | 外键，评论者的 UserId           |
+| Comment   | TEXT     | 评论内容                     |
+| ParentId  | INT      | 外键，父评论的 CommentId（如果是回复） |
+| CreatedAt | DATETIME | 评论创建时间                   |
+
+7. 评分表
+
+| 字段名       | 数据类型     | 说明                |
+| --------- | -------- | ----------------- |
+| RatingId  | INT      | 主键，评分唯一标识         |
+| CourseId  | INT      | 外键，关联到课程表（假设有课程表） |
+| UserId    | INT      | 外键，评分人的 UserId    |
+| Rating    | INT      | 评分（1 到 5 分）       |
+| Comment   | TEXT     | 评分的附加评论           |
+| CreatedAt | DATETIME | 评分时间              |
+
+8. 文件表
+
+| 字段名        | 数据类型         | 说明                       |
+| ---------- | ------------ | ------------------------ |
+| FileId     | INT          | 主键，文件唯一标识                |
+| FileName   | VARCHAR(255) | 文件名                      |
+| FilePath   | VARCHAR(255) | 文件存储路径                   |
+| FileType   | VARCHAR(50)  | 文件类型（如 "image", "pdf" 等） |
+| Size       | INT          | 文件大小（字节数）                |
+| UploadedBy | INT          | 外键，上传者的 UserId           |
+| UploadedAt | DATETIME     | 上传时间                     |
+| ChatId     | INT          | 外键，关联到聊天表                |
+
+9. 通知表（记录用户接收到的系统通知，如新消息提醒等）
+
+|字段名|数据类型|说明|
+|---|---|---|
+|NotificationId|INT|主键，通知唯一标识|
+|UserId|INT|外键，接收通知的 UserId|
+|Content|TEXT|通知内容|
+|IsRead|BOOLEAN|是否已读|
+|CreatedAt|DATETIME|通知创建时间|

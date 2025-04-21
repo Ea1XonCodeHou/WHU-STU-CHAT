@@ -474,8 +474,29 @@ export default {
         })
         .catch(error => {
           this.isLoading = false;
-          console.error('注册请求出错:', error);
-          this.errorMessage = '网络错误，请稍后再试';
+          
+          // 详细记录错误信息，帮助调试
+          console.error('注册请求错误详情:', {
+            message: error.message,
+            response: error.response ? {
+              status: error.response.status,
+              statusText: error.response.statusText,
+              data: error.response.data
+            } : 'No response',
+            request: error.request ? 'Request sent but no response' : 'Request not sent',
+            config: error.config
+          });
+          
+          if (error.response) {
+            // 服务器返回了错误状态码
+            this.errorMessage = `服务器响应错误 (${error.response.status}): ${error.response.data.msg || error.response.statusText}`;
+          } else if (error.request) {
+            // 请求已发送但没有收到响应
+            this.errorMessage = '服务器无响应，请检查网络连接或服务器状态';
+          } else {
+            // 请求配置有误
+            this.errorMessage = `请求错误: ${error.message}`;
+          }
         });
     },
     addGlassMorphismEffect() {

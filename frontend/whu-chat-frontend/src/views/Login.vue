@@ -132,7 +132,8 @@ export default {
       showPassword: false,
       isLoading: false,
       activeField: null,
-      errorMessage: ''
+      errorMessage: '',
+      successMessage: ''
     }
   },
   mounted() {
@@ -176,12 +177,12 @@ export default {
           
           // 登录成功，存储token和用户信息
           localStorage.setItem('token', data.data.token);
-          localStorage.setItem('userId', data.data.id);
-          localStorage.setItem('userUsername', data.data.username);
-          localStorage.setItem('userPhone', data.data.phone);
-          localStorage.setItem('userEmail', data.data.email);
-          localStorage.setItem('userAvatar', data.data.avatar);
-          localStorage.setItem('userSelfDescription', data.data.self_description);
+          localStorage.setItem('userId', data.data.userInfo.id);
+          localStorage.setItem('userUsername', data.data.userInfo.username);
+          localStorage.setItem('userPhone', data.data.userInfo.phone || '');
+          localStorage.setItem('userEmail', data.data.userInfo.email || '');
+          localStorage.setItem('userAvatar', data.data.userInfo.avatar || '');
+          localStorage.setItem('lastLoginTime', new Date().toISOString());
           
           // 将token添加到axios全局默认请求头中
           axios.defaults.headers.common['Authorization'] = `Bearer ${data.data.token}`;
@@ -193,8 +194,13 @@ export default {
             localStorage.removeItem('rememberedUser');
           }
           
-          // 跳转到首页
-          this.$router.push('/home');
+          // 显示登录成功消息
+          this.successMessage = '登录成功，正在跳转到聊天室...';
+          
+          // 跳转到聊天室页面而非首页
+          setTimeout(() => {
+            this.$router.push('/chatroom');
+          }, 1000);
         } else {
           // 登录失败，显示错误信息
           this.errorMessage = data.msg || '登录失败，请检查用户名和密码';

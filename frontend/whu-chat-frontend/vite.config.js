@@ -22,14 +22,15 @@ export default defineConfig({
     // 所以 /admin/teacher_login 被代理后变成了 http://localhost:8080/admin/teacher_login
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:5067',  // 更新为实际的.NET Core端口
         changeOrigin: true,
         secure: false
       },
-      '/admin': {
-        target: 'http://localhost:8080',
+      '/chatHub': {
+        target: 'http://localhost:5067',  // 更新为实际的.NET Core端口
         changeOrigin: true,
-        secure: false
+        secure: false,
+        ws: true  // 启用WebSocket代理
       }
     }
   }

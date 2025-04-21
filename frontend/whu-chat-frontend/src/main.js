@@ -4,6 +4,7 @@ import App from "./App.vue";
 import router from "./router";
 
 // 配置axios默认设置
+axios.defaults.baseURL = 'http://localhost:5066'; // 更新为实际后端API地址
 axios.defaults.timeout = 10000; // 请求超时时间
 axios.defaults.headers.post['Content-Type'] = 'application/json;charset=UTF-8';
 
@@ -16,11 +17,19 @@ if (token) {
 // 请求拦截器
 axios.interceptors.request.use(
   config => {
-    // 在请求发送前可以做一些处理，如显示加载动画等
+    // 添加请求日志
+    console.log('发送请求:', {
+      url: config.url,
+      method: config.method,
+      data: config.data,
+      baseURL: config.baseURL,
+      headers: config.headers
+    });
     return config;
   },
   error => {
     // 处理请求错误
+    console.error('请求配置错误:', error);
     return Promise.reject(error);
   }
 );
@@ -28,10 +37,25 @@ axios.interceptors.request.use(
 // 响应拦截器
 axios.interceptors.response.use(
   response => {
-    // 如果返回的状态码为200，说明请求成功，可以正常拿到数据
+    // 添加响应日志
+    console.log('收到响应:', {
+      status: response.status,
+      data: response.data,
+      headers: response.headers
+    });
     return response;
   },
   error => {
+    // 添加错误响应日志
+    console.error('响应错误:', {
+      message: error.message,
+      response: error.response ? {
+        status: error.response.status,
+        data: error.response.data
+      } : 'No response',
+      config: error.config
+    });
+    
     // 处理响应错误
     if (error.response && error.response.status === 401) {
       // 如果响应状态码是401（未授权），可能是token过期，清除token并跳转到登录页

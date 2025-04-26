@@ -13,44 +13,76 @@ namespace backend.Services
         }
         public async Task<int> CreateGroupAsync(GroupRegDTO groupRegDto)
         {
+            if (groupRegDto == null)
+            {
+                throw new ArgumentNullException(nameof(groupRegDto), "GroupRegDTO不能为空");
+            }
+
             try
             {
-                if (groupRegDto == null)
-                {
-                    throw new ArgumentNullException(nameof(groupRegDto), "GroupRegDTO不能为空");
-                }
-                var CheckResult = await CheckGroupExistsInternalAsync(groupRegDto.GroupName);
-                if (CheckResult)
+                // 检查群组是否已存在
+                var groupExists = await CheckGroupExistsInternalAsync(groupRegDto.GroupName);
+                if (groupExists)
                 {
                     throw new ArgumentException("群组已存在", nameof(groupRegDto.GroupName));
                 }
+
                 using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    var command = new MySqlCommand(
-                        "INSERT INTO ChatGroups (GroupId, GroupName, Description, CreatorId, MemberCount, CreateTime) VALUES (@GroupId, @GroupName, @Description, @CreatorId, @MemberCount, @CreateTime); SELECT LAST_INSERT_ID();",
-                        connection);
-                    command.Parameters.AddWithValue("@GroupId", groupRegDto.GroupId);
-                    command.Parameters.AddWithValue("@GroupName", groupRegDto.GroupName);
-                    command.Parameters.AddWithValue("@Description", groupRegDto.Description);
-                    command.Parameters.AddWithValue("@CreatorId", groupRegDto.CreatorId);
-                    command.Parameters.AddWithValue("@MemberCount", 1);
-                    command.Parameters.AddWithValue("@CreateTime", DateTime.UtcNow);
-                    var groupId = Convert.ToInt32(await command.ExecuteScalarAsync());
 
-                    var command2 = new MySqlCommand(
-                        "INSERT INTO GroupMembers (MemberId, GroupId, UserId, JoinTime) VALUES (@MemberId, @GroupId, @UserId,@JoinTime)",
-                        connection);
-                    command.Parameters.AddWithValue("@GroupId", groupRegDto.GroupId);
-                    command.Parameters.AddWithValue("@UserId", groupRegDto.CreatorId);
-                    command.Parameters.AddWithValue("@MemberId", groupRegDto.GroupId.ToString()+ groupRegDto.CreatorId.ToString());
-                    command.Parameters.AddWithValue("@Jointime", DateTime.UtcNow);
-                    var wHATEVER= Convert.ToInt32(await command.ExecuteScalarAsync());
-                    return groupId;
+                    // 使用事务确保数据一致性
+                    using (var transaction = await connection.BeginTransactionAsync())
+                    {
+                        try
+                        {
+                            // 插入 ChatGroups 表
+                            var insertGroupCommand = new MySqlCommand(
+                                @"INSERT INTO ChatGroups (GroupId, GroupName, Description, CreatorId, MemberCount, CreateTime) 
+                                  VALUES (@GroupId, @GroupName, @Description, @CreatorId, @MemberCount, @CreateTime); 
+                                  SELECT LAST_INSERT_ID();",
+                                connection, transaction);
+
+                            insertGroupCommand.Parameters.AddWithValue("@GroupId", groupRegDto.GroupId);
+                            insertGroupCommand.Parameters.AddWithValue("@GroupName", groupRegDto.GroupName);
+                            insertGroupCommand.Parameters.AddWithValue("@Description", groupRegDto.Description);
+                            insertGroupCommand.Parameters.AddWithValue("@CreatorId", groupRegDto.CreatorId);
+                            insertGroupCommand.Parameters.AddWithValue("@MemberCount", groupRegDto.MemberCount);
+                            insertGroupCommand.Parameters.AddWithValue("@CreateTime", DateTime.UtcNow);
+
+                            var groupId = Convert.ToInt32(await insertGroupCommand.ExecuteScalarAsync());
+
+                            // 插入 GroupMembers 表
+                            var insertMemberCommand = new MySqlCommand(
+                                @"INSERT INTO GroupMembers (MemberId, GroupId, UserId, JoinTime) 
+                                  VALUES (@MemberId, @GroupId, @UserId, @JoinTime)",
+                                connection, transaction);
+
+                            insertMemberCommand.Parameters.AddWithValue("@MemberId", $"{groupRegDto.GroupId}+{groupRegDto.CreatorId}");
+                            insertMemberCommand.Parameters.AddWithValue("@GroupId", groupRegDto.GroupId);
+                            insertMemberCommand.Parameters.AddWithValue("@UserId", groupRegDto.CreatorId);
+                            insertMemberCommand.Parameters.AddWithValue("@JoinTime", DateTime.UtcNow);
+
+                            await insertMemberCommand.ExecuteNonQueryAsync();
+
+                            // 提交事务
+                            await transaction.CommitAsync();
+
+                            return groupId;
+                        }
+                        catch
+                        {
+                            // 回滚事务
+                            await transaction.RollbackAsync();
+                            throw;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
+                // 记录详细错误信息
+                Console.WriteLine($"Error in CreateGroupAsync: {ex.Message}, StackTrace: {ex.StackTrace}");
                 throw new Exception($"创建群组失败: {ex.Message}");
             }
         }
@@ -230,7 +262,7 @@ namespace backend.Services
                         connection);
                     addMemberCommand.Parameters.AddWithValue("@GroupId", groupId);
                     addMemberCommand.Parameters.AddWithValue("@UserId", userId);
-                    addMemberCommand.Parameters.AddWithValue("@MemberId", groupId.ToString() + userId.ToString());
+                    addMemberCommand.Parameters.AddWithValue("@MemberId", groupId.ToString() + " "+userId.ToString());
                     addMemberCommand.Parameters.AddWithValue("@JoinTime", DateTime.UtcNow);
                     var rowsAffected = await addMemberCommand.ExecuteNonQueryAsync();
 
@@ -297,7 +329,7 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
                     var command = new MySqlCommand(
-                        "SELECT UserId, Username, Status, LastActive FROM Users WHERE UserId IN (SELECT UserId FROM GroupMembers WHERE GroupId = @GroupId)",
+                        "SELECT UserId, Username,LastLoginTime FROM Users WHERE UserId IN (SELECT UserId FROM GroupMembers WHERE GroupId = @GroupId)",
                         connection);
                     command.Parameters.AddWithValue("@GroupId", groupId);
                     var users = new List<UserDTO>();

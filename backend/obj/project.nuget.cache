@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "y1YEZq2p2pU=",
+  "dgSpecHash": "lpeIc/HjvVI=",
   "success": true,
-  "projectFilePath": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\backend.csproj",
+  "projectFilePath": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\backend.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\noteles\\.nuget\\packages\\bouncycastle.cryptography\\2.2.1\\bouncycastle.cryptography.2.2.1.nupkg.sha512",
     "C:\\Users\\noteles\\.nuget\\packages\\google.protobuf\\3.21.9\\google.protobuf.3.21.9.nupkg.sha512",

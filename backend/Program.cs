@@ -27,6 +27,7 @@ builder.Services.AddCors(options =>
 // 注册服务
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IGroupService, GroupService>();
 
 // 验证数据库连接
 using (var connection = new MySqlConnection(builder.Configuration.GetConnectionString("DefaultConnection")))
@@ -61,5 +62,6 @@ app.UseAuthorization();
 app.MapControllers();
 // 映射SignalR Hub
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<GroupChatHub>("/groupChatHub");
 
 app.Run();

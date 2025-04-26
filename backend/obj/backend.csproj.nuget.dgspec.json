@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\backend.csproj": {}
+    "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\backend.csproj": {}
   },
   "projects": {
-    "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\backend.csproj": {
+    "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\backend.csproj",
+        "projectUniqueName": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\backend.csproj",
-        "packagesPath": "C:\\Users\\lenovo\\.nuget\\packages\\",
-        "outputPath": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\obj\\",
+        "projectPath": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\backend.csproj",
+        "packagesPath": "C:\\Users\\noteles\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\noteles\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -39,7 +43,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0": {
@@ -77,7 +82,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

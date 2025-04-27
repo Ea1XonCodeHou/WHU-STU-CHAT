@@ -247,7 +247,7 @@ namespace backend.Services
         }
 
 
-        
+
         public async Task<bool> AddUserToGroupAsync(int groupId, int userId)
         {
             try
@@ -256,19 +256,32 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // Step 1: 插入新成员到 GroupMembers 表
+                    // Step 1: 检查用户是否已经在群组中
+                    var checkMemberCommand = new MySqlCommand(
+                        "SELECT COUNT(1) FROM GroupMembers WHERE GroupId = @GroupId AND UserId = @UserId",
+                        connection);
+                    checkMemberCommand.Parameters.AddWithValue("@GroupId", groupId);
+                    checkMemberCommand.Parameters.AddWithValue("@UserId", userId);
+
+                    var exists = Convert.ToInt32(await checkMemberCommand.ExecuteScalarAsync()) > 0;
+                    if (exists)
+                    {
+                        throw new Exception("用户已在群组中");
+                    }
+
+                    // Step 2: 插入新成员到 GroupMembers 表
                     var addMemberCommand = new MySqlCommand(
                         "INSERT INTO GroupMembers (MemberId, GroupId, UserId, JoinTime) VALUES (@MemberId, @GroupId, @UserId, @JoinTime)",
                         connection);
                     addMemberCommand.Parameters.AddWithValue("@GroupId", groupId);
                     addMemberCommand.Parameters.AddWithValue("@UserId", userId);
-                    addMemberCommand.Parameters.AddWithValue("@MemberId", groupId.ToString() + " "+userId.ToString());
+                    addMemberCommand.Parameters.AddWithValue("@MemberId", groupId.ToString() + "+" + userId.ToString());
                     addMemberCommand.Parameters.AddWithValue("@JoinTime", DateTime.UtcNow);
                     var rowsAffected = await addMemberCommand.ExecuteNonQueryAsync();
 
                     if (rowsAffected > 0)
                     {
-                        // Step 2: 更新 ChatGroups 表中的 MemberCount
+                        // Step 3: 更新 ChatGroups 表中的 MemberCount
                         var updateMemberCountCommand = new MySqlCommand(
                             "UPDATE ChatGroups SET MemberCount = MemberCount + 1 WHERE GroupId = @GroupId",
                             connection);
@@ -287,7 +300,7 @@ namespace backend.Services
             }
         }
 
-        
+
         public async Task<bool> RemoveUserFromGroupAsync(int groupId, int userId)
         {
             try
@@ -341,8 +354,8 @@ namespace backend.Services
                             {
                                 Id = reader.GetInt32(0),
                                 Username = reader.GetString(1),
-                                Status = reader.GetString(2),
-                                LastActive = reader.GetDateTime(3)
+                                
+                                LastActive = reader.GetDateTime(2)
                             });
                         }
                     }
@@ -364,12 +377,12 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
                     var command = new MySqlCommand(
-                        "INSERT INTO GroupMessages (GroupId, UserId, Message, SendTime) VALUES (@GroupId, @UserId, @Message, @SendTime); SELECT LAST_INSERT_ID();",
+                        "INSERT INTO GroupMessages (GroupId, SenderId, Content, CreateTime) VALUES (@GroupId, @SenderId, @Content, @CreateTIme); SELECT LAST_INSERT_ID();",
                         connection);
                     command.Parameters.AddWithValue("@GroupId", groupId);
-                    command.Parameters.AddWithValue("@UserId", userId);
-                    command.Parameters.AddWithValue("@Message", message);
-                    command.Parameters.AddWithValue("@SendTime", DateTime.UtcNow);
+                    command.Parameters.AddWithValue("@SenderId", userId);
+                    command.Parameters.AddWithValue("@Content", message);
+                    command.Parameters.AddWithValue("@CreateTime", DateTime.UtcNow);
                     var messageId = Convert.ToInt32(await command.ExecuteScalarAsync());
                     return messageId;
                 }

@@ -7,16 +7,20 @@
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:services\\groupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\services\\ichatservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:services\\ichatservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\services\\chatservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:services\\chatservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\services\\igroupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -33,10 +37,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\dtos\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:dtos\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\services\\ichatservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:services\\ichatservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\dtos\\groupdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -78,19 +78,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 2,
               "Title": "IChatService.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\IChatService.cs",
               "RelativeDocumentMoniker": "Services\\IChatService.cs",
               "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\IChatService.cs",
               "RelativeToolTip": "Services\\IChatService.cs",
-              "ViewState": "AgIAABMAAAAAAAAAAAAAwAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABMAAAAAAAAAAAAAwBsAAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-26T06:24:12.097Z"
+              "WhenOpened": "2025-04-26T06:24:12.097Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "ChatService.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\ChatService.cs",
               "RelativeDocumentMoniker": "Services\\ChatService.cs",
@@ -98,8 +99,7 @@
               "RelativeToolTip": "Services\\ChatService.cs",
               "ViewState": "AgIAABQAAAAAAAAAAADwvxMAAABQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-26T06:22:25.319Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-26T06:22:25.319Z"
             },
             {
               "$type": "Document",
@@ -109,14 +109,14 @@
               "RelativeDocumentMoniker": "Services\\GroupService.cs",
               "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\GroupService.cs",
               "RelativeToolTip": "Services\\GroupService.cs",
-              "ViewState": "AgIAAKYBAAAAAAAAAAAqwAgBAABRAAAAAAAAAA==",
+              "ViewState": "AgIAAHQBAAAAAAAAAAAswIIBAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-26T06:22:06.156Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "IGroupService.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\IGroupService.cs",
               "RelativeDocumentMoniker": "Services\\IGroupService.cs",
@@ -124,8 +124,7 @@
               "RelativeToolTip": "Services\\IGroupService.cs",
               "ViewState": "AgIAABEAAAAAAAAAAAAwwB4AAAA7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-26T06:14:58.846Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-26T06:14:58.846Z"
             },
             {
               "$type": "Document",
@@ -153,7 +152,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "MessageDTO.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\DTOs\\MessageDTO.cs",
               "RelativeDocumentMoniker": "DTOs\\MessageDTO.cs",
@@ -165,7 +164,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
@@ -173,8 +172,7 @@
               "RelativeToolTip": "appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAB7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-04-26T03:37:55.979Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-26T03:37:55.979Z"
             },
             {
               "$type": "Document",
@@ -190,7 +188,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "UserDTO.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\DTOs\\UserDTO.cs",
               "RelativeDocumentMoniker": "DTOs\\UserDTO.cs",
@@ -226,7 +224,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "ChatHub.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Hubs\\ChatHub.cs",
               "RelativeDocumentMoniker": "Hubs\\ChatHub.cs",
@@ -238,13 +236,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 1,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
               "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Program.cs",
               "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAABgAAAAAAAAAAAAAACAAAABoAAAAAAAAAA==",
+              "ViewState": "AgIAADoAAAAAAAAAAAAAAEAAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-21T06:19:02.163Z",
               "EditorCaption": ""

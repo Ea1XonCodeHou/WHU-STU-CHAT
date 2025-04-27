@@ -27,7 +27,8 @@ namespace backend.Hubs
             {
                 _logger.LogInformation($"用户 {username}({userId}) 尝试加入群组 {groupId}");
 
-                var group = await _groupService.GetGroupAsync(groupId);
+                //var group = await _groupService.GetGroupAsync(groupId);//这一行要注释掉？
+                var group = _groupService.GetGroupAsync(groupId);
                 if (group == null)
                 {
                     _logger.LogWarning($"群组 {groupId} 不存在");

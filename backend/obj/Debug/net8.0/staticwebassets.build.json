@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "5IlVLSjaI+/2gjXS8rKgNjWhUg9AhKS+3yoBWKZze/U=",
+  "Hash": "OGc2xa+6Qneqo8TbXQvFzDjJVMqWomAQe9GBa4x8vK0=",
   "Source": "backend",
   "BasePath": "_content/backend",
   "Mode": "Default",
@@ -10,30 +10,116 @@
     {
       "Name": "backend\\wwwroot",
       "Source": "backend",
-      "ContentRoot": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\wwwroot\\",
       "BasePath": "_content/backend",
       "Pattern": "**"
     }
   ],
   "Assets": [
     {
-      "Identity": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "Identity": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
       "SourceId": "backend",
       "SourceType": "Discovered",
-      "ContentRoot": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\wwwroot\\",
+      "ContentRoot": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\wwwroot\\",
       "BasePath": "_content/backend",
-      "RelativePath": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "RelativePath": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466#[.{fingerprint}]?.docx",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeBehavior": "",
       "AssetMergeSource": "",
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
+      "Fingerprint": "bq8o4izt8i",
+      "Integrity": "zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.bq8o4izt8i.docx",
+      "AssetFile": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "197648"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 28 Apr 2025 08:03:30 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "bq8o4izt8i"
+        },
+        {
+          "Name": "label",
+          "Value": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0="
+        }
+      ]
+    },
+    {
+      "Route": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "AssetFile": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "197648"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 28 Apr 2025 08:03:30 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0="
+        }
+      ]
     }
   ]
 }

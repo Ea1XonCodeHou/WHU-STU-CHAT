@@ -1,0 +1,88 @@
+{
+  "Version": 1,
+  "ManifestType": "Build",
+  "Endpoints": [
+    {
+      "Route": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.bq8o4izt8i.docx",
+      "AssetFile": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "197648"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 28 Apr 2025 08:03:30 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "bq8o4izt8i"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0="
+        },
+        {
+          "Name": "label",
+          "Value": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx"
+        }
+      ]
+    },
+    {
+      "Route": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "AssetFile": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "197648"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 28 Apr 2025 08:03:30 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0="
+        }
+      ]
+    }
+  ]
+}

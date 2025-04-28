@@ -1,8 +1,12 @@
 {
   "Files": [
     {
-      "Id": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "Id": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
       "PackagePath": "staticwebassets\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.backend.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
     },
     {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.backend.Microsoft.AspNetCore.StaticWebAssets.props",

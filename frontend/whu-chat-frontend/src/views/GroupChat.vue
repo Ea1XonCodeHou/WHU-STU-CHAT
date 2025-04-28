@@ -15,7 +15,7 @@
           <i class="summary-icon"></i>
           {{ summarizing ? '正在总结...' : '总结聊天' }}
         </button>
-          <span class="username">{{ username }}</span>
+        <span class="username">{{ username }}</span>
         <div class="avatar" v-if="userAvatar">
           <img :src="userAvatar" alt="用户头像" />
         </div>
@@ -32,10 +32,6 @@
       <div class="sidebar">
         <div class="sidebar-header">
           <h2>我的群组</h2>
-          <button class="create-group-btn" @click="showCreateGroupModal = true">
-            <i class="add-icon"></i>
-            <span>创建群组</span>
-          </button>
         </div>
         <div class="groups-list">
           <div 
@@ -1229,27 +1225,6 @@ export default {
   color: #333;
 }
 
-.create-group-btn {
-  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: all 0.2s;
-}
-
-.create-group-btn i {
-  margin-right: 5px;
-}
-
-.create-group-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(71, 118, 230, 0.3);
-}
-
 .groups-list {
   flex: 1;
   overflow-y: auto;
@@ -1958,5 +1933,33 @@ export default {
   60% {
     transform: translateY(-5px) translateX(-50%);
   }
+}
+
+/* 总结按钮样式 */
+.summary-button {
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  margin-right: 15px;
+}
+
+.summary-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(71, 118, 230, 0.3);
+}
+
+.summary-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.summary-icon {
+  margin-right: 5px;
 }
 </style> 

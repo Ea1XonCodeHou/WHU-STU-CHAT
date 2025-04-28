@@ -119,7 +119,7 @@
                @click="activeSection = 'groups'" 
                :class="{ active: activeSection === 'groups' }">
             <i class="fa-solid fa-layer-group"></i>
-            <span>我的群组</span>
+            <span>群组管理</span>
             <div class="notification-badge pulse" v-if="groupNotifications > 0">{{ groupNotifications }}</div>
           </div>
           <div class="nav-item" 
@@ -217,7 +217,7 @@
       <!-- 群组部分 -->
       <div v-if="activeSection === 'groups'" class="content-section groups-section">
         <div class="section-title">
-          <h2><i class="fa-solid fa-users"></i> 我的群组</h2>
+          <h2><i class="fa-solid fa-users"></i> 群组管理</h2>
           <p>与群组成员交流讨论</p>
         </div>
         
@@ -230,23 +230,17 @@
           </div>
           
           <div class="groups-list">
-            <div v-for="group in filteredGroups" :key="group.id" 
-                 class="group-card" @click="openGroupChat(group)">
+            <div v-for="group in filteredGroups" :key="group.groupId" 
+                 class="group-card" @click="selectGroup(group)"
+                 :class="{ active: selectedGroup?.groupId === group.groupId }">
               <div class="group-avatar">
-                <img v-if="group.avatar" :src="group.avatar" :alt="group.name">
-                <div v-else class="avatar-placeholder">{{ group.name.charAt(0).toUpperCase() }}</div>
+                <div class="avatar-placeholder">{{ group.groupName.charAt(0).toUpperCase() }}</div>
               </div>
               <div class="group-details">
-                <h3>{{ group.name }}</h3>
+                <h3>{{ group.groupName }}</h3>
                 <p class="group-stats">
-                  <span><i class="fa-solid fa-user"></i> {{ group.memberCount }} 成员</span>
-                  <span><i class="fa-solid fa-circle"></i> {{ group.onlineCount }} 在线</span>
+                  <span><i class="fa-solid fa-clock"></i> {{ new Date(group.updateTime).toLocaleString() }}</span>
                 </p>
-              </div>
-              <div class="group-actions">
-                <button class="action-button chat">
-                  <i class="fa-solid fa-comments"></i>
-                </button>
               </div>
             </div>
             
@@ -289,6 +283,110 @@
           </div>
         </div>
       </div>
+
+      <!-- 群组详情面板 -->
+      <div class="group-detail-panel" v-if="selectedGroup">
+        <div class="panel-header">
+          <div class="header-left">
+            <h3>{{ selectedGroup.groupName }}</h3>
+            <p class="group-description">{{ selectedGroup.description }}</p>
+          </div>
+          <button class="close-button" @click="selectedGroup = null">
+            <i class="fa-solid fa-times"></i>
+          </button>
+        </div>
+        
+        <div class="panel-content">
+          <div class="group-info">
+            <div class="info-item">
+              <i class="fa-solid fa-user"></i>
+              <span>{{ selectedGroup.memberCount }} 成员</span>
+            </div>
+            <div class="info-item">
+              <i class="fa-solid fa-calendar"></i>
+              <span>创建于 {{ new Date(selectedGroup.createTime).toLocaleString() }}</span>
+            </div>
+          </div>
+
+          <!-- 添加成员表单 -->
+          <div class="add-member-section" v-if="showAddUserModal">
+            <div class="section-header">
+              <h4>添加新成员</h4>
+              <button class="close-button" @click="showAddUserModal = false">
+                <i class="fa-solid fa-times"></i>
+              </button>
+            </div>
+            <div class="add-member-form">
+              <div class="form-group">
+                <label for="userId">用户ID</label>
+                <input type="number" id="userId" v-model="newUserId" placeholder="输入用户ID...">
+              </div>
+              <div class="form-actions">
+                <button class="action-button cancel" @click="showAddUserModal = false">
+                  <i class="fa-solid fa-times"></i> 取消
+                </button>
+                <button class="action-button submit" @click="addUserToGroup">
+                  <i class="fa-solid fa-user-plus"></i> 添加
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="member-section">
+            <div class="section-header">
+              <h4>群组成员</h4>
+              <div class="search-box">
+                <i class="fa-solid fa-search"></i>
+                <input type="text" placeholder="搜索成员..." v-model="memberSearch">
+              </div>
+            </div>
+            <div class="members">
+              <div v-for="member in filteredMembers" :key="member.userId" class="member-item">
+                <div class="member-avatar">
+                  <div class="avatar-placeholder">{{ member.username.charAt(0).toUpperCase() }}</div>
+                </div>
+                <div class="member-info">
+                  <span class="member-name">{{ member.username }}</span>
+                  <span class="member-role" v-if="member.userId === selectedGroup.creatorId">群主</span>
+                </div>
+                <div class="member-actions" v-if="member.userId !== selectedGroup.creatorId">
+                  <button class="action-button remove" @click="removeUserFromGroup(member)">
+                    <i class="fa-solid fa-user-minus"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button class="action-button add" @click="showAddUserModal = true">
+              <i class="fa-solid fa-user-plus"></i> 添加成员
+            </button>
+            <button class="action-button delete" @click="confirmDeleteGroup">
+              <i class="fa-solid fa-trash"></i> 删除群组
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 删除模态窗口 -->
+      <div class="modal-overlay" v-if="showDeleteConfirm" @click="showDeleteConfirm = false">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h3>确认删除</h3>
+            <button class="close-button" @click="showDeleteConfirm = false">
+              <i class="fa-solid fa-times"></i>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>确定要删除这个群组吗？此操作不可恢复。</p>
+            <div class="modal-actions">
+              <button class="action-button cancel" @click="showDeleteConfirm = false">取消</button>
+              <button class="action-button delete" @click="deleteGroup">确认删除</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 模态窗口：添加好友 -->
@@ -326,6 +424,10 @@
         <div class="modal-body">
           <div class="create-group-form">
             <div class="form-group">
+              <label for="groupId">群组ID</label>
+              <input type="number" id="groupId" v-model="groupId" placeholder="输入群组ID...">
+            </div>
+            <div class="form-group">
               <label for="groupName">群组名称</label>
               <input type="text" id="groupName" v-model="groupName" placeholder="输入群组名称...">
             </div>
@@ -344,7 +446,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 
@@ -370,6 +472,7 @@ export default {
     
     // 表单数据
     const friendUsername = ref('');
+    const groupId = ref('');
     const groupName = ref('');
     const groupDescription = ref('');
     
@@ -380,8 +483,32 @@ export default {
     // 通知计数
     const chatroomNotifications = ref(0);
     const friendNotifications = ref(0);
-    const groupNotifications = ref(2); // 示例数据
-    const forumNotifications = ref(5); // 示例数据
+    const groupNotifications = ref(2);
+    const forumNotifications = ref(5);
+    
+    // 群组列表
+    const groups = ref([]);
+    
+    // 群组详情相关
+    const selectedGroup = ref(null);
+    const groupMembers = ref([]);
+    const memberSearch = ref('');
+    const showAddUserModal = ref(false);
+    const newUserId = ref('');
+    
+    // 获取群组列表
+    const fetchGroups = async () => {
+      try {
+        const response = await axios.get(`/api/group/user/${userId.value}`);
+        if (response.data.code === 200) {
+          groups.value = response.data.data;
+        } else {
+          console.error('获取群组列表失败:', response.data.msg);
+        }
+      } catch (error) {
+        console.error('获取群组列表失败:', error);
+      }
+    };
     
     // 模拟数据 - 实际项目中应从API获取
     const chatRooms = ref([
@@ -428,23 +555,6 @@ export default {
         id: 103,
         username: '王五',
         status: 'online',
-        avatar: null
-      }
-    ]);
-    
-    const groups = ref([
-      {
-        id: 201,
-        name: '软件工程课题组',
-        memberCount: 12,
-        onlineCount: 5,
-        avatar: null
-      },
-      {
-        id: 202,
-        name: '毕业设计小组',
-        memberCount: 8,
-        onlineCount: 3,
         avatar: null
       }
     ]);
@@ -499,6 +609,13 @@ export default {
       );
     });
     
+    const filteredMembers = computed(() => {
+      if (!memberSearch.value) return groupMembers.value;
+      return groupMembers.value.filter(member => 
+        member.username.toLowerCase().includes(memberSearch.value.toLowerCase())
+      );
+    });
+    
     // 方法
     const toggleUserMenu = () => {
       showUserMenu.value = !showUserMenu.value;
@@ -511,17 +628,16 @@ export default {
     };
     
     const openPrivateChat = (friend) => {
-      // 实际应用中应先创建或获取私聊会话ID
       console.log(`打开与 ${friend.username} 的私聊`);
     };
     
     const openGroupChat = (group) => {
-      // 实际应用中应导航到群聊界面
-      console.log(`打开群聊 ${group.name}`);
+      localStorage.setItem('currentGroupId', group.groupId);
+      localStorage.setItem('currentGroupName', group.groupName);
+      router.push(`/groupchat/${group.groupId}`);
     };
     
     const selectForumCategory = (category) => {
-      // 实际应用中应导航到论坛分类页面
       console.log(`选择论坛分类: ${category.name}`);
     };
     
@@ -529,70 +645,217 @@ export default {
       if (!friendUsername.value) return;
       
       try {
-        // 这里应该调用实际的API
         console.log(`添加好友: ${friendUsername.value}`);
-        // 添加成功后清空输入并关闭模态窗口
         friendUsername.value = '';
         showAddFriendModal.value = false;
-        
-        // 这里可以添加成功提示
       } catch (error) {
         console.error('添加好友失败:', error);
       }
     };
     
     const createGroup = async () => {
-      if (!groupName.value) return;
+      if (!groupId.value || !groupName.value) {
+        alert('群组ID和群组名称不能为空');
+        return;
+      }
       
       try {
-        // 这里应该调用实际的API
-        console.log(`创建群组: ${groupName.value}`);
-        // 创建成功后清空输入并关闭模态窗口
-        groupName.value = '';
-        groupDescription.value = '';
-        showCreateGroupModal.value = false;
+        const groupData = {
+          groupId: parseInt(groupId.value),
+          groupName: groupName.value,
+          description: groupDescription.value || '',
+          creatorId: parseInt(userId.value),
+          memberCount: 1,
+          createTime: new Date().toISOString()
+        };
+
+        const response = await axios.post('/api/group/create', groupData);
         
-        // 这里可以添加成功提示
+        if (response.data.code === 200) {
+          // 创建成功后清空输入并关闭模态窗口
+          groupId.value = '';
+          groupName.value = '';
+          groupDescription.value = '';
+          showCreateGroupModal.value = false;
+          
+          // 刷新群组列表
+          await fetchGroups();
+          
+          alert('群组创建成功');
+        } else {
+          alert('创建群组失败: ' + response.data.msg);
+        }
       } catch (error) {
         console.error('创建群组失败:', error);
+        alert('创建群组失败: ' + (error.response?.data?.msg || error.message));
       }
     };
     
     const logout = () => {
-      // 清除localStorage中的用户信息
       localStorage.removeItem('token');
       localStorage.removeItem('userId');
       localStorage.removeItem('username');
       localStorage.removeItem('userAvatar');
-      
-      // 跳转到登录页
       router.push('/login');
     };
     
-    // 导航到AI聊天页面
     const navigateToAIChat = () => {
       router.push('/chat');
     };
     
-    // 导航到群组聊天页面
     const navigateToGroupChat = () => {
       router.push('/groupchat');
     };
     
+    const selectGroup = async (group) => {
+      try {
+        console.log('选择的群组数据:', group);
+        
+        // 获取群组详情
+        const detailResponse = await axios.get(`/api/group/${group.groupId}`);
+        if (detailResponse.data.code === 200) {
+          console.log('群组详情数据:', detailResponse.data.data);
+          selectedGroup.value = detailResponse.data.data;
+        }
+        
+        // 获取群组成员
+        const membersResponse = await axios.get(`/api/group/${group.groupId}/users`);
+        if (membersResponse.data.code === 200) {
+          console.log('群组成员原始数据:', membersResponse.data.data);
+          // 确保每个成员都有 userId 字段
+          groupMembers.value = membersResponse.data.data.map(member => ({
+            ...member,
+            userId: member.userId || member.id // 尝试使用 id 作为备选
+          }));
+          console.log('处理后的成员数据:', groupMembers.value);
+        }
+      } catch (error) {
+        console.error('获取群组详情失败:', error);
+        alert('获取群组详情失败: ' + (error.response?.data?.msg || error.message));
+      }
+    };
+    
+    const confirmDeleteGroup = () => {
+      if (confirm('确定要删除这个群组吗？此操作不可恢复。')) {
+        deleteGroup();
+      }
+    };
+    
+    const deleteGroup = async () => {
+      if (!selectedGroup.value) return;
+      
+      try {
+        const response = await axios.delete(`/api/group/${selectedGroup.value.groupId}`);
+        if (response.data.code === 200) {
+          selectedGroup.value = null;
+          await fetchGroups();
+          alert('群组删除成功');
+        } else {
+          alert('删除群组失败: ' + response.data.msg);
+        }
+      } catch (error) {
+        console.error('删除群组失败:', error);
+        alert('删除群组失败: ' + (error.response?.data?.msg || error.message));
+      }
+    };
+    
+    const addUserToGroup = async () => {
+      if (!selectedGroup.value || !newUserId.value) {
+        alert('请输入用户ID');
+        return;
+      }
+      
+      try {
+        const response = await axios.post(`/api/group/${selectedGroup.value.groupId}/add-user/${newUserId.value}`);
+        if (response.data.code === 200) {
+          // 刷新成员列表
+          const membersResponse = await axios.get(`/api/group/${selectedGroup.value.groupId}/users`);
+          if (membersResponse.data.code === 200) {
+            groupMembers.value = membersResponse.data.data;
+          }
+          newUserId.value = '';
+          showAddUserModal.value = false;
+          alert('添加成员成功');
+        } else {
+          alert('添加成员失败: ' + response.data.msg);
+        }
+      } catch (error) {
+        console.error('添加成员失败:', error);
+        alert('添加成员失败: ' + (error.response?.data?.msg || error.message));
+      }
+    };
+    
+    const removeUserFromGroup = async (member) => {
+      if (!selectedGroup.value || !member) return;
+      
+      try {
+        console.log('移除成员前的数据:', {
+          selectedGroup: selectedGroup.value,
+          member: member,
+          memberId: member.userId || member.id
+        });
+        
+        // 确保参数是数字类型
+        const groupId = parseInt(selectedGroup.value.groupId);
+        const memberId = parseInt(member.userId || member.id);
+        
+        console.log('转换后的参数:', {
+          groupId: groupId,
+          memberId: memberId,
+          isNaNGroupId: isNaN(groupId),
+          isNaNMemberId: isNaN(memberId)
+        });
+        
+        if (isNaN(groupId) || isNaN(memberId)) {
+          alert('参数错误：群组ID或用户ID无效');
+          return;
+        }
+        
+        const response = await axios.delete(`/api/group/${groupId}/remove-user/${memberId}`);
+        console.log('移除成员响应:', response.data);
+        
+        if (response.data.code === 200) {
+          // 刷新成员列表
+          const membersResponse = await axios.get(`/api/group/${groupId}/users`);
+          if (membersResponse.data.code === 200) {
+            groupMembers.value = membersResponse.data.data;
+          }
+          alert('移除成员成功');
+        } else {
+          alert('移除成员失败: ' + response.data.msg);
+        }
+      } catch (error) {
+        console.error('移除成员失败:', {
+          error: error,
+          response: error.response?.data,
+          status: error.response?.status,
+          statusText: error.response?.statusText
+        });
+        alert('移除成员失败: ' + (error.response?.data?.msg || error.message));
+      }
+    };
+    
     // 页面加载时的初始化
     onMounted(() => {
-      // 检查是否已登录
       const token = localStorage.getItem('token');
       if (!token) {
         router.push('/login');
         return;
       }
       
-      // 设置页面标题
       document.title = 'WHU-Chat | 主页';
       
-      // 实际应用中应该从后端获取数据
-      // 这里可以添加API调用以获取聊天室、好友、群组等数据
+      // 如果当前在群组页面，则获取群组列表
+      if (activeSection.value === 'groups') {
+        fetchGroups();
+      }
+    });
+    
+    // 监听 activeSection 变化
+    watch(activeSection, (newValue) => {
+      if (newValue === 'groups') {
+        fetchGroups();
+      }
     });
     
     return {
@@ -613,6 +876,7 @@ export default {
       
       // 表单数据
       friendUsername,
+      groupId,
       groupName,
       groupDescription,
       
@@ -635,6 +899,14 @@ export default {
       filteredFriends,
       filteredGroups,
       
+      // 群组详情相关
+      selectedGroup,
+      groupMembers,
+      memberSearch,
+      showAddUserModal,
+      newUserId,
+      filteredMembers,
+      
       // 方法
       toggleUserMenu,
       enterChatRoom,
@@ -645,7 +917,12 @@ export default {
       createGroup,
       logout,
       navigateToAIChat,
-      navigateToGroupChat
+      navigateToGroupChat,
+      selectGroup,
+      confirmDeleteGroup,
+      deleteGroup,
+      addUserToGroup,
+      removeUserFromGroup
     };
   }
 };
@@ -1436,126 +1713,208 @@ export default {
   color: #8E54E9;
 }
 
-/* 模态窗口 */
-.modal-overlay {
+/* 群组详情面板样式 */
+.group-detail-panel {
   position: fixed;
   top: 0;
-  left: 0;
   right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  animation: fadeIn 0.2s ease;
-}
-
-.modal-content {
   width: 400px;
+  height: 100vh;
   background-color: white;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  animation: scaleIn 0.3s ease;
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  animation: slideIn 0.3s ease;
 }
 
-@keyframes scaleIn {
+@keyframes slideIn {
   from {
-    opacity: 0;
-    transform: scale(0.9);
+    transform: translateX(100%);
   }
   to {
-    opacity: 1;
-    transform: scale(1);
+    transform: translateX(0);
   }
 }
 
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.panel-header {
   padding: 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.header-left {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.header-left h3 {
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.group-description {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.group-info {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
   border-bottom: 1px solid #eee;
 }
 
-.modal-header h3 {
-  font-size: 18px;
-  color: #333;
-}
-
-.close-button {
-  background: none;
-  border: none;
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: #666;
-  font-size: 18px;
-  cursor: pointer;
-  transition: color 0.2s;
+  font-size: 14px;
 }
 
-.close-button:hover {
-  color: #ff4757;
+.info-item i {
+  color: #8E54E9;
 }
 
-.modal-body {
-  padding: 20px;
-}
-
-.form-group {
+.member-section {
   margin-bottom: 20px;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 14px;
-  color: #333;
-  font-weight: 500;
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
-.form-group input, .form-group textarea {
-  width: 100%;
-  padding: 10px 15px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-  transition: all 0.2s;
-}
-
-.form-group input:focus, .form-group textarea:focus {
-  border-color: #4776E6;
-  box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.1);
-}
-
-.form-group textarea {
-  min-height: 100px;
-  resize: vertical;
-}
-
-.submit-button {
-  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 12px;
-  width: 100%;
+.section-header h4 {
   font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+  color: #333;
+}
+
+.search-box {
   display: flex;
   align-items: center;
-  justify-content: center;
+  background-color: #f5f5f5;
+  border-radius: 20px;
+  padding: 6px 12px;
+  width: 200px;
 }
 
-.submit-button i {
+.search-box i {
+  color: #999;
+  font-size: 14px;
   margin-right: 8px;
 }
 
-.submit-button:hover {
-  box-shadow: 0 5px 15px rgba(71, 118, 230, 0.3);
+.search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+}
+
+.members {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.member-item:hover {
+  background-color: #f5f5f5;
+}
+
+.member-avatar {
+  width: 40px;
+  height: 40px;
+  margin-right: 12px;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-name {
+  font-size: 14px;
+  color: #333;
+  margin-right: 8px;
+}
+
+.member-role {
+  font-size: 12px;
+  color: #8E54E9;
+  background-color: rgba(142, 84, 233, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.member-actions {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.member-item:hover .member-actions {
+  opacity: 1;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.action-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-button.add {
+  background-color: #4776E6;
+  color: white;
+}
+
+.action-button.delete {
+  background-color: #ff4757;
+  color: white;
+}
+
+.action-button:hover {
   transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.action-button i {
+  font-size: 14px;
 }
 
 /* 过渡动画 */
@@ -1587,5 +1946,132 @@ export default {
   .rooms-grid, .forums-categories {
     grid-template-columns: 1fr;
   }
+}
+
+/* 添加成员表单样式 */
+.add-member-section {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #e9ecef;
+}
+
+.add-member-form {
+  margin-top: 15px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #4776E6;
+  box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.1);
+  outline: none;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.action-button.cancel {
+  background-color: #f8f9fa;
+  color: #495057;
+  border: 1px solid #ced4da;
+}
+
+.action-button.cancel:hover {
+  background-color: #e9ecef;
+}
+
+.action-button.submit {
+  background-color: #4776E6;
+  color: white;
+}
+
+.action-button.submit:hover {
+  background-color: #3b5dc4;
+}
+
+/* 删除确认模态窗口样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-body p {
+  margin-bottom: 20px;
+  color: #495057;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.action-button.delete {
+  background-color: #ff4757;
+  color: white;
+}
+
+.action-button.delete:hover {
+  background-color: #ff2e43;
 }
 </style> 

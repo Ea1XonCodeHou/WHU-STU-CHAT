@@ -17,10 +17,16 @@
           </span>
           <span class="username">{{ username }}</span>
         </div>
-        <button @click="logout" class="logout-btn">
-          <span class="material-icon">logout</span>
-          <span>退出</span>
-        </button>
+        <div class="chat-actions">
+          <button @click="switchToGroupChat" class="action-btn">
+            <span class="material-icon">groups</span>
+            <span>群组聊天</span>
+          </button>
+          <button @click="logout" class="logout-btn">
+            <span class="material-icon">logout</span>
+            <span>退出</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -307,6 +313,9 @@ export default {
       
       // 刷新页面或重定向到登录页
       this.$router.push('/login');
+    },
+    switchToGroupChat() {
+      this.$router.push('/groupchat');
     }
   }
 }
@@ -690,5 +699,10 @@ export default {
   direction: ltr;
   -webkit-font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
+}
+
+.chat-actions {
+  display: flex;
+  gap: 0.5rem;
 }
 </style> 

@@ -7,6 +7,10 @@
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:hubs\\groupchathub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sch\\whu-stu-chat\\backend\\controllers\\groupcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:controllers\\groupcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sch\\whu-stu-chat\\backend\\services\\groupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:services\\groupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -70,7 +74,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -82,20 +86,32 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "GroupController.cs",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Controllers\\GroupController.cs",
+              "RelativeDocumentMoniker": "Controllers\\GroupController.cs",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Controllers\\GroupController.cs",
+              "RelativeToolTip": "Controllers\\GroupController.cs",
+              "ViewState": "AgIAAEoAAAAAAAAAAAAYwCQAAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-28T02:15:24.592Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
               "Title": "GroupChatHub.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Hubs\\GroupChatHub.cs",
               "RelativeDocumentMoniker": "Hubs\\GroupChatHub.cs",
               "ToolTip": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Hubs\\GroupChatHub.cs",
               "RelativeToolTip": "Hubs\\GroupChatHub.cs",
-              "ViewState": "AgIAABgAAAAAAAAAAAAIwBgAAAAHAAAAAAAAAA==",
+              "ViewState": "AgIAACwAAAAAAAAAAAAswOgAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-27T01:00:17.423Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "IChatService.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Services\\IChatService.cs",
               "RelativeDocumentMoniker": "Services\\IChatService.cs",
@@ -107,7 +123,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "ChatService.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Services\\ChatService.cs",
               "RelativeDocumentMoniker": "Services\\ChatService.cs",
@@ -119,20 +135,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "GroupService.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Services\\GroupService.cs",
               "RelativeDocumentMoniker": "Services\\GroupService.cs",
               "ToolTip": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Services\\GroupService.cs",
               "RelativeToolTip": "Services\\GroupService.cs",
-              "ViewState": "AgIAAHQBAAAAAAAAAAAswIIBAAAlAAAAAAAAAA==",
+              "ViewState": "AgIAAFwAAAAAAAAAAAAQwGwAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-26T06:22:06.156Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-04-26T06:22:06.156Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "IGroupService.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Services\\IGroupService.cs",
               "RelativeDocumentMoniker": "Services\\IGroupService.cs",
@@ -144,7 +159,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "Group.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Models\\Group.cs",
               "RelativeDocumentMoniker": "Models\\Group.cs",
@@ -156,7 +171,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "GroupDTO.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\DTOs\\GroupDTO.cs",
               "RelativeDocumentMoniker": "DTOs\\GroupDTO.cs",
@@ -168,7 +183,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "MessageDTO.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\DTOs\\MessageDTO.cs",
               "RelativeDocumentMoniker": "DTOs\\MessageDTO.cs",
@@ -180,7 +195,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
@@ -192,7 +207,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "UserVO.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\DTOs\\UserVO.cs",
               "RelativeDocumentMoniker": "DTOs\\UserVO.cs",
@@ -204,7 +219,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "UserDTO.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\DTOs\\UserDTO.cs",
               "RelativeDocumentMoniker": "DTOs\\UserDTO.cs",
@@ -216,7 +231,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "Result.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Utils\\Result.cs",
               "RelativeDocumentMoniker": "Utils\\Result.cs",
@@ -228,7 +243,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "backend.http",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\backend.http",
               "RelativeDocumentMoniker": "backend.http",
@@ -240,7 +255,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "ChatHub.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Hubs\\ChatHub.cs",
               "RelativeDocumentMoniker": "Hubs\\ChatHub.cs",
@@ -252,7 +267,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sch\\WHU-STU-CHAT\\backend\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",

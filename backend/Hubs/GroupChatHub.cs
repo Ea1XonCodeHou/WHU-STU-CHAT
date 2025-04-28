@@ -20,23 +20,23 @@ namespace backend.Hubs
             _groupService = groupService;
         }
 
-        // ÓÃ»§¼ÓÈëÈº×é
+        // ç”¨æˆ·åŠ å…¥ç¾¤ç»„
         public async Task JoinGroup(int userId, string username, int groupId)
         {
             try
             {
-                _logger.LogInformation($"ÓÃ»§ {username}({userId}) ³¢ÊÔ¼ÓÈëÈº×é {groupId}");
+                _logger.LogInformation($"ç”¨æˆ· {username}({userId}) å°è¯•åŠ å…¥ç¾¤ç»„ {groupId}");
 
-                //var group = await _groupService.GetGroupAsync(groupId);//ÕâÒ»ĞĞÒª×¢ÊÍµô£¿
+                //var group = await _groupService.GetGroupAsync(groupId);//è¦æ³¨æ„çš„æ˜¯
                 var group = _groupService.GetGroupAsync(groupId);
                 if (group == null)
                 {
-                    _logger.LogWarning($"Èº×é {groupId} ²»´æÔÚ");
-                    await Clients.Caller.SendAsync("Error", "Èº×é²»´æÔÚ");
+                    _logger.LogWarning($"ç¾¤ç»„ {groupId} ä¸å­˜åœ¨");
+                    await Clients.Caller.SendAsync("Error", "ç¾¤ç»„ä¸å­˜åœ¨");
                     return;
                 }
 
-                // ±£´æÓÃ»§Á¬½ÓĞÅÏ¢
+                // ä¿å­˜ç”¨æˆ·ä¿¡æ¯
                 _connections[Context.ConnectionId] = new UserConnection
                 {
                     UserId = userId,
@@ -45,57 +45,57 @@ namespace backend.Hubs
                     ConnectionId = Context.ConnectionId
                 };
 
-                // ½«ÓÃ»§Ìí¼Óµ½ SignalR ×é
+                // å°†ç”¨æˆ·æ·»åŠ åˆ° SignalR ç»„
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"Group_{groupId}");
-                _logger.LogInformation($"ÓÃ»§ {username}({userId}) ÒÑ¼ÓÈë SignalR ×é Group_{groupId}");
+                _logger.LogInformation($"ç”¨æˆ· {username}({userId}) å·²åŠ å…¥ SignalR ç»„ Group_{groupId}");
 
-                // Ìí¼ÓÓÃ»§µ½Èº×é
+                // å°†ç”¨æˆ·æ·»åŠ åˆ°ç¾¤ç»„
                 var success = await _groupService.AddUserToGroupAsync(groupId, userId);
                 if (!success)
                 {
-                    _logger.LogWarning($"ÎŞ·¨½«ÓÃ»§ {username}({userId}) Ìí¼Óµ½Èº×é {groupId}");
-                    await Clients.Caller.SendAsync("Error", "¼ÓÈëÈº×éÊ§°Ü");
+                    _logger.LogWarning($"æ— æ³•å°†ç”¨æˆ· {username}({userId}) æ·»åŠ åˆ°ç¾¤ç»„ {groupId}");
+                    await Clients.Caller.SendAsync("Error", "æ·»åŠ ç”¨æˆ·åˆ°ç¾¤ç»„å¤±è´¥");
                     return;
                 }
 
-                // »ñÈ¡Èº×éÀúÊ·ÏûÏ¢
+                // è·å–ç¾¤ç»„å†å²æ¶ˆæ¯
                 var messages = await _groupService.GetGroupMessagesAsync(groupId, 20);
                 await Clients.Caller.SendAsync("ReceiveHistoryMessages", messages);
 
-                // Í¨ÖªÈº×éÆäËû³ÉÔ±ÓÃ»§ÒÑ¼ÓÈë
+                // é€šçŸ¥ç¾¤ç»„å…¶ä»–æˆå‘˜ç”¨æˆ·å·²åŠ å…¥
                 var joinMessage = new GroupMessageDTO
                 {
                     MessageId = 0,
                     GroupId = groupId,
                     SenderId = 0,
-                    SenderName = "ÏµÍ³",
-                    Content = $"{username} ¼ÓÈëÁËÈº×é",
+                    SenderName = "ç³»ç»Ÿ",
+                    Content = $"{username} åŠ å…¥äº†ç¾¤ç»„",
                     CreateTime = DateTime.Now,
                     
                 };
                 await Clients.Group($"Group_{groupId}").SendAsync("ReceiveMessage", joinMessage);
 
-                // ¸üĞÂÈº×éÓÃ»§ÁĞ±í
+                // æ›´æ–°ç¾¤ç»„ç”¨æˆ·åˆ—è¡¨
                 var users = await _groupService.GetGroupUsersAsync(groupId);
                 await Clients.Group($"Group_{groupId}").SendAsync("UpdateGroupUsers", users);
 
-                _logger.LogInformation($"ÓÃ»§ {username}({userId}) ³É¹¦¼ÓÈëÈº×é {groupId}");
+                _logger.LogInformation($"ç”¨æˆ· {username}({userId}) æˆåŠŸåŠ å…¥ç¾¤ç»„ {groupId}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"ÓÃ»§¼ÓÈëÈº×éÊ±·¢Éú´íÎó: {ex.Message}");
-                await Clients.Caller.SendAsync("Error", "¼ÓÈëÈº×éÊ§°Ü: " + ex.Message);
+                _logger.LogError(ex, $"ç”¨æˆ·åŠ å…¥ç¾¤ç»„æ—¶å‘ç”Ÿé”™è¯¯: {ex.Message}");
+                await Clients.Caller.SendAsync("Error", "åŠ å…¥ç¾¤ç»„å¤±è´¥: " + ex.Message);
             }
         }
 
-        // ·¢ËÍÏûÏ¢µ½Èº×é
+        // å‘é€æ¶ˆæ¯åˆ°ç¾¤ç»„
         public async Task SendMessageToGroup(string message)
         {
             try
             {
                 if (!_connections.TryGetValue(Context.ConnectionId, out var userConnection))
                 {
-                    await Clients.Caller.SendAsync("Error", "ÄúÉĞÎ´¼ÓÈëÈº×é");
+                    await Clients.Caller.SendAsync("Error", "ç”¨æˆ·æœªåŠ å…¥ç¾¤ç»„");
                     return;
                 }
 
@@ -104,18 +104,18 @@ namespace backend.Hubs
                     return;
                 }
 
-                _logger.LogInformation($"ÊÕµ½À´×ÔÓÃ»§ {userConnection.Username}({userConnection.UserId}) µÄÏûÏ¢: {message}");
+                _logger.LogInformation($"æ”¶åˆ°ç”¨æˆ· {userConnection.Username}({userConnection.UserId}) çš„æ¶ˆæ¯: {message}");
 
-                // ±£´æÏûÏ¢µ½Êı¾İ¿â
+                // ä¿å­˜æ¶ˆæ¯åˆ°æ•°æ®åº“
                 int messageId = await _groupService.SaveGroupMessageAsync(userConnection.RoomId, userConnection.UserId, message);
                 if (messageId <= 0)
                 {
-                    _logger.LogWarning("ÏûÏ¢±£´æÊ§°Ü");
-                    await Clients.Caller.SendAsync("Error", "ÏûÏ¢·¢ËÍÊ§°Ü£¬ÇëÖØÊÔ");
+                    _logger.LogWarning("ä¿å­˜æ¶ˆæ¯å¤±è´¥");
+                    await Clients.Caller.SendAsync("Error", "ä¿å­˜æ¶ˆæ¯å¤±è´¥ï¼Œè¯·é‡è¯•");
                     return;
                 }
 
-                // ´´½¨ÏûÏ¢¶ÔÏó
+                // æ„å»ºæ¶ˆæ¯å¯¹è±¡
                 var messageDto = new GroupMessageDTO
                 {
                     MessageId = messageId,
@@ -127,55 +127,106 @@ namespace backend.Hubs
                     
                 };
 
-                // ·¢ËÍÏûÏ¢¸øÈº×éËùÓĞ³ÉÔ±
+                // å°†æ¶ˆæ¯å‘é€ç»™ç¾¤ç»„æ‰€æœ‰æˆå‘˜
                 await Clients.Group($"Group_{userConnection.RoomId}").SendAsync("ReceiveMessage", messageDto);
-                _logger.LogInformation($"ÏûÏ¢ÒÑÍÆËÍµ½Èº×é {userConnection.RoomId}");
+                _logger.LogInformation($"æ¶ˆæ¯å·²å‘é€ç»™ç¾¤ç»„ {userConnection.RoomId}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"·¢ËÍÏûÏ¢Ê±·¢Éú´íÎó: {ex.Message}");
-                await Clients.Caller.SendAsync("Error", "·¢ËÍÏûÏ¢Ê§°Ü: " + ex.Message);
+                _logger.LogError(ex, $"å‘é€æ¶ˆæ¯æ—¶å‘ç”Ÿé”™è¯¯: {ex.Message}");
+                await Clients.Caller.SendAsync("Error", "å‘é€æ¶ˆæ¯å¤±è´¥: " + ex.Message);
             }
         }
 
-        // ¶Ï¿ªÁ¬½Ó´¦Àí
+        // ç”¨æˆ·ç¦»å¼€ç¾¤ç»„
+        public async Task LeaveGroup(int groupId)
+        {
+            try
+            {
+                if (!_connections.TryGetValue(Context.ConnectionId, out var userConnection))
+                {
+                    await Clients.Caller.SendAsync("Error", "ç”¨æˆ·æœªåŠ å…¥ç¾¤ç»„");
+                    return;
+                }
+
+                if (userConnection.RoomId != groupId)
+                {
+                    await Clients.Caller.SendAsync("Error", "ç”¨æˆ·ä¸åœ¨è¯¥ç¾¤ç»„ä¸­");
+                    return;
+                }
+
+                _logger.LogInformation($"ç”¨æˆ· {userConnection.Username}({userConnection.UserId}) ç¦»å¼€ç¾¤ç»„ {groupId}");
+
+                // ä»SignalRç»„ä¸­ç§»é™¤
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Group_{groupId}");
+                _logger.LogInformation($"ç”¨æˆ· {userConnection.Username}({userConnection.UserId}) å·²ä» SignalR ç»„ Group_{groupId} ç§»é™¤");
+
+                // ä»ç¾¤ç»„ä¸­ç§»é™¤ç”¨æˆ·
+                await _groupService.RemoveUserFromGroupAsync(groupId, userConnection.UserId);
+
+                // é€šçŸ¥ç¾¤ç»„å…¶ä»–æˆå‘˜ç”¨æˆ·å·²ç¦»å¼€
+                var leaveMessage = new GroupMessageDTO
+                {
+                    MessageId = 0,
+                    GroupId = groupId,
+                    SenderId = 0,
+                    SenderName = "ç³»ç»Ÿ",
+                    Content = $"{userConnection.Username} ç¦»å¼€äº†ç¾¤ç»„",
+                    CreateTime = DateTime.Now,
+                };
+                await Clients.Group($"Group_{groupId}").SendAsync("ReceiveMessage", leaveMessage);
+
+                // æ›´æ–°ç¾¤ç»„ç”¨æˆ·åˆ—è¡¨
+                var users = await _groupService.GetGroupUsersAsync(groupId);
+                await Clients.Group($"Group_{groupId}").SendAsync("UpdateGroupUsers", users);
+
+                _logger.LogInformation($"ç”¨æˆ· {userConnection.Username}({userConnection.UserId}) æˆåŠŸç¦»å¼€ç¾¤ç»„ {groupId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"ç”¨æˆ·ç¦»å¼€ç¾¤ç»„æ—¶å‘ç”Ÿé”™è¯¯: {ex.Message}");
+                await Clients.Caller.SendAsync("Error", "ç¦»å¼€ç¾¤ç»„å¤±è´¥: " + ex.Message);
+            }
+        }
+
+        // ç”¨æˆ·æ–­å¼€è¿æ¥
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             try
             {
                 if (_connections.TryRemove(Context.ConnectionId, out var userConnection))
                 {
-                    _logger.LogInformation($"ÓÃ»§ {userConnection.Username}({userConnection.UserId}) ¶Ï¿ªÁ¬½Ó");
+                    _logger.LogInformation($"ç”¨æˆ· {userConnection.Username}({userConnection.UserId}) æ–­å¼€è¿æ¥");
 
                     await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Group_{userConnection.RoomId}");
-                    _logger.LogInformation($"ÓÃ»§ {userConnection.Username}({userConnection.UserId}) ÒÑ´Ó SignalR ×é Group_{userConnection.RoomId} ÒÆ³ı");
+                    _logger.LogInformation($"ç”¨æˆ· {userConnection.Username}({userConnection.UserId}) å·²ä» SignalR ç»„ Group_{userConnection.RoomId} ç§»é™¤");
 
-                    // ´ÓÈº×éÒÆ³ıÓÃ»§
-                    await _groupService.RemoveUserFromGroupAsync(userConnection.RoomId, userConnection.UserId);
+                    // ä»ç¾¤ç»„ä¸­ç§»é™¤ç”¨æˆ·
+                    //await _groupService.RemoveUserFromGroupAsync(userConnection.RoomId, userConnection.UserId);
 
-                    // Í¨ÖªÈº×éÆäËû³ÉÔ±ÓÃ»§ÒÑÀë¿ª
+                    // é€šçŸ¥ç¾¤ç»„å…¶ä»–æˆå‘˜ç”¨æˆ·å·²ç¦»å¼€
                     var leaveMessage = new GroupMessageDTO
                     {
                         MessageId = 0,
                         GroupId = userConnection.RoomId,
                         SenderId = 0,
-                        SenderName = "ÏµÍ³",
-                        Content = $"{userConnection.Username} Àë¿ªÁËÈº×é",
+                        SenderName = "ç³»ç»Ÿ",
+                        Content = $"{userConnection.Username} ç¦»å¼€äº†ç¾¤ç»„",
                         CreateTime = DateTime.Now,
                         
                     };
                     await Clients.Group($"Group_{userConnection.RoomId}").SendAsync("ReceiveMessage", leaveMessage);
 
-                    // ¸üĞÂÈº×éÓÃ»§ÁĞ±í
+                    // æ›´æ–°ç¾¤ç»„ç”¨æˆ·åˆ—è¡¨
                     var users = await _groupService.GetGroupUsersAsync(userConnection.RoomId);
                     await Clients.Group($"Group_{userConnection.RoomId}").SendAsync("UpdateGroupUsers", users);
 
-                    _logger.LogInformation($"ÓÃ»§ {userConnection.Username}({userConnection.UserId}) Àë¿ªÈº×é {userConnection.RoomId}");
+                    _logger.LogInformation($"ç”¨æˆ· {userConnection.Username}({userConnection.UserId}) æˆåŠŸç¦»å¼€ç¾¤ç»„ {userConnection.RoomId}");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"¶Ï¿ªÁ¬½Ó´¦ÀíÊ±·¢Éú´íÎó: {ex.Message}");
+                _logger.LogError(ex, $"ç”¨æˆ·æ–­å¼€è¿æ¥æ—¶å‘ç”Ÿé”™è¯¯: {ex.Message}");
             }
 
             await base.OnDisconnectedAsync(exception);

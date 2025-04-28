@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import ChatRoom from '../views/ChatRoom.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
+import GroupChat from '../views/GroupChat.vue'
 
 const routes = [
   {
@@ -24,6 +25,12 @@ const routes = [
     path: '/chatroom',
     name: 'ChatRoom',
     component: ChatRoom,
+    meta: { requiresAuth: true } // 需要登录才能访问
+  },
+  {
+    path: '/groupchat',
+    name: 'GroupChat',
+    component: GroupChat,
     meta: { requiresAuth: true } // 需要登录才能访问
   }
 ]

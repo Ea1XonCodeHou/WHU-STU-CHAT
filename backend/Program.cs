@@ -11,35 +11,35 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Ìí¼ÓSignalR·þÎñ
+// ï¿½ï¿½ï¿½ï¿½SignalRï¿½ï¿½ï¿½ï¿½
 builder.Services.AddSignalR();
 
-// Ìí¼ÓCORS²ßÂÔ
+// ï¿½ï¿½ï¿½ï¿½CORSï¿½ï¿½ï¿½ï¿½
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
-        builder.WithOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5000", "http://127.0.0.1:5173", "http://127.0.0.1:5174") // ÔÊÐí¶à¸öÇ°¶ËµØÖ·
+        builder.WithOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5000", "http://127.0.0.1:5173", "http://127.0.0.1:5174") // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½Ëµï¿½Ö·
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());
 });
 
-// ×¢²á·þÎñ
+// ×¢ï¿½ï¿½ï¿½ï¿½ï¿½
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 
-// ÑéÖ¤Êý¾Ý¿âÁ¬½Ó
+// ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½
 using (var connection = new MySqlConnection(builder.Configuration.GetConnectionString("DefaultConnection")))
 {
     try
     {
         connection.Open();
-        Console.WriteLine("Êý¾Ý¿âÁ¬½Ó³É¹¦£¡");
+        Console.WriteLine("ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½Ó³É¹ï¿½ï¿½ï¿½");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Êý¾Ý¿âÁ¬½ÓÊ§°Ü£º{ex.Message}");
+        Console.WriteLine($"ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½Ü£ï¿½{ex.Message}");
     }
 }
 
@@ -54,13 +54,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Ê¹ÓÃCORS
+// Ê¹ï¿½ï¿½CORS
 app.UseCors("CorsPolicy");
 
 app.UseAuthorization();
 
 app.MapControllers();
-// Ó³ÉäSignalR Hub
+// Ó³ï¿½ï¿½SignalR Hub
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<GroupChatHub>("/groupChatHub");
 

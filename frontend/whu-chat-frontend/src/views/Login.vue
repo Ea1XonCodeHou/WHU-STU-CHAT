@@ -175,10 +175,10 @@ export default {
           // 调试日志
           console.log('登录成功，用户数据：', data.data);
           
-          // 登录成功，存储token和用户信息
+          // 登录成功，存储用户信息
           localStorage.setItem('token', data.data.token);
           localStorage.setItem('userId', data.data.userInfo.id);
-          localStorage.setItem('userUsername', data.data.userInfo.username);
+          localStorage.setItem('username', data.data.userInfo.username);
           localStorage.setItem('userPhone', data.data.userInfo.phone || '');
           localStorage.setItem('userEmail', data.data.userInfo.email || '');
           localStorage.setItem('userAvatar', data.data.userInfo.avatar || '');
@@ -195,11 +195,11 @@ export default {
           }
           
           // 显示登录成功消息
-          this.successMessage = '登录成功，正在跳转到聊天室...';
+          this.successMessage = '登录成功，正在跳转到主页...';
           
-          // 跳转到聊天室页面而非首页
+          // 跳转到主页
           setTimeout(() => {
-            this.$router.push('/chatroom');
+            this.$router.push('/home');
           }, 1000);
         } else {
           // 登录失败，显示错误信息

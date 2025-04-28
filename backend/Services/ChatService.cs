@@ -6,6 +6,9 @@ using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.IO;
+using Microsoft.AspNetCore.Http;
+using System.Text.Json;
 
 namespace backend.Services
 {
@@ -16,6 +19,7 @@ namespace backend.Services
     {
         private readonly string _connectionString;
         private readonly ILogger<ChatService> _logger;
+        private readonly string _tempFileDirectory;
         private static readonly ConcurrentDictionary<int, ConcurrentDictionary<int, UserDTO>> _onlineUsers = 
             new ConcurrentDictionary<int, ConcurrentDictionary<int, UserDTO>>();
 
@@ -23,6 +27,15 @@ namespace backend.Services
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
             _logger = logger;
+            
+            // 设置临时文件目录
+            _tempFileDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp", "uploads");
+            
+            // 确保目录存在
+            if (!Directory.Exists(_tempFileDirectory))
+            {
+                Directory.CreateDirectory(_tempFileDirectory);
+            }
         }
 
         /// <summary>
@@ -65,8 +78,10 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
+                    // 使用修改后的SQL查询，包含MessageType和FileUrl字段
                     var command = new MySqlCommand(
-                        @"SELECT m.MessageId, m.SenderId, u.Username AS SenderName, m.Content, m.CreateTime, m.RoomId
+                        @"SELECT m.MessageId, m.SenderId, u.Username AS SenderName, m.Content, 
+                          m.CreateTime, m.RoomId, m.MessageType, m.FileUrl
                           FROM RoomMessages m
                           JOIN Users u ON m.SenderId = u.UserId
                           WHERE m.RoomId = @RoomId
@@ -80,22 +95,65 @@ namespace backend.Services
                     {
                         while (await reader.ReadAsync())
                         {
+                            string content = reader.GetString(reader.GetOrdinal("Content"));
+                            string messageType = reader.IsDBNull(reader.GetOrdinal("MessageType")) 
+                                ? "text" 
+                                : reader.GetString(reader.GetOrdinal("MessageType"));
+                            
+                            string fileUrl = null;
+                            if (!reader.IsDBNull(reader.GetOrdinal("FileUrl")))
+                            {
+                                fileUrl = reader.GetString(reader.GetOrdinal("FileUrl"));
+                            }
+                            
+                            // 对于文件类型消息，解析JSON内容获取文件名和大小信息
+                            string fileName = null;
+                            long? fileSize = null;
+                            
+                            if ((messageType == "file" || messageType == "image") && !string.IsNullOrEmpty(fileUrl))
+                            {
+                                try
+                                {
+                                    var fileInfo = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
+                                    if (fileInfo != null)
+                                    {
+                                        if (fileInfo.TryGetValue("fileName", out var name))
+                                            fileName = name;
+                                            
+                                        if (fileInfo.TryGetValue("fileSize", out var size) && long.TryParse(size, out var sizeValue))
+                                            fileSize = sizeValue;
+                                            
+                                        // 如果是文件类型，更新显示内容
+                                        if (messageType == "file" && !string.IsNullOrEmpty(fileName))
+                                            content = $"文件: {fileName}";
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogWarning(ex, "解析文件信息失败");
+                                    // 解析失败时保持原始内容
+                                }
+                            }
+                            
                             messages.Add(new MessageDTO
                             {
                                 MessageId = reader.GetInt32(reader.GetOrdinal("MessageId")),
                                 SenderId = reader.GetInt32(reader.GetOrdinal("SenderId")),
                                 SenderName = reader.GetString(reader.GetOrdinal("SenderName")),
-                                Content = reader.GetString(reader.GetOrdinal("Content")),
+                                Content = content,
                                 RoomId = reader.GetInt32(reader.GetOrdinal("RoomId")),
                                 SendTime = reader.GetDateTime(reader.GetOrdinal("CreateTime")),
-                                MessageType = "text",
+                                MessageType = messageType,
+                                FileUrl = fileUrl,
+                                FileName = fileName,
+                                FileSize = fileSize,
                                 IsRead = true
                             });
                         }
                     }
                 }
                 
-                // 按时间正序排列消息
+                // 按时间升序返回消息
                 messages.Reverse();
                 return messages;
             }
@@ -111,21 +169,50 @@ namespace backend.Services
         /// </summary>
         public async Task<int> SaveRoomMessageAsync(int roomId, int userId, string message)
         {
+            // 调用带类型的方法，默认为text类型
+            return await SaveRoomMessageWithTypeAsync(roomId, userId, message, "text");
+        }
+        
+        /// <summary>
+        /// 保存聊天室消息（带消息类型）
+        /// </summary>
+        public async Task<int> SaveRoomMessageWithTypeAsync(int roomId, int userId, string message, 
+            string messageType, string fileUrl = null, string fileName = null, long? fileSize = null)
+        {
             try
             {
                 using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
 
+                    // 对于文件类型消息，将文件信息序列化为JSON存储
+                    string content = message;
+                    if ((messageType == "file" || messageType == "image") && !string.IsNullOrEmpty(fileName))
+                    {
+                        var fileInfo = new Dictionary<string, string>
+                        {
+                            { "fileName", fileName },
+                            { "fileSize", fileSize?.ToString() ?? "0" }
+                        };
+                        content = JsonSerializer.Serialize(fileInfo);
+                    }
+
+                    // 使用修改后的SQL插入语句，包含MessageType和FileUrl字段
                     var command = new MySqlCommand(
-                        @"INSERT INTO RoomMessages (RoomId, SenderId, Content, CreateTime) 
-                          VALUES (@RoomId, @SenderId, @Content, @CreateTime);
+                        @"INSERT INTO RoomMessages (RoomId, SenderId, Content, CreateTime, MessageType, FileUrl) 
+                          VALUES (@RoomId, @SenderId, @Content, @CreateTime, @MessageType, @FileUrl);
                           SELECT LAST_INSERT_ID();",
                         connection);
                     command.Parameters.AddWithValue("@RoomId", roomId);
                     command.Parameters.AddWithValue("@SenderId", userId);
-                    command.Parameters.AddWithValue("@Content", message);
+                    command.Parameters.AddWithValue("@Content", content);
                     command.Parameters.AddWithValue("@CreateTime", DateTime.Now);
+                    command.Parameters.AddWithValue("@MessageType", messageType);
+                    
+                    if (string.IsNullOrEmpty(fileUrl))
+                        command.Parameters.AddWithValue("@FileUrl", DBNull.Value);
+                    else
+                        command.Parameters.AddWithValue("@FileUrl", fileUrl);
 
                     var result = await command.ExecuteScalarAsync();
                     return Convert.ToInt32(result);
@@ -135,6 +222,46 @@ namespace backend.Services
             {
                 _logger.LogError(ex, $"保存聊天室消息失败: {ex.Message}");
                 return 0;
+            }
+        }
+        
+        /// <summary>
+        /// 上传文件到临时目录
+        /// </summary>
+        public async Task<(string FileUrl, string FileName, long FileSize)> UploadTempFileAsync(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    throw new ArgumentException("没有选择文件或文件为空");
+                }
+
+                // 限制文件大小（如10MB）
+                if (file.Length > 10 * 1024 * 1024)
+                {
+                    throw new ArgumentException("文件大小超过限制");
+                }
+
+                // 生成唯一文件名
+                string fileExtension = Path.GetExtension(file.FileName);
+                string uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
+                string filePath = Path.Combine(_tempFileDirectory, uniqueFileName);
+                
+                // 保存文件
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                
+                // 返回可访问的URL和文件信息
+                string fileUrl = $"/temp/uploads/{uniqueFileName}";
+                return (fileUrl, file.FileName, file.Length);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"上传文件失败: {ex.Message}");
+                throw; // 重新抛出异常以便控制器处理
             }
         }
 
@@ -153,19 +280,21 @@ namespace backend.Services
                     users.AddRange(roomUsers.Values);
                 }
                 
-                // 如果没有在线用户，从数据库获取最近活跃的用户
+                // 如果没有在线用户，从数据库获取最近活跃用户
                 if (users.Count == 0)
                 {
                     using (var connection = new MySqlConnection(_connectionString))
                     {
                         await connection.OpenAsync();
 
+                        // 修改SQL查询，确保ORDER BY列包含在SELECT列表中
                         var command = new MySqlCommand(
-                            @"SELECT DISTINCT u.UserId, u.Username, u.Avatar
+                            @"SELECT DISTINCT u.UserId, u.Username, u.Avatar, MAX(m.CreateTime) as LastActivity
                               FROM Users u
                               JOIN RoomMessages m ON u.UserId = m.SenderId
                               WHERE m.RoomId = @RoomId
-                              ORDER BY m.CreateTime DESC
+                              GROUP BY u.UserId, u.Username, u.Avatar
+                              ORDER BY LastActivity DESC
                               LIMIT 10",
                             connection);
                         command.Parameters.AddWithValue("@RoomId", roomId);
@@ -179,7 +308,7 @@ namespace backend.Services
                                     Id = reader.GetInt32(reader.GetOrdinal("UserId")),
                                     Username = reader.GetString(reader.GetOrdinal("Username")),
                                     Status = "offline",
-                                    LastActive = DateTime.Now.AddMinutes(-15),
+                                    LastActive = reader.GetDateTime(reader.GetOrdinal("LastActivity")),
                                     AvatarUrl = reader.IsDBNull(reader.GetOrdinal("Avatar")) ? 
                                                 null : reader.GetString(reader.GetOrdinal("Avatar"))
                                 };
@@ -240,7 +369,7 @@ namespace backend.Services
         }
 
         /// <summary>
-        /// 添加用户到在线列表
+        /// 添加用户到聊天室列表
         /// </summary>
         public void AddUserToRoom(int roomId, UserDTO user)
         {
@@ -249,7 +378,7 @@ namespace backend.Services
         }
 
         /// <summary>
-        /// 从在线列表移除用户
+        /// 从聊天室列表移除用户
         /// </summary>
         public void RemoveUserFromRoom(int roomId, int userId)
         {
@@ -257,7 +386,7 @@ namespace backend.Services
             {
                 roomUsers.TryRemove(userId, out _);
                 
-                // 如果聊天室没有用户了，移除聊天室记录
+                // 如果聊天室用户已没人，移除聊天室记录
                 if (roomUsers.IsEmpty)
                 {
                     _onlineUsers.TryRemove(roomId, out _);

@@ -2,63 +2,85 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using backend.DTOs;
+using Microsoft.AspNetCore.Http;
 
 namespace backend.Services
 {
     /// <summary>
-    /// ÁÄÌì·şÎñ½Ó¿Ú
+    /// èŠå¤©æœåŠ¡æ¥å£
     /// </summary>
     public interface IChatService
     {
         /// <summary>
-        /// »ñÈ¡ÁÄÌìÊÒÃû³Æ
+        /// è·å–èŠå¤©å®¤åç§°
         /// </summary>
-        /// <param name="roomId">ÁÄÌìÊÒID</param>
-        /// <returns>ÁÄÌìÊÒÃû³Æ</returns>
+        /// <param name="roomId">èŠå¤©å®¤ID</param>
+        /// <returns>èŠå¤©å®¤åç§°</returns>
         Task<string> GetRoomNameAsync(int roomId);
 
         /// <summary>
-        /// »ñÈ¡ÁÄÌìÊÒÀúÊ·ÏûÏ¢
+        /// è·å–èŠå¤©å®¤å†å²æ¶ˆæ¯
         /// </summary>
-        /// <param name="roomId">ÁÄÌìÊÒID</param>
-        /// <param name="count">ÏûÏ¢ÊıÁ¿</param>
-        /// <returns>ÏûÏ¢ÁĞ±í</returns>
+        /// <param name="roomId">èŠå¤©å®¤ID</param>
+        /// <param name="count">æ¶ˆæ¯æ•°é‡</param>
+        /// <returns>æ¶ˆæ¯åˆ—è¡¨</returns>
         Task<List<MessageDTO>> GetRoomMessagesAsync(int roomId, int count);
 
         /// <summary>
-        /// ±£´æÁÄÌìÊÒÏûÏ¢
+        /// ä¿å­˜èŠå¤©å®¤æ¶ˆæ¯
         /// </summary>
-        /// <param name="roomId">ÁÄÌìÊÒID</param>
-        /// <param name="userId">ÓÃ»§ID</param>
-        /// <param name="message">ÏûÏ¢ÄÚÈİ</param>
-        /// <returns>ÏûÏ¢ID</returns>
+        /// <param name="roomId">èŠå¤©å®¤ID</param>
+        /// <param name="userId">ç”¨æˆ·ID</param>
+        /// <param name="message">æ¶ˆæ¯å†…å®¹</param>
+        /// <returns>æ¶ˆæ¯ID</returns>
         Task<int> SaveRoomMessageAsync(int roomId, int userId, string message);
+        
+        /// <summary>
+        /// ä¿å­˜èŠå¤©å®¤æ¶ˆæ¯ï¼ˆå¸¦æ¶ˆæ¯ç±»å‹ï¼‰
+        /// </summary>
+        /// <param name="roomId">èŠå¤©å®¤ID</param>
+        /// <param name="userId">ç”¨æˆ·ID</param>
+        /// <param name="message">æ¶ˆæ¯å†…å®¹</param>
+        /// <param name="messageType">æ¶ˆæ¯ç±»å‹</param>
+        /// <param name="fileUrl">æ–‡ä»¶URL</param>
+        /// <param name="fileName">æ–‡ä»¶å</param>
+        /// <param name="fileSize">æ–‡ä»¶å¤§å°</param>
+        /// <returns>æ¶ˆæ¯ID</returns>
+        Task<int> SaveRoomMessageWithTypeAsync(int roomId, int userId, string message, 
+            string messageType, string fileUrl = null, string fileName = null, long? fileSize = null);
+        
+        /// <summary>
+        /// ä¸Šä¼ æ–‡ä»¶åˆ°ä¸´æ—¶ç›®å½•
+        /// </summary>
+        /// <param name="file">æ–‡ä»¶å¯¹è±¡</param>
+        /// <returns>æ–‡ä»¶URLå’Œä¿¡æ¯</returns>
+        Task<(string FileUrl, string FileName, long FileSize)> UploadTempFileAsync(IFormFile file);
 
         /// <summary>
-        /// »ñÈ¡ÁÄÌìÊÒÔÚÏßÓÃ»§
+        /// è·å–èŠå¤©å®¤åœ¨çº¿ç”¨æˆ·
         /// </summary>
-        /// <param name="roomId">ÁÄÌìÊÒID</param>
-        /// <returns>ÓÃ»§ÁĞ±í</returns>
+        /// <param name="roomId">èŠå¤©å®¤ID</param>
+        /// <returns>ç”¨æˆ·åˆ—è¡¨</returns>
         Task<List<UserDTO>> GetRoomOnlineUsersAsync(int roomId);
 
         /// <summary>
-        /// »ñÈ¡»ò´´½¨Ä¬ÈÏÁÄÌìÊÒ
+        /// è·å–æˆ–åˆ›å»ºé»˜è®¤èŠå¤©å®¤
         /// </summary>
-        /// <returns>ÁÄÌìÊÒID</returns>
+        /// <returns>èŠå¤©å®¤ID</returns>
         Task<int> GetOrCreateDefaultRoomAsync();
 
         /// <summary>
-        /// Ìí¼ÓÓÃ»§µ½ÔÚÏßÁĞ±í
+        /// æ·»åŠ ç”¨æˆ·åˆ°èŠå¤©å®¤åˆ—è¡¨
         /// </summary>
-        /// <param name="roomId">ÁÄÌìÊÒID</param>
-        /// <param name="user">ÓÃ»§ĞÅÏ¢</param>
+        /// <param name="roomId">èŠå¤©å®¤ID</param>
+        /// <param name="user">ç”¨æˆ·ä¿¡æ¯</param>
         void AddUserToRoom(int roomId, UserDTO user);
 
         /// <summary>
-        /// ´ÓÔÚÏßÁĞ±íÒÆ³ıÓÃ»§
+        /// ä»èŠå¤©å®¤åˆ—è¡¨ç§»é™¤ç”¨æˆ·
         /// </summary>
-        /// <param name="roomId">ÁÄÌìÊÒID</param>
-        /// <param name="userId">ÓÃ»§ID</param>
+        /// <param name="roomId">èŠå¤©å®¤ID</param>
+        /// <param name="userId">ç”¨æˆ·ID</param>
         void RemoveUserFromRoom(int roomId, int userId);
     }
 } 

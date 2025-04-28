@@ -4,8 +4,7 @@ import App from "./App.vue";
 import router from "./router";
 
 // 配置axios默认设置
-axios.defaults.baseURL = 'http://localhost:5066'; // 更新为实际后端API地址
-axios.defaults.timeout = 10000; // 请求超时时间
+axios.defaults.timeout = 1000000; // 请求超时时间
 axios.defaults.headers.post['Content-Type'] = 'application/json;charset=UTF-8';
 
 // 如果localStorage中有token，则在请求头中添加token

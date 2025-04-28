@@ -441,7 +441,8 @@ export default {
         username: this.formData.username,
         email: this.formData.email,
         phone: this.formData.phone,
-        password: this.formData.password
+        password: this.formData.password,
+        confirmPassword: this.formData.confirmPassword
       };
       
       // 发送注册请求

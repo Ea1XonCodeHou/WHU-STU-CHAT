@@ -3,49 +3,64 @@ using System;
 namespace backend.DTOs
 {
     /// <summary>
-    /// ÏûÏ¢Êı¾İ´«Êä¶ÔÏó
+    /// æ¶ˆæ¯æ•°æ®ä¼ è¾“å¯¹è±¡
     /// </summary>
     public class MessageDTO
     {
         /// <summary>
-        /// ÏûÏ¢ID
+        /// æ¶ˆæ¯ID
         /// </summary>
         public int MessageId { get; set; }
 
         /// <summary>
-        /// ÏûÏ¢ÄÚÈİ
+        /// æ¶ˆæ¯å†…å®¹
         /// </summary>
         public string Content { get; set; }
 
         /// <summary>
-        /// ·¢ËÍÊ±¼ä
+        /// å‘é€æ—¶é—´
         /// </summary>
         public DateTime SendTime { get; set; }
 
         /// <summary>
-        /// ·¢ËÍÕßID
+        /// å‘é€è€…ID
         /// </summary>
         public int SenderId { get; set; }
 
         /// <summary>
-        /// ·¢ËÍÕßÓÃ»§Ãû
+        /// å‘é€è€…ç”¨æˆ·å
         /// </summary>
         public string SenderName { get; set; }
 
         /// <summary>
-        /// ÁÄÌìÊÒID
+        /// èŠå¤©å®¤ID
         /// </summary>
         public int RoomId { get; set; }
 
         /// <summary>
-        /// ÊÇ·ñÒÑ¶Á
+        /// æ˜¯å¦å·²è¯»
         /// </summary>
         public bool IsRead { get; set; }
 
         /// <summary>
-        /// ÏûÏ¢ÀàĞÍ£¨text¡¢system¡¢imageµÈ£©
+        /// æ¶ˆæ¯ç±»å‹ï¼štextã€systemã€imageã€fileã€emoji
         /// </summary>
         public string MessageType { get; set; } = "text";
+        
+        /// <summary>
+        /// æ–‡ä»¶URLï¼Œç”¨äºå›¾ç‰‡ã€æ–‡ä»¶ç­‰å¤šåª’ä½“æ¶ˆæ¯
+        /// </summary>
+        public string FileUrl { get; set; }
+        
+        /// <summary>
+        /// æ–‡ä»¶åï¼Œç”¨äºæ–‡ä»¶æ¶ˆæ¯
+        /// </summary>
+        public string FileName { get; set; }
+        
+        /// <summary>
+        /// æ–‡ä»¶å¤§å°ï¼ˆå­—èŠ‚æ•°ï¼‰ï¼Œç”¨äºæ–‡ä»¶æ¶ˆæ¯
+        /// </summary>
+        public long? FileSize { get; set; }
     }
 
     public class GroupMessageDTO

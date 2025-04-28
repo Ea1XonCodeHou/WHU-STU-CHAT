@@ -1,12 +1,125 @@
 {
   "Version": 1,
-  "Hash": "N7qxhc9M+1QNtfzJGqsi8ULkGFultmEzonbEq/EKgV4=",
+  "Hash": "Eeob0lHdRGrU9iFKkWaNUuUZe61PaqwFOxQbUB01gHM=",
   "Source": "backend",
   "BasePath": "_content/backend",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": [],
-  "Endpoints": []
+  "DiscoveryPatterns": [
+    {
+      "Name": "backend\\wwwroot",
+      "Source": "backend",
+      "ContentRoot": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\wwwroot\\",
+      "BasePath": "_content/backend",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "SourceId": "backend",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\wwwroot\\",
+      "BasePath": "_content/backend",
+      "RelativePath": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466#[.{fingerprint}]?.docx",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "bq8o4izt8i",
+      "Integrity": "zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.bq8o4izt8i.docx",
+      "AssetFile": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "197648"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 28 Apr 2025 08:09:41 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "bq8o4izt8i"
+        },
+        {
+          "Name": "label",
+          "Value": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0="
+        }
+      ]
+    },
+    {
+      "Route": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "AssetFile": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\backend\\wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "197648"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 28 Apr 2025 08:09:41 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0="
+        }
+      ]
+    }
+  ]
 }

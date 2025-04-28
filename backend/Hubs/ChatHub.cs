@@ -21,23 +21,23 @@ namespace backend.Hubs
             _chatService = chatService;
         }
 
-        // ÓÃ»§¼ÓÈëÁÄÌìÊÒ
+        // ç”¨æˆ·åŠ å…¥èŠå¤©å®¤
         public async Task JoinChatRoom(int userId, string username, int roomId)
         {
             try
             {
-                _logger.LogInformation($"ÓÃ»§ {username}({userId}) ³¢ÊÔ¼ÓÈëÁÄÌìÊÒ {roomId}");
+                _logger.LogInformation($"ç”¨æˆ· {username}({userId}) æ­£åœ¨åŠ å…¥èŠå¤©å®¤ {roomId}");
                 
                 string roomName = await _chatService.GetRoomNameAsync(roomId);
                 
                 if (string.IsNullOrEmpty(roomName))
                 {
-                    _logger.LogWarning($"ÁÄÌìÊÒ {roomId} ²»´æÔÚ");
-                    await Clients.Caller.SendAsync("Error", "ÁÄÌìÊÒ²»´æÔÚ");
+                    _logger.LogWarning($"èŠå¤©å®¤ {roomId} ä¸å­˜åœ¨");
+                    await Clients.Caller.SendAsync("Error", "èŠå¤©å®¤ä¸å­˜åœ¨");
                     return;
                 }
 
-                // ±£´æÓÃ»§Á¬½ÓĞÅÏ¢
+                // ä¿å­˜ç”¨æˆ·è¿æ¥ä¿¡æ¯
                 _connections[Context.ConnectionId] = new UserConnection
                 {
                     UserId = userId,
@@ -46,38 +46,38 @@ namespace backend.Hubs
                     ConnectionId = Context.ConnectionId
                 };
 
-                // ½«ÓÃ»§Ìí¼Óµ½SignalR×é
+                // å°†ç”¨æˆ·åŠ å…¥åˆ°SignalRç»„
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"Room_{roomId}");
                 
-                _logger.LogInformation($"ÓÃ»§ {username}({userId}) ÒÑ¼ÓÈëSignalR×é Room_{roomId}");
+                _logger.LogInformation($"ç”¨æˆ· {username}({userId}) å·²åŠ å…¥SignalRç»„ Room_{roomId}");
 
-                // ½«ÓÃ»§Ìí¼Óµ½ÔÚÏßÓÃ»§ÁĞ±í
+                // å°†ç”¨æˆ·åŠ å…¥åˆ°åœ¨çº¿ç”¨æˆ·åˆ—è¡¨
                 var userDto = new UserDTO
                 {
                     Id = userId,
                     Username = username,
                     Status = "online",
                     LastActive = DateTime.Now,
-                    AvatarUrl = null // ¿ÉÒÔ´ÓÊı¾İ¿â»ñÈ¡
+                    AvatarUrl = null // å¯ä»¥ä»æ•°æ®åº“è·å–
                 };
                 _chatService.AddUserToRoom(roomId, userDto);
                 
-                _logger.LogInformation($"ÓÃ»§ {username}({userId}) ÒÑÌí¼Óµ½ÁÄÌìÊÒ {roomId} µÄÔÚÏßÓÃ»§ÁĞ±í");
+                _logger.LogInformation($"ç”¨æˆ· {username}({userId}) å·²è¢«åŠ å…¥åˆ°èŠå¤©å®¤ {roomId} çš„åœ¨çº¿ç”¨æˆ·åˆ—è¡¨");
 
-                // »ñÈ¡ÀúÊ·ÏûÏ¢
+                // è·å–å†å²æ¶ˆæ¯
                 var messages = await _chatService.GetRoomMessagesAsync(roomId, 20);
                 await Clients.Caller.SendAsync("ReceiveHistoryMessages", messages);
                 
-                _logger.LogInformation($"ÒÑÏòÓÃ»§ {username}({userId}) ·¢ËÍ {messages.Count} ÌõÀúÊ·ÏûÏ¢");
+                _logger.LogInformation($"å·²å‘ç”¨æˆ· {username}({userId}) å‘é€ {messages.Count} æ¡å†å²æ¶ˆæ¯");
 
-                // ·¢ËÍÏµÍ³ÏûÏ¢£¬Í¨ÖªËùÓĞÈËÓÃ»§ÒÑ¼ÓÈë
+                // å‘é€ç³»ç»Ÿæ¶ˆæ¯ï¼Œé€šçŸ¥å…¶ä»–ç”¨æˆ·å·²åŠ å…¥
                 var joinMessage = new MessageDTO
                 {
                     MessageId = 0,
                     RoomId = roomId,
-                    SenderId = 0, // ÏµÍ³ÏûÏ¢·¢ËÍÕßIDÎª0
-                    SenderName = "ÏµÍ³",
-                    Content = $"{username} ¼ÓÈëÁËÁÄÌìÊÒ",
+                    SenderId = 0, // ç³»ç»Ÿæ¶ˆæ¯ï¼Œå‘é€è€…IDä¸º0
+                    SenderName = "ç³»ç»Ÿ",
+                    Content = $"{username} åŠ å…¥äº†èŠå¤©å®¤",
                     SendTime = DateTime.Now,
                     MessageType = "system",
                     IsRead = true
@@ -85,58 +85,69 @@ namespace backend.Hubs
                 
                 await Clients.Group($"Room_{roomId}").SendAsync("ReceiveMessage", joinMessage);
                 
-                _logger.LogInformation($"ÒÑÏòÁÄÌìÊÒ {roomId} ·¢ËÍÓÃ»§ {username}({userId}) ¼ÓÈëµÄÏµÍ³ÏûÏ¢");
+                _logger.LogInformation($"å·²å‘èŠå¤©å®¤ {roomId} å‘é€ç”¨æˆ· {username}({userId}) åŠ å…¥çš„ç³»ç»Ÿæ¶ˆæ¯");
                 
-                // »ñÈ¡ÔÚÏßÓÃ»§ÁĞ±í
+                // æ›´æ–°åœ¨çº¿ç”¨æˆ·åˆ—è¡¨
                 var onlineUsers = await _chatService.GetRoomOnlineUsersAsync(roomId);
                 await Clients.Group($"Room_{roomId}").SendAsync("UpdateOnlineUsers", onlineUsers);
                 
-                _logger.LogInformation($"ÒÑÏòÁÄÌìÊÒ {roomId} ·¢ËÍ¸üĞÂºóµÄÔÚÏßÓÃ»§ÁĞ±í£¬¹² {onlineUsers.Count} ÈË");
+                _logger.LogInformation($"å·²å‘èŠå¤©å®¤ {roomId} å‘é€æ›´æ–°åçš„åœ¨çº¿ç”¨æˆ·åˆ—è¡¨ï¼Œå…±æœ‰ {onlineUsers.Count} äºº");
 
-                _logger.LogInformation($"ÓÃ»§ {username}({userId}) ¼ÓÈëÁËÁÄÌìÊÒ {roomName}({roomId}) µÄÈ«¹ı³ÌÒÑÍê³É");
+                _logger.LogInformation($"ç”¨æˆ· {username}({userId}) åŠ å…¥èŠå¤©å®¤ {roomName}({roomId}) çš„å…¨éƒ¨æµç¨‹å·²å®Œæˆ");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"ÓÃ»§¼ÓÈëÁÄÌìÊÒÊ±·¢Éú´íÎó: {ex.Message}");
-                await Clients.Caller.SendAsync("Error", "¼ÓÈëÁÄÌìÊÒÊ§°Ü: " + ex.Message);
+                _logger.LogError(ex, $"ç”¨æˆ·åŠ å…¥èŠå¤©å®¤æ—¶å‡ºç°å¼‚å¸¸: {ex.Message}");
+                await Clients.Caller.SendAsync("Error", "åŠ å…¥èŠå¤©å®¤å¤±è´¥: " + ex.Message);
             }
         }
 
-        // ·¢ËÍÏûÏ¢
+        // å‘é€æ–‡æœ¬æ¶ˆæ¯ï¼ˆä¿æŒå‘åå…¼å®¹ï¼‰
         public async Task SendMessageToRoom(string message)
+        {
+            await SendMessageWithTypeToRoom(message, "text");
+        }
+        
+        // å‘é€æ¶ˆæ¯ï¼ˆå¸¦ç±»å‹ï¼‰
+        public async Task SendMessageWithTypeToRoom(string message, string messageType, string fileUrl = null, string fileName = null, long? fileSize = null)
         {
             try
             {
                 if (!_connections.TryGetValue(Context.ConnectionId, out var userConnection))
                 {
-                    await Clients.Caller.SendAsync("Error", "ÄúÉĞÎ´¼ÓÈëÁÄÌìÊÒ");
+                    await Clients.Caller.SendAsync("Error", "ä½ è¿˜æœªåŠ å…¥èŠå¤©å®¤");
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(message))
+                // æ–‡æœ¬æ¶ˆæ¯ä¸èƒ½ä¸ºç©ºï¼Œå…¶ä»–ç±»å‹å¯ä»¥ï¼ˆå› ä¸ºå†…å®¹å¯èƒ½åœ¨fileUrlä¸­ï¼‰
+                if (messageType == "text" && string.IsNullOrWhiteSpace(message))
                 {
                     return;
                 }
 
-                _logger.LogInformation($"ÊÕµ½À´×ÔÓÃ»§ {userConnection.Username}({userConnection.UserId}) µÄÏûÏ¢: {message}");
+                _logger.LogInformation($"æ”¶åˆ°æ¥è‡ªç”¨æˆ· {userConnection.Username}({userConnection.UserId}) çš„{messageType}æ¶ˆæ¯");
 
-                // ±£´æÏûÏ¢µ½Êı¾İ¿â
-                int messageId = await _chatService.SaveRoomMessageAsync(
+                // ä¿å­˜æ¶ˆæ¯åˆ°æ•°æ®åº“
+                int messageId = await _chatService.SaveRoomMessageWithTypeAsync(
                     userConnection.RoomId, 
                     userConnection.UserId, 
-                    message
+                    message,
+                    messageType,
+                    fileUrl,
+                    fileName,
+                    fileSize
                 );
                 
-                _logger.LogInformation($"ÏûÏ¢ÒÑ±£´æ£¬ID: {messageId}");
+                _logger.LogInformation($"æ¶ˆæ¯å·²ä¿å­˜ï¼ŒID: {messageId}");
 
                 if (messageId <= 0)
                 {
-                    _logger.LogWarning("ÏûÏ¢±£´æÊ§°Ü£¬·µ»ØµÄIDÎŞĞ§");
-                    await Clients.Caller.SendAsync("Error", "ÏûÏ¢·¢ËÍÊ§°Ü£¬ÇëÖØÊÔ");
+                    _logger.LogWarning("æ¶ˆæ¯ä¿å­˜å¤±è´¥ï¼Œè¿”å›çš„IDæ— æ•ˆ");
+                    await Clients.Caller.SendAsync("Error", "æ¶ˆæ¯ä¿å­˜å¤±è´¥ï¼Œè¯·é‡è¯•");
                     return;
                 }
 
-                // ´´½¨ÏûÏ¢¶ÔÏó
+                // å‡†å¤‡æ¶ˆæ¯å¯¹è±¡
                 var messageDto = new MessageDTO
                 {
                     MessageId = messageId,
@@ -145,72 +156,93 @@ namespace backend.Hubs
                     Content = message,
                     RoomId = userConnection.RoomId,
                     SendTime = DateTime.Now,
-                    MessageType = "text",
+                    MessageType = messageType,
+                    FileUrl = fileUrl,
+                    FileName = fileName,
+                    FileSize = fileSize,
                     IsRead = false
                 };
 
-                // ·¢ËÍÏûÏ¢¸øÁÄÌìÊÒËùÓĞ³ÉÔ±
+                // å‘é€æ¶ˆæ¯ç»™èŠå¤©å®¤æ‰€æœ‰æˆå‘˜
                 await Clients.Group($"Room_{userConnection.RoomId}").SendAsync("ReceiveMessage", messageDto);
                 
-                _logger.LogInformation($"ÏûÏ¢ÒÑÍÆËÍµ½ÁÄÌìÊÒ {userConnection.RoomId} µÄËùÓĞ³ÉÔ±");
+                _logger.LogInformation($"æ¶ˆæ¯å·²å‘é€åˆ°èŠå¤©å®¤ {userConnection.RoomId} çš„æ‰€æœ‰æˆå‘˜");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"·¢ËÍÏûÏ¢Ê±·¢Éú´íÎó: {ex.Message}");
-                await Clients.Caller.SendAsync("Error", "·¢ËÍÏûÏ¢Ê§°Ü: " + ex.Message);
+                _logger.LogError(ex, $"å‘é€æ¶ˆæ¯æ—¶å‡ºç°å¼‚å¸¸: {ex.Message}");
+                await Clients.Caller.SendAsync("Error", "å‘é€æ¶ˆæ¯å¤±è´¥: " + ex.Message);
             }
         }
+        
+        // å‘é€å›¾ç‰‡æ¶ˆæ¯
+        public async Task SendImageToRoom(string imageUrl, string fileName, long fileSize)
+        {
+            await SendMessageWithTypeToRoom("", "image", imageUrl, fileName, fileSize);
+        }
+        
+        // å‘é€æ–‡ä»¶æ¶ˆæ¯
+        public async Task SendFileToRoom(string fileUrl, string fileName, long fileSize)
+        {
+            await SendMessageWithTypeToRoom("", "file", fileUrl, fileName, fileSize);
+        }
+        
+        // å‘é€Emojiè¡¨æƒ…
+        public async Task SendEmojiToRoom(string emojiCode)
+        {
+            await SendMessageWithTypeToRoom(emojiCode, "emoji");
+        }
 
-        // ¶Ï¿ªÁ¬½Ó´¦Àí
+        // æ–­å¼€è¿æ¥å¤„ç†
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             try
             {
                 if (_connections.TryRemove(Context.ConnectionId, out var userConnection))
                 {
-                    _logger.LogInformation($"ÓÃ»§ {userConnection.Username}({userConnection.UserId}) ¶Ï¿ªÁ¬½Ó");
+                    _logger.LogInformation($"ç”¨æˆ· {userConnection.Username}({userConnection.UserId}) æ–­å¼€è¿æ¥");
                     
                     await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Room_{userConnection.RoomId}");
-                    _logger.LogInformation($"ÓÃ»§ {userConnection.Username}({userConnection.UserId}) ÒÑ´ÓSignalR×é Room_{userConnection.RoomId} ÒÆ³ı");
+                    _logger.LogInformation($"ç”¨æˆ· {userConnection.Username}({userConnection.UserId}) å·²ä»SignalRç»„ Room_{userConnection.RoomId} ç§»é™¤");
                     
-                    // ´ÓÔÚÏßÓÃ»§ÁĞ±íÖĞÒÆ³ıÓÃ»§
+                    // ä»åœ¨çº¿ç”¨æˆ·åˆ—è¡¨ä¸­ç§»é™¤ç”¨æˆ·
                     _chatService.RemoveUserFromRoom(userConnection.RoomId, userConnection.UserId);
-                    _logger.LogInformation($"ÓÃ»§ {userConnection.Username}({userConnection.UserId}) ÒÑ´ÓÁÄÌìÊÒ {userConnection.RoomId} µÄÔÚÏßÓÃ»§ÁĞ±íÒÆ³ı");
+                    _logger.LogInformation($"ç”¨æˆ· {userConnection.Username}({userConnection.UserId}) å·²ä»èŠå¤©å®¤ {userConnection.RoomId} çš„åœ¨çº¿ç”¨æˆ·åˆ—è¡¨ç§»é™¤");
                     
-                    // ·¢ËÍÏµÍ³ÏûÏ¢£¬Í¨ÖªËùÓĞÈËÓÃ»§ÒÑÀë¿ª
+                    // å‘é€ç³»ç»Ÿæ¶ˆæ¯ï¼Œé€šçŸ¥å…¶ä»–ç”¨æˆ·å·²ç¦»å¼€
                     var leaveMessage = new MessageDTO
                     {
                         MessageId = 0,
                         RoomId = userConnection.RoomId,
                         SenderId = 0,
-                        SenderName = "ÏµÍ³",
-                        Content = $"{userConnection.Username} Àë¿ªÁËÁÄÌìÊÒ",
+                        SenderName = "ç³»ç»Ÿ",
+                        Content = $"{userConnection.Username} ç¦»å¼€äº†èŠå¤©å®¤",
                         SendTime = DateTime.Now,
                         MessageType = "system",
                         IsRead = true
                     };
                     
                     await Clients.Group($"Room_{userConnection.RoomId}").SendAsync("ReceiveMessage", leaveMessage);
-                    _logger.LogInformation($"ÒÑÏòÁÄÌìÊÒ {userConnection.RoomId} ·¢ËÍÓÃ»§ {userConnection.Username}({userConnection.UserId}) Àë¿ªµÄÏµÍ³ÏûÏ¢");
+                    _logger.LogInformation($"å·²å‘èŠå¤©å®¤ {userConnection.RoomId} å‘é€ç”¨æˆ· {userConnection.Username}({userConnection.UserId}) ç¦»å¼€çš„ç³»ç»Ÿæ¶ˆæ¯");
                     
-                    // ¸üĞÂÔÚÏßÓÃ»§ÁĞ±í
+                    // æ›´æ–°åœ¨çº¿ç”¨æˆ·åˆ—è¡¨
                     var onlineUsers = await _chatService.GetRoomOnlineUsersAsync(userConnection.RoomId);
                     await Clients.Group($"Room_{userConnection.RoomId}").SendAsync("UpdateOnlineUsers", onlineUsers);
-                    _logger.LogInformation($"ÒÑÏòÁÄÌìÊÒ {userConnection.RoomId} ·¢ËÍ¸üĞÂºóµÄÔÚÏßÓÃ»§ÁĞ±í£¬¹² {onlineUsers.Count} ÈË");
+                    _logger.LogInformation($"å·²å‘èŠå¤©å®¤ {userConnection.RoomId} å‘é€æ›´æ–°åçš„åœ¨çº¿ç”¨æˆ·åˆ—è¡¨ï¼Œå…±æœ‰ {onlineUsers.Count} äºº");
                     
-                    _logger.LogInformation($"ÓÃ»§ {userConnection.Username}({userConnection.UserId}) Àë¿ªÁÄÌìÊÒ {userConnection.RoomId} µÄÈ«¹ı³ÌÒÑÍê³É");
+                    _logger.LogInformation($"ç”¨æˆ· {userConnection.Username}({userConnection.UserId}) ç¦»å¼€èŠå¤©å®¤ {userConnection.RoomId} çš„å…¨éƒ¨æµç¨‹å·²å®Œæˆ");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"¶Ï¿ªÁ¬½Ó´¦ÀíÊ±·¢Éú´íÎó: {ex.Message}");
+                _logger.LogError(ex, $"æ–­å¼€è¿æ¥å¤„ç†æ—¶å‡ºç°å¼‚å¸¸: {ex.Message}");
             }
 
             await base.OnDisconnectedAsync(exception);
         }
     }
 
-    // ±£´æÓÃ»§Á¬½ÓĞÅÏ¢µÄÀà
+    // ç”¨äºå­˜å‚¨ç”¨æˆ·è¿æ¥ä¿¡æ¯çš„ç±»
     public class UserConnection
     {
         public int UserId { get; set; }

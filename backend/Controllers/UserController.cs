@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace backend.Controllers
 {
     /// <summary>
-    /// ÓÃ»§¿ØÖÆÆ÷
+    /// ç”¨æˆ·æ§åˆ¶å™¨
     /// </summary>
     [ApiController]
     [Route("api/user")]
@@ -16,19 +16,19 @@ namespace backend.Controllers
         private readonly IUserService _userService;
 
         /// <summary>
-        /// ¹¹Ôìº¯Êı
+        /// æ„é€ å‡½æ•°
         /// </summary>
-        /// <param name="userService">ÓÃ»§·şÎñ</param>
+        /// <param name="userService">ç”¨æˆ·æœåŠ¡</param>
         public UserController(IUserService userService)
         {
             _userService = userService;
         }
 
         /// <summary>
-        /// ÓÃ»§µÇÂ¼
+        /// ç”¨æˆ·ç™»å½•
         /// </summary>
-        /// <param name="loginDto">µÇÂ¼ĞÅÏ¢</param>
-        /// <returns>µÇÂ¼½á¹û</returns>
+        /// <param name="loginDto">ç™»å½•ä¿¡æ¯</param>
+        /// <returns>ç™»å½•ç»“æœ</returns>
         [HttpPost("login")]
         public async Task<Result<LoginResultVO>> Login([FromBody] LoginDTO loginDto)
         {
@@ -36,10 +36,10 @@ namespace backend.Controllers
         }
 
         /// <summary>
-        /// ÓÃ»§×¢²á
+        /// ç”¨æˆ·æ³¨å†Œ
         /// </summary>
-        /// <param name="registerDto">×¢²áĞÅÏ¢</param>
-        /// <returns>×¢²á½á¹û</returns>
+        /// <param name="registerDto">æ³¨å†Œä¿¡æ¯</param>
+        /// <returns>æ³¨å†Œç»“æœ</returns>
         [HttpPost("register")]
         public async Task<Result<UserVO>> Register([FromBody] RegisterDTO registerDto)
         {
@@ -47,10 +47,10 @@ namespace backend.Controllers
         }
 
         /// <summary>
-        /// ¼ì²éÓÃ»§ÃûÊÇ·ñ´æÔÚ
+        /// æ£€æŸ¥ç”¨æˆ·åæ˜¯å¦å­˜åœ¨
         /// </summary>
-        /// <param name="username">ÓÃ»§Ãû</param>
-        /// <returns>¼ì²é½á¹û</returns>
+        /// <param name="username">ç”¨æˆ·å</param>
+        /// <returns>æ£€æŸ¥ç»“æœ</returns>
         [HttpGet("check-username")]
         public async Task<Result<bool>> CheckUsername([FromQuery] string username)
         {
@@ -58,10 +58,10 @@ namespace backend.Controllers
         }
 
         /// <summary>
-        /// »ñÈ¡ÓÃ»§ĞÅÏ¢
+        /// è·å–ç”¨æˆ·ä¿¡æ¯
         /// </summary>
-        /// <param name="userId">ÓÃ»§ID</param>
-        /// <returns>ÓÃ»§ĞÅÏ¢</returns>
+        /// <param name="userId">ç”¨æˆ·ID</param>
+        /// <returns>ç”¨æˆ·ä¿¡æ¯</returns>
         [HttpGet("{userId}")]
         public async Task<Result<UserVO>> GetUserInfo([FromRoute] int userId)
         {

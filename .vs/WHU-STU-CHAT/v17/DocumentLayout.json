@@ -3,12 +3,64 @@
   "WorkspaceRootPath": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\",
   "Documents": [
     {
+<<<<<<< HEAD
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\README.md||{24510B54-A648-4D69-A6C5-F68CBDF07546}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:README.md||{24510B54-A648-4D69-A6C5-F68CBDF07546}"
+=======
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend.iml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend.iml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\assets\\base.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend\\src\\assets\\base.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\components\\AISidebar.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend\\src\\components\\AISidebar.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\components\\AIChat.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend\\src\\components\\AIChat.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\router\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend\\src\\router\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\App.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend\\src\\App.vue||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+>>>>>>> main
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\main.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend\\src\\main.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+<<<<<<< HEAD
+=======
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend\\.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend\\index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\jsconfig.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend\\jsconfig.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\package-lock.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend\\package-lock.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\vite.config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:frontend\\whu-chat-frontend\\vite.config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+>>>>>>> main
     }
   ],
   "DocumentGroupContainers": [
@@ -31,6 +83,7 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+<<<<<<< HEAD
               "Title": "README.md",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\README.md",
               "RelativeDocumentMoniker": "README.md",
@@ -39,19 +92,181 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
               "WhenOpened": "2025-04-26T08:37:16.7Z",
+=======
+              "Title": "whu-chat-frontend.iml",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend.iml",
+              "RelativeDocumentMoniker": "frontend\\whu-chat-frontend.iml",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend.iml",
+              "RelativeToolTip": "frontend\\whu-chat-frontend.iml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-04-28T08:06:09.676Z",
+>>>>>>> main
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
+<<<<<<< HEAD
+=======
+              "Title": "base.css",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\assets\\base.css",
+              "RelativeDocumentMoniker": "frontend\\whu-chat-frontend\\src\\assets\\base.css",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\assets\\base.css",
+              "RelativeToolTip": "frontend\\whu-chat-frontend\\src\\assets\\base.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2025-04-28T08:06:04.489Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AISidebar.vue",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\components\\AISidebar.vue",
+              "RelativeDocumentMoniker": "frontend\\whu-chat-frontend\\src\\components\\AISidebar.vue",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\components\\AISidebar.vue",
+              "RelativeToolTip": "frontend\\whu-chat-frontend\\src\\components\\AISidebar.vue",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003491|",
+              "WhenOpened": "2025-04-28T08:06:01.349Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AIChat.vue",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\components\\AIChat.vue",
+              "RelativeDocumentMoniker": "frontend\\whu-chat-frontend\\src\\components\\AIChat.vue",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\components\\AIChat.vue",
+              "RelativeToolTip": "frontend\\whu-chat-frontend\\src\\components\\AIChat.vue",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003491|",
+              "WhenOpened": "2025-04-28T08:05:58.088Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "index.js",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\router\\index.js",
+              "RelativeDocumentMoniker": "frontend\\whu-chat-frontend\\src\\router\\index.js",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\router\\index.js",
+              "RelativeToolTip": "frontend\\whu-chat-frontend\\src\\router\\index.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-04-28T08:05:55.629Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "App.vue",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\App.vue",
+              "RelativeDocumentMoniker": "frontend\\whu-chat-frontend\\src\\App.vue",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\App.vue",
+              "RelativeToolTip": "frontend\\whu-chat-frontend\\src\\App.vue",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003491|",
+              "WhenOpened": "2025-04-28T08:05:47.036Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+>>>>>>> main
               "Title": "main.js",
               "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\main.js",
               "RelativeDocumentMoniker": "frontend\\whu-chat-frontend\\src\\main.js",
               "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\src\\main.js",
               "RelativeToolTip": "frontend\\whu-chat-frontend\\src\\main.js",
+<<<<<<< HEAD
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2025-04-26T03:39:05.722Z",
+=======
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-04-28T08:05:44.838Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": ".gitignore",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\.gitignore",
+              "RelativeDocumentMoniker": "frontend\\whu-chat-frontend\\.gitignore",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\.gitignore",
+              "RelativeToolTip": "frontend\\whu-chat-frontend\\.gitignore",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-04-28T08:05:40.862Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "index.html",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\index.html",
+              "RelativeDocumentMoniker": "frontend\\whu-chat-frontend\\index.html",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\index.html",
+              "RelativeToolTip": "frontend\\whu-chat-frontend\\index.html",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2025-04-28T08:05:38.085Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "jsconfig.json",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\jsconfig.json",
+              "RelativeDocumentMoniker": "frontend\\whu-chat-frontend\\jsconfig.json",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\jsconfig.json",
+              "RelativeToolTip": "frontend\\whu-chat-frontend\\jsconfig.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-04-28T08:05:35.599Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "package-lock.json",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\package-lock.json",
+              "RelativeDocumentMoniker": "frontend\\whu-chat-frontend\\package-lock.json",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\package-lock.json",
+              "RelativeToolTip": "frontend\\whu-chat-frontend\\package-lock.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-04-28T08:05:33.859Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "package.json",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\package.json",
+              "RelativeDocumentMoniker": "frontend\\whu-chat-frontend\\package.json",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\package.json",
+              "RelativeToolTip": "frontend\\whu-chat-frontend\\package.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-04-28T08:05:31.033Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "vite.config.js",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\vite.config.js",
+              "RelativeDocumentMoniker": "frontend\\whu-chat-frontend\\vite.config.js",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\scch\\WHU-STU-CHAT\\frontend\\whu-chat-frontend\\vite.config.js",
+              "RelativeToolTip": "frontend\\whu-chat-frontend\\vite.config.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-04-28T08:05:21.896Z",
+>>>>>>> main
               "EditorCaption": ""
             }
           ]

@@ -14,11 +14,11 @@ builder.Services.AddSwaggerGen();
 // ����SignalR����
 builder.Services.AddSignalR();
 
-// ����CORS����
+// 配置CORS策略
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
-        builder.WithOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5000", "http://127.0.0.1:5173", "http://127.0.0.1:5174") // �������ǰ�˵�ַ
+        builder.SetIsOriginAllowed(_ => true) // 在开发阶段允许任何来源，生产环境应当限制
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());
@@ -27,8 +27,9 @@ builder.Services.AddCors(options =>
 // ע�����
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IAIService, AIService>();
+builder.Services.AddHttpClient(); // 为AI服务添加HttpClient
 builder.Services.AddScoped<IGroupService, GroupService>();
-
 // ��֤���ݿ�����
 using (var connection = new MySqlConnection(builder.Configuration.GetConnectionString("DefaultConnection")))
 {

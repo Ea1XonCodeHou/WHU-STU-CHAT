@@ -1,7 +1,15 @@
 {
   "ExpandedNodes": [
+<<<<<<< HEAD
     ""
   ],
   "SelectedNode": "\\README.md",
+=======
+    "",
+    "\\frontend\\whu-chat-frontend",
+    "\\frontend\\whu-chat-frontend\\src\\router"
+  ],
+  "SelectedNode": "\\frontend",
+>>>>>>> main
   "PreviewInSolutionExplorer": false
 }

@@ -11,31 +11,31 @@ using MySql.Data.MySqlClient;
 namespace backend.Services
 {
     /// <summary>
-    /// ÓÃ»§·şÎñÊµÏÖ
+    /// ç”¨æˆ·æœåŠ¡å®ç°
     /// </summary>
     public class UserService : IUserService
     {
         private readonly string _connectionString;
 
         /// <summary>
-        /// ¹¹Ôìº¯Êı
+        /// æ„é€ å‡½æ•°
         /// </summary>
-        /// <param name="configuration">ÅäÖÃ</param>
+        /// <param name="configuration">é…ç½®</param>
         public UserService(IConfiguration configuration)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
         /// <summary>
-        /// ÓÃ»§µÇÂ¼
+        /// ç”¨æˆ·ç™»å½•
         /// </summary>
-        /// <param name="loginDto">µÇÂ¼ĞÅÏ¢</param>
-        /// <returns>µÇÂ¼½á¹û</returns>
+        /// <param name="loginDto">ç™»å½•ä¿¡æ¯</param>
+        /// <returns>ç™»å½•ç»“æœ</returns>
         public async Task<Result<LoginResultVO>> LoginAsync(LoginDTO loginDto)
         {
             try
             {
-                // ÓÃÓÚ´æ´¢ÓÃ»§ĞÅÏ¢µÄ±äÁ¿
+                // ç”¨äºå­˜å‚¨ç”¨æˆ·ä¿¡æ¯çš„å˜é‡
                 int userId = 0;
                 string username = string.Empty;
                 string email = null;
@@ -47,7 +47,7 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // ¸ù¾İÓÃ»§Ãû²éÑ¯ÓÃ»§
+                    // æ ¹æ®ç”¨æˆ·åæŸ¥è¯¢ç”¨æˆ·
                     var command = new MySqlCommand(
                         "SELECT UserId, Username, Password, Email, Phone, Avatar FROM Users WHERE Username = @Username",
                         connection);
@@ -57,17 +57,17 @@ namespace backend.Services
                     {
                         if (await reader.ReadAsync())
                         {
-                            // ÌáÈ¡ÓÃ»§ĞÅÏ¢
+                            // è·å–ç”¨æˆ·ä¿¡æ¯
                             userId = reader.GetInt32(reader.GetOrdinal("UserId"));
                             username = reader.GetString(reader.GetOrdinal("Username"));
                             
-                            // ÑéÖ¤ÃÜÂë
+                            // éªŒè¯å¯†ç 
                             var storedPassword = reader.GetString(reader.GetOrdinal("Password"));
                             passwordIsValid = VerifyPassword(loginDto.Password, storedPassword);
 
                             if (!passwordIsValid)
                             {
-                                return Result<LoginResultVO>.Error("ÓÃ»§Ãû»òÃÜÂë´íÎó", 400);
+                                return Result<LoginResultVO>.Error("ç”¨æˆ·åæˆ–å¯†ç é”™è¯¯", 400);
                             }
 
                             email = reader.IsDBNull(reader.GetOrdinal("Email")) ? null : reader.GetString(reader.GetOrdinal("Email"));
@@ -76,14 +76,14 @@ namespace backend.Services
                         }
                         else
                         {
-                            return Result<LoginResultVO>.Error("ÓÃ»§Ãû»òÃÜÂë´íÎó", 400);
+                            return Result<LoginResultVO>.Error("ç”¨æˆ·åæˆ–å¯†ç é”™è¯¯", 400);
                         }
                     }
                     
-                    // DataReaderÒÑ¹Ø±Õ£¬ÏÖÔÚ¿ÉÒÔ°²È«µØÖ´ĞĞÁíÒ»¸öÃüÁî
+                    // DataReaderå·²å…³é—­ï¼Œç°åœ¨å¯ä»¥å®‰å…¨åœ°æ‰§è¡Œä¸‹ä¸€ä¸ªå‘½ä»¤
                     if (passwordIsValid)
                     {
-                        // ¸üĞÂ×îºóµÇÂ¼Ê±¼ä
+                        // æ›´æ–°æœ€åç™»å½•æ—¶é—´
                         var updateCommand = new MySqlCommand(
                             "UPDATE Users SET LastLoginTime = @LastLoginTime WHERE UserId = @UserId",
                             connection);
@@ -91,7 +91,7 @@ namespace backend.Services
                         updateCommand.Parameters.AddWithValue("@UserId", userId);
                         await updateCommand.ExecuteNonQueryAsync();
                         
-                        // Éú³ÉÁîÅÆ
+                        // ç”Ÿæˆä»¤ç‰Œ
                         var token = GenerateToken(userId, username);
                         var expireTime = DateTime.Now.AddDays(loginDto.RememberMe ? 7 : 1);
 
@@ -109,43 +109,43 @@ namespace backend.Services
                             ExpireTime = expireTime
                         };
 
-                        return Result<LoginResultVO>.Success(result, "µÇÂ¼³É¹¦");
+                        return Result<LoginResultVO>.Success(result, "ç™»å½•æˆåŠŸ");
                     }
                 }
                 
-                // ÕâĞĞ´úÂëÊµ¼ÊÉÏ²»»áÖ´ĞĞµ½£¬ÒòÎªÉÏÃæÒÑ¾­´¦ÀíÁËËùÓĞÇé¿ö£¬µ«ÎªÁË´úÂëÍêÕûĞÔ±£Áô
-                return Result<LoginResultVO>.Error("ÓÃ»§Ãû»òÃÜÂë´íÎó", 400);
+                // ä¸‹é¢ä»£ç å®é™…ä¸Šä¸ä¼šæ‰§è¡Œåˆ°ï¼Œå› ä¸ºä¸Šé¢å·²ç»åšäº†å¯†ç éªŒè¯ï¼Œä½†ä¸ºäº†ä»£ç å®Œå¤‡æ€§ä¿ç•™
+                return Result<LoginResultVO>.Error("ç”¨æˆ·åæˆ–å¯†ç é”™è¯¯", 400);
             }
             catch (Exception ex)
             {
-                return Result<LoginResultVO>.Error($"µÇÂ¼Ê§°Ü£º{ex.Message}");
+                return Result<LoginResultVO>.Error($"ç™»å½•å¤±è´¥ï¼š{ex.Message}");
             }
         }
 
         /// <summary>
-        /// ÓÃ»§×¢²á
+        /// ç”¨æˆ·æ³¨å†Œ
         /// </summary>
-        /// <param name="registerDto">×¢²áĞÅÏ¢</param>
-        /// <returns>×¢²á½á¹û</returns>
+        /// <param name="registerDto">æ³¨å†Œä¿¡æ¯</param>
+        /// <returns>æ³¨å†Œç»“æœ</returns>
         public async Task<Result<UserVO>> RegisterAsync(RegisterDTO registerDto)
         {
             try
             {
-                // ¼ì²éÓÃ»§ÃûÊÇ·ñÒÑ´æÔÚ
+                // æ£€æŸ¥ç”¨æˆ·åæ˜¯å¦å·²å­˜åœ¨
                 var usernameExists = await CheckUsernameExistsInternalAsync(registerDto.Username);
                 if (usernameExists)
                 {
-                    return Result<UserVO>.Error("ÓÃ»§ÃûÒÑ´æÔÚ", 400);
+                    return Result<UserVO>.Error("ç”¨æˆ·åå·²å­˜åœ¨", 400);
                 }
 
-                // ¼ÓÃÜÃÜÂë
+                // åŠ å¯†å¯†ç 
                 var encryptedPassword = EncryptPassword(registerDto.Password);
 
                 using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
 
-                    // ²åÈëĞÂÓÃ»§¼ÇÂ¼
+                    // åˆ›å»ºæ–°ç”¨æˆ·è®°å½•
                     var command = new MySqlCommand(
                         @"INSERT INTO Users (Username, Password, Email, Phone, CreateTime, UpdateTime) 
                           VALUES (@Username, @Password, @Email, @Phone, @CreateTime, @UpdateTime);
@@ -159,33 +159,33 @@ namespace backend.Services
                     command.Parameters.AddWithValue("@CreateTime", DateTime.Now);
                     command.Parameters.AddWithValue("@UpdateTime", DateTime.Now);
 
-                    // Ö´ĞĞSQL²¢»ñÈ¡ĞÂ²åÈëµÄÓÃ»§ID
+                    // æ‰§è¡ŒSQLå¹¶è·å–æ–°æ’å…¥çš„ç”¨æˆ·ID
                     var userId = Convert.ToInt32(await command.ExecuteScalarAsync());
 
-                    // ·µ»ØÓÃ»§ĞÅÏ¢
+                    // åˆ›å»ºç”¨æˆ·ä¿¡æ¯
                     var userVo = new UserVO
                     {
                         Id = userId,
                         Username = registerDto.Username,
                         Email = registerDto.Email,
                         Phone = registerDto.Phone,
-                        Avatar = null // Ä¬ÈÏÎªnull£¬¿ÉÒÔÉèÖÃÄ¬ÈÏÍ·Ïñ
+                        Avatar = null // é»˜è®¤ä¸ºnullï¼Œå¯è®¾ç½®é»˜è®¤å¤´åƒ
                     };
 
-                    return Result<UserVO>.Success(userVo, "×¢²á³É¹¦");
+                    return Result<UserVO>.Success(userVo, "æ³¨å†ŒæˆåŠŸ");
                 }
             }
             catch (Exception ex)
             {
-                return Result<UserVO>.Error($"×¢²áÊ§°Ü£º{ex.Message}");
+                return Result<UserVO>.Error($"æ³¨å†Œå¤±è´¥ï¼š{ex.Message}");
             }
         }
 
         /// <summary>
-        /// ÑéÖ¤ÓÃ»§ÃûÊÇ·ñ´æÔÚ
+        /// éªŒè¯ç”¨æˆ·åæ˜¯å¦å­˜åœ¨
         /// </summary>
-        /// <param name="username">ÓÃ»§Ãû</param>
-        /// <returns>ÑéÖ¤½á¹û</returns>
+        /// <param name="username">ç”¨æˆ·å</param>
+        /// <returns>éªŒè¯ç»“æœ</returns>
         public async Task<Result<bool>> CheckUsernameExistsAsync(string username)
         {
             try
@@ -195,15 +195,15 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                return Result<bool>.Error($"¼ì²éÓÃ»§ÃûÊ§°Ü£º{ex.Message}");
+                return Result<bool>.Error($"æ£€æŸ¥ç”¨æˆ·åå¤±è´¥ï¼š{ex.Message}");
             }
         }
-
+        
         /// <summary>
-        /// ¸ù¾İID»ñÈ¡ÓÃ»§ĞÅÏ¢
+        /// è·å–ç”¨æˆ·ä¿¡æ¯
         /// </summary>
-        /// <param name="userId">ÓÃ»§ID</param>
-        /// <returns>ÓÃ»§ĞÅÏ¢</returns>
+        /// <param name="userId">ç”¨æˆ·ID</param>
+        /// <returns>ç”¨æˆ·ä¿¡æ¯</returns>
         public async Task<Result<UserVO>> GetUserInfoAsync(int userId)
         {
             try
@@ -234,24 +234,22 @@ namespace backend.Services
                         }
                         else
                         {
-                            return Result<UserVO>.Error("ÓÃ»§²»´æÔÚ", 404);
+                            return Result<UserVO>.Error("ç”¨æˆ·ä¸å­˜åœ¨", 404);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                return Result<UserVO>.Error($"»ñÈ¡ÓÃ»§ĞÅÏ¢Ê§°Ü£º{ex.Message}");
+                return Result<UserVO>.Error($"è·å–ç”¨æˆ·ä¿¡æ¯å¤±è´¥ï¼š{ex.Message}");
             }
         }
 
-        #region Ë½ÓĞ·½·¨
-
         /// <summary>
-        /// ¼ì²éÓÃ»§ÃûÊÇ·ñÒÑ´æÔÚ£¨ÄÚ²¿Ê¹ÓÃ£©
+        /// å†…éƒ¨æ–¹æ³•ï¼šæ£€æŸ¥ç”¨æˆ·åæ˜¯å¦å­˜åœ¨
         /// </summary>
-        /// <param name="username">ÓÃ»§Ãû</param>
-        /// <returns>ÊÇ·ñ´æÔÚ</returns>
+        /// <param name="username">ç”¨æˆ·å</param>
+        /// <returns>ç”¨æˆ·åæ˜¯å¦å­˜åœ¨</returns>
         private async Task<bool> CheckUsernameExistsInternalAsync(string username)
         {
             using (var connection = new MySqlConnection(_connectionString))
@@ -269,13 +267,12 @@ namespace backend.Services
         }
 
         /// <summary>
-        /// ¼ÓÃÜÃÜÂë
+        /// å¯†ç åŠ å¯†
         /// </summary>
-        /// <param name="password">Ô­Ê¼ÃÜÂë</param>
-        /// <returns>¼ÓÃÜºóµÄÃÜÂë</returns>
+        /// <param name="password">åŸå§‹å¯†ç </param>
+        /// <returns>åŠ å¯†åçš„å¯†ç </returns>
         private string EncryptPassword(string password)
         {
-            // ¼òµ¥ÊµÏÖ£¬Êµ¼ÊÏîÄ¿ÖĞÓ¦Ê¹ÓÃ¸ü°²È«µÄËã·¨ÈçBCrypt
             using (var sha256 = SHA256.Create())
             {
                 var bytes = Encoding.UTF8.GetBytes(password);
@@ -285,36 +282,33 @@ namespace backend.Services
         }
 
         /// <summary>
-        /// ÑéÖ¤ÃÜÂë
+        /// éªŒè¯å¯†ç 
         /// </summary>
-        /// <param name="inputPassword">ÊäÈëµÄÃÜÂë</param>
-        /// <param name="storedPassword">´æ´¢µÄÃÜÂë</param>
-        /// <returns>ÊÇ·ñÓĞĞ§</returns>
+        /// <param name="inputPassword">è¾“å…¥çš„å¯†ç </param>
+        /// <param name="storedPassword">å­˜å‚¨çš„åŠ å¯†å¯†ç </param>
+        /// <returns>å¯†ç æ˜¯å¦æ­£ç¡®</returns>
         private bool VerifyPassword(string inputPassword, string storedPassword)
         {
-            // ¼ÓÃÜÊäÈëµÄÃÜÂë£¬ÓëÊı¾İ¿âÖĞ´æ´¢µÄÃÜÂë±È½Ï
             var encryptedInput = EncryptPassword(inputPassword);
             return encryptedInput == storedPassword;
         }
 
         /// <summary>
-        /// Éú³ÉÁîÅÆ
+        /// ç”Ÿæˆä»¤ç‰Œ
         /// </summary>
-        /// <param name="userId">ÓÃ»§ID</param>
-        /// <param name="username">ÓÃ»§Ãû</param>
-        /// <returns>ÁîÅÆ×Ö·û´®</returns>
+        /// <param name="userId">ç”¨æˆ·ID</param>
+        /// <param name="username">ç”¨æˆ·å</param>
+        /// <returns>ä»¤ç‰Œå­—ç¬¦ä¸²</returns>
         private string GenerateToken(int userId, string username)
         {
-            // ¼òµ¥ÊµÏÖ£¬Êµ¼ÊÏîÄ¿ÖĞÓ¦Ê¹ÓÃJWT
-            var tokenData = $"{userId}:{username}:{Guid.NewGuid()}:{DateTime.Now.Ticks}";
+            // ç®€å•å®ç°ï¼Œå®é™…é¡¹ç›®åº”ä½¿ç”¨JWTç­‰å®‰å…¨çš„ä»¤ç‰Œç”Ÿæˆæ–¹å¼
+            var tokenData = $"{userId}:{username}:{DateTime.Now.Ticks}";
             using (var sha256 = SHA256.Create())
             {
-                var bytes = Encoding.UTF8.GetBytes(tokenData);
-                var hash = sha256.ComputeHash(bytes);
+                var tokenBytes = Encoding.UTF8.GetBytes(tokenData);
+                var hash = sha256.ComputeHash(tokenBytes);
                 return Convert.ToBase64String(hash);
             }
         }
-
-        #endregion
     }
 } 

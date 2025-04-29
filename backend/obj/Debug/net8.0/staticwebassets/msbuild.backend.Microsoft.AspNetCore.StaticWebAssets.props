@@ -1,6 +1,6 @@
 ﻿<Project>
   <ItemGroup>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\temp\uploads\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\temp\uploads\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx))">
       <SourceType>Package</SourceType>
       <SourceId>backend</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
@@ -12,11 +12,9 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>bq8o4izt8i</Fingerprint>
-      <Integrity>zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\temp\uploads\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\temp\uploads\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx))</OriginalItemSpec>
     </StaticWebAsset>
   </ItemGroup>
 </Project>

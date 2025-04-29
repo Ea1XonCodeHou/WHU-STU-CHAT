@@ -6,36 +6,38 @@ using backend.Utils;
 namespace backend.Services
 {
     /// <summary>
-    /// ÓÃ»§·þÎñ½Ó¿Ú
+    /// ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½
     /// </summary>
     public interface IUserService
     {
         /// <summary>
-        /// ÓÃ»§µÇÂ¼
+        /// ï¿½Ã»ï¿½ï¿½ï¿½Â¼
         /// </summary>
-        /// <param name="loginDto">µÇÂ¼ÐÅÏ¢</param>
-        /// <returns>µÇÂ¼½á¹û</returns>
+        /// <param name="loginDto">ï¿½ï¿½Â¼ï¿½ï¿½Ï¢</param>
+        /// <returns>ï¿½ï¿½Â¼ï¿½ï¿½ï¿½</returns>
         Task<Result<LoginResultVO>> LoginAsync(LoginDTO loginDto);
 
         /// <summary>
-        /// ÓÃ»§×¢²á
+        /// ï¿½Ã»ï¿½×¢ï¿½ï¿½
         /// </summary>
-        /// <param name="registerDto">×¢²áÐÅÏ¢</param>
-        /// <returns>×¢²á½á¹û</returns>
+        /// <param name="registerDto">×¢ï¿½ï¿½ï¿½ï¿½Ï¢</param>
+        /// <returns>×¢ï¿½ï¿½ï¿½ï¿½</returns>
         Task<Result<UserVO>> RegisterAsync(RegisterDTO registerDto);
 
         /// <summary>
-        /// ÑéÖ¤ÓÃ»§ÃûÊÇ·ñ´æÔÚ
+        /// ï¿½ï¿½Ö¤ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
         /// </summary>
-        /// <param name="username">ÓÃ»§Ãû</param>
-        /// <returns>ÑéÖ¤½á¹û</returns>
+        /// <param name="username">ï¿½Ã»ï¿½ï¿½ï¿½</param>
+        /// <returns>ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½</returns>
         Task<Result<bool>> CheckUsernameExistsAsync(string username);
 
         /// <summary>
-        /// ¸ù¾ÝID»ñÈ¡ÓÃ»§ÐÅÏ¢
+        /// ï¿½ï¿½ï¿½ï¿½IDï¿½ï¿½È¡ï¿½Ã»ï¿½ï¿½ï¿½Ï¢
         /// </summary>
-        /// <param name="userId">ÓÃ»§ID</param>
-        /// <returns>ÓÃ»§ÐÅÏ¢</returns>
+        /// <param name="userId">ï¿½Ã»ï¿½ID</param>
+        /// <returns>ï¿½Ã»ï¿½ï¿½ï¿½Ï¢</returns>
         Task<Result<UserVO>> GetUserInfoAsync(int userId);
+        Task<UserDTO> GetUserByUsernameAsync(string username);
+        Task<UserDTO> GetUserByIdAsync(int userId);
     }
 } 

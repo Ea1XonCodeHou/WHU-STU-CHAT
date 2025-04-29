@@ -7,6 +7,7 @@ namespace backend.DTOs
         public int GroupId { get; set; }
         public string GroupName { get; set; }
         public DateTime UpdateTime { get; set; }
+        public int MemberCount { get; set; }
     }
 
     public class GroupRegDTO

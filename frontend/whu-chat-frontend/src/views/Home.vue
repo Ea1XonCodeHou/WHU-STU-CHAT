@@ -89,7 +89,7 @@
             </div>
             <transition name="slide-fade">
               <div class="friend-list" v-if="showOnlineFriends">
-                <div v-for="friend in onlineFriends" :key="friend.id" 
+                <div v-for="friend in filteredFriends" :key="friend.id" 
                      class="friend-item" @click="openPrivateChat(friend)">
                   <div class="friend-avatar">
                     <img v-if="friend.avatar" :src="friend.avatar" :alt="friend.username">
@@ -98,7 +98,7 @@
                   </div>
                   <div class="friend-name">{{ friend.username }}</div>
                 </div>
-                <div class="empty-list" v-if="onlineFriends.length === 0">
+                <div class="empty-list" v-if="filteredFriends.length === 0">
                   <i class="fa-solid fa-user-slash"></i>
                   <span>暂无在线好友</span>
                 </div>
@@ -128,6 +128,12 @@
             <i class="fa-solid fa-comments"></i>
             <span>群组聊天</span>
           </div>
+        </div>
+
+        <div class="nav-item" @click="fetchNotifications" style="cursor:pointer;">
+          <i class="fa-solid fa-bell"></i>
+          <span>系统通知</span>
+          <div class="notification-badge" v-if="unreadNotifications > 0">{{ unreadNotifications }}</div>
         </div>
       </div>
     </div>
@@ -442,6 +448,25 @@
         </div>
       </div>
     </div>
+
+    <!-- 系统通知模态窗口 -->
+    <div v-if="showNotifications" class="modal-overlay" @click="showNotifications = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>系统通知</h3>
+          <button class="close-button" @click="showNotifications = false">×</button>
+        </div>
+        <div class="modal-body">
+          <ul>
+            <li v-for="n in notifications" :key="n.notificationId">
+              {{ n.content }}
+              <button v-if="n.content.includes('请求加你为好友')" @click="acceptFriend(n.notificationId)">同意</button>
+            </li>
+            <li v-if="notifications.length === 0">暂无通知</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -496,6 +521,11 @@ export default {
     const showAddUserModal = ref(false);
     const newUserId = ref('');
     
+    // 系统通知相关
+    const notifications = ref([]);
+    const showNotifications = ref(false);
+    const unreadNotifications = ref(0);
+    
     // 获取群组列表
     const fetchGroups = async () => {
       try {
@@ -538,26 +568,27 @@ export default {
       }
     ]);
     
-    const friends = ref([
-      {
-        id: 101,
-        username: '张三',
-        status: 'online',
-        avatar: null
-      },
-      {
-        id: 102,
-        username: '李四',
-        status: 'offline',
-        avatar: null
-      },
-      {
-        id: 103,
-        username: '王五',
-        status: 'online',
-        avatar: null
+    const friends = ref([]);
+    const fetchFriends = async () => {
+      const res = await axios.get(`/api/group/user/${userId.value}/private`);
+      if (res.data.code === 200) {
+        friends.value = [];
+        res.data.data.forEach(group => {
+          if (Array.isArray(group.members)) {
+            const other = group.members.find(m => String(m.id) !== String(userId.value));
+            if (other) {
+              friends.value.push({
+                id: other.id,
+                username: other.username,
+                status: other.status || 'offline',
+                avatar: other.avatar || null,
+                groupId: group.groupId
+              });
+            }
+          }
+        });
       }
-    ]);
+    };
     
     const forumCategories = ref([
       {
@@ -591,9 +622,7 @@ export default {
     ]);
     
     // 计算属性
-    const onlineFriends = computed(() => {
-      return friends.value.filter(friend => friend.status === 'online');
-    });
+    const onlineFriends = computed(() => friends.value);
     
     const filteredFriends = computed(() => {
       if (!friendSearch.value) return friends.value;
@@ -628,7 +657,7 @@ export default {
     };
     
     const openPrivateChat = (friend) => {
-      console.log(`打开与 ${friend.username} 的私聊`);
+      router.push(`/private-chat/${friend.id}`);
     };
     
     const openGroupChat = (group) => {
@@ -643,13 +672,16 @@ export default {
     
     const addFriend = async () => {
       if (!friendUsername.value) return;
-      
       try {
-        console.log(`添加好友: ${friendUsername.value}`);
+        await axios.post('/api/notification/friend-request', {
+          TargetUsername: friendUsername.value,
+          RequesterUsername: username.value
+        });
+        alert('好友请求已发送');
         friendUsername.value = '';
         showAddFriendModal.value = false;
       } catch (error) {
-        console.error('添加好友失败:', error);
+        alert('添加好友失败: ' + (error.response?.data?.msg || error.message));
       }
     };
     
@@ -759,7 +791,7 @@ export default {
       }
     };
     
-    const addUserToGroup = async () => {
+    const addUserToGroup = async (member) => {
       if (!selectedGroup.value || !newUserId.value) {
         alert('请输入用户ID');
         return;
@@ -835,6 +867,29 @@ export default {
       }
     };
     
+    const fetchNotifications = async () => {
+      try {
+        const res = await axios.get(`/api/notification/user/${userId.value}`);
+        // 只显示未处理的通知
+        notifications.value = res.data.filter(n => !n.isHandled);
+        unreadNotifications.value = notifications.value.length;
+        showNotifications.value = true;
+      } catch (error) {
+        alert('获取通知失败: ' + (error.response?.data?.msg || error.message));
+      }
+    };
+    
+    const acceptFriend = async (notificationId) => {
+      try {
+        await axios.post('/api/notification/accept-friend', { NotificationId: notificationId });
+        alert('已同意好友请求，已创建私聊');
+        await fetchNotifications(); // 立即刷新通知
+        await fetchFriends(); // 立即刷新好友列表
+      } catch (error) {
+        alert('操作失败: ' + (error.response?.data?.msg || error.message));
+      }
+    };
+    
     // 页面加载时的初始化
     onMounted(() => {
       const token = localStorage.getItem('token');
@@ -845,9 +900,12 @@ export default {
       
       document.title = 'WHU-Chat | 主页';
       
-      // 如果当前在群组页面，则获取群组列表
+      // 自动加载好友和群组
       if (activeSection.value === 'groups') {
         fetchGroups();
+      }
+      if (activeSection.value === 'friends') {
+        fetchFriends();
       }
     });
     
@@ -855,6 +913,9 @@ export default {
     watch(activeSection, (newValue) => {
       if (newValue === 'groups') {
         fetchGroups();
+      }
+      if (newValue === 'friends') {
+        fetchFriends();
       }
     });
     
@@ -907,6 +968,11 @@ export default {
       newUserId,
       filteredMembers,
       
+      // 系统通知相关
+      notifications,
+      showNotifications,
+      unreadNotifications,
+      
       // 方法
       toggleUserMenu,
       enterChatRoom,
@@ -922,7 +988,9 @@ export default {
       confirmDeleteGroup,
       deleteGroup,
       addUserToGroup,
-      removeUserFromGroup
+      removeUserFromGroup,
+      fetchNotifications,
+      acceptFriend
     };
   }
 };

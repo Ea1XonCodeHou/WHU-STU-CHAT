@@ -310,5 +310,51 @@ namespace backend.Services
                 return Convert.ToBase64String(hash);
             }
         }
+        public async Task<UserDTO> GetUserByUsernameAsync(string username)
+        {
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var command = new MySqlCommand(
+                    "SELECT UserId, Username FROM Users WHERE Username = @Username",
+                    connection);
+                command.Parameters.AddWithValue("@Username", username);
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (await reader.ReadAsync())
+                    {
+                        return new UserDTO
+                        {
+                            Id = reader.GetInt32(0),
+                            Username = reader.GetString(1)
+                        };
+                    }
+                }
+            }
+            return null;
+        }
+         public async Task<UserDTO> GetUserByIdAsync(int userId)
+        {
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var command = new MySqlCommand(
+                    "SELECT UserId, Username FROM Users WHERE UserId = @UserId",
+                    connection);
+                command.Parameters.AddWithValue("@UserId", userId);
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    if (await reader.ReadAsync())
+                    {
+                        return new UserDTO
+                        {
+                            Id = reader.GetInt32(0),
+                            Username = reader.GetString(1)
+                        };
+                    }
+                }
+            }
+            return null;
+        }
     }
 } 

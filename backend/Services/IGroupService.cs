@@ -84,5 +84,13 @@ namespace backend.Services
         /// <param name="count">消息数量</param>
         /// <returns>消息列表</returns>
         Task<List<GroupMessageDTO>> GetGroupMessagesAsync(int groupId, int count);
+        
+        /// <summary>
+        /// 获取两个用户之间的私聊群组
+        /// </summary>
+        /// <param name="userId1">用户1的ID</param>
+        /// <param name="userId2">用户2的ID</param>
+        /// <returns>私聊群组列表</returns>
+        Task<List<GroupDTO>> GetPrivateGroupBetweenUsersAsync(int userId1, int userId2);
     }
 }

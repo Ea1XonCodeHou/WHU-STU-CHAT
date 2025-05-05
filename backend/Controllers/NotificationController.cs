@@ -77,8 +77,39 @@ namespace backend.Controllers
 
             return Ok(new { msg = "已同意好友请求，已创建私聊" });
         }
+        
+        // 4. 删除好友（删除私聊群组）
+        [HttpDelete("friend/{userId}/{friendId}")]
+        public async Task<IActionResult> DeleteFriend(int userId, int friendId)
+        {
+            try
+            {
+                // 获取用户之间的私聊群组
+                var privateGroups = await _groupService.GetPrivateGroupBetweenUsersAsync(userId, friendId);
+                
+                if (privateGroups == null || privateGroups.Count == 0)
+                {
+                    return NotFound(new { msg = "未找到与该用户的好友关系" });
+                }
+                
+                // 删除找到的私聊群组（应该只有一个）
+                foreach (var group in privateGroups)
+                {
+                    await _groupService.DeleteGroupAsync(group.GroupId);
+                }
+                
+                // 创建通知告知对方
+                var currentUser = await _userService.GetUserByIdAsync(userId);
+                await _notificationService.CreateNotificationAsync(
+                    friendId, 
+                    $"{currentUser.Username} 已将你从好友列表中移除");
+                
+                return Ok(new { msg = "好友已删除" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { msg = $"删除好友失败: {ex.Message}" });
+            }
+        }
     }
-
-
-    
 }

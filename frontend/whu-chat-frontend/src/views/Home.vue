@@ -203,6 +203,9 @@
                 <button class="action-button chat">
                   <i class="fa-solid fa-comment"></i>
                 </button>
+                <button class="action-button delete" @click.stop="confirmDeleteFriend(friend)">
+                  <i class="fa-solid fa-user-minus"></i>
+                </button>
               </div>
             </div>
             
@@ -890,6 +893,28 @@ export default {
       }
     };
     
+    const confirmDeleteFriend = (friend) => {
+      if (confirm('确定要删除这个好友吗？此操作不可恢复。')) {
+        deleteFriend(friend);
+      }
+    };
+    
+    const deleteFriend = async (friend) => {
+      try {
+        const apiBaseUrl = window.apiBaseUrl || 'http://localhost:5067';
+        const response = await axios.delete(`${apiBaseUrl}/api/notification/friend/${userId.value}/${friend.id}`);
+        if (response.data && response.data.msg) {
+          await fetchFriends();
+          alert(response.data.msg);
+        } else {
+          alert('删除好友成功');
+        }
+      } catch (error) {
+        console.error('删除好友失败:', error);
+        alert('删除好友失败: ' + (error.response?.data?.msg || error.message));
+      }
+    };
+    
     // 页面加载时的初始化
     onMounted(() => {
       const token = localStorage.getItem('token');
@@ -990,7 +1015,9 @@ export default {
       addUserToGroup,
       removeUserFromGroup,
       fetchNotifications,
-      acceptFriend
+      acceptFriend,
+      confirmDeleteFriend,
+      deleteFriend
     };
   }
 };
@@ -1663,26 +1690,33 @@ export default {
 
 .friend-actions, .group-actions {
   display: flex;
+  gap: 10px;
 }
 
 .action-button {
   width: 36px;
   height: 36px;
   border-radius: 50%;
+  background-color: #f0f0f0;
+  border: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f5f5f5;
-  color: #4776E6;
-  border: none;
-  cursor: pointer;
   transition: all 0.2s;
 }
 
 .action-button:hover {
-  background-color: #4776E6;
-  color: white;
-  transform: scale(1.1);
+  transform: translateY(-2px);
+}
+
+.action-button.chat {
+  color: #4776E6;
+}
+
+.action-button.delete {
+  color: #ff4757;
+  background-color: #ffe0e3;
 }
 
 .empty-friends, .empty-groups {

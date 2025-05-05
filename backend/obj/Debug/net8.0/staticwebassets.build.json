@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "aXTec+Ab4yl6OMlV08pDdJlr36REnUIw03cTueDkJbs=",
+  "Hash": "UJ6k8JCruKHOtKqDzOqAb2f+nDKquHYlIT3ODkmo6Bc=",
   "Source": "backend",
   "BasePath": "_content/backend",
   "Mode": "Default",
@@ -8,32 +8,118 @@
   "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [
     {
-      "Name": "backend/wwwroot",
+      "Name": "backend\\wwwroot",
       "Source": "backend",
-      "ContentRoot": "/Users/georgegao/Documents/GitHub/WHU-STU-CHAT/backend/wwwroot/",
+      "ContentRoot": "E:\\C\\test3\\WHU-STU-CHAT\\backend\\wwwroot\\",
       "BasePath": "_content/backend",
       "Pattern": "**"
     }
   ],
   "Assets": [
     {
-      "Identity": "/Users/georgegao/Documents/GitHub/WHU-STU-CHAT/backend/wwwroot/temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "Identity": "E:\\C\\test3\\WHU-STU-CHAT\\backend\\wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
       "SourceId": "backend",
       "SourceType": "Discovered",
-      "ContentRoot": "/Users/georgegao/Documents/GitHub/WHU-STU-CHAT/backend/wwwroot/",
+      "ContentRoot": "E:\\C\\test3\\WHU-STU-CHAT\\backend\\wwwroot\\",
       "BasePath": "_content/backend",
-      "RelativePath": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "RelativePath": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466#[.{fingerprint}]?.docx",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
-      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeBehavior": "",
       "AssetMergeSource": "",
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
+      "Fingerprint": "bq8o4izt8i",
+      "Integrity": "zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot/temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx"
+      "OriginalItemSpec": "wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx"
+    }
+  ],
+  "Endpoints": [
+    {
+      "Route": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.bq8o4izt8i.docx",
+      "AssetFile": "E:\\C\\test3\\WHU-STU-CHAT\\backend\\wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "197648"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 05 May 2025 09:19:41 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "bq8o4izt8i"
+        },
+        {
+          "Name": "label",
+          "Value": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0="
+        }
+      ]
+    },
+    {
+      "Route": "temp/uploads/e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "AssetFile": "E:\\C\\test3\\WHU-STU-CHAT\\backend\\wwwroot\\temp\\uploads\\e4fb5f14-7f16-4021-a386-d11da3aa0466.docx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "197648"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 05 May 2025 09:19:41 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-zUFc2HSey7C75huxe6jia8+C4278nCQCcN6LOcWtLc0="
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,99 @@
+/* 全局样式 */
+:root {
+  --background-color: #ffffff;
+  --background-secondary: #f5f7fb;
+  --text-color: #333333;
+  --border-color: #eaeaea;
+  --highlight-color: #4776E6;
+  --secondary-color: #8E54E9;
+  --input-background: #f8f8f8;
+  --card-background: white;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* 深色模式 */
+body.dark-mode {
+  --background-color: #1a1a1a;
+  --background-secondary: #2a2a2a;
+  --text-color: #f0f0f0;
+  --border-color: #444444;
+  --input-background: #2d2d2d;
+  --card-background: #303030;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* 适配深色模式的组件样式 */
+body.dark-mode .modal-content,
+body.dark-mode .post-item,
+body.dark-mode .friend-card,
+body.dark-mode .group-card,
+body.dark-mode .chat-content,
+body.dark-mode .discussion-list {
+  background-color: var(--card-background);
+  color: var(--text-color);
+}
+
+body.dark-mode .modal-header {
+  background: linear-gradient(135deg, #2d4a8e 0%, #5e3795 100%);
+}
+
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode .search-box {
+  background-color: var(--input-background);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+body.dark-mode .post-stat,
+body.dark-mode .friend-status-text,
+body.dark-mode .group-stats {
+  color: #999;
+}
+
+body.dark-mode .signature,
+body.dark-mode .friend-signature {
+  color: #aaa;
+}
+
+body.dark-mode .private-chat-container {
+  background-color: var(--background-color);
+}
+
+body.dark-mode .chat-content {
+  background-color: var(--background-secondary);
+}
+
+body.dark-mode .home-container {
+  background-color: var(--background-secondary);
+}
+
+/* 动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d1d1;
+  border-radius: 3px;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+  background: #555;
+} 

@@ -31,6 +31,13 @@ namespace backend.Services
         Task<List<GroupDTO>> GetAllGroupsAsync(int userId);
 
         /// <summary>
+        /// 根据群组名称搜索群组
+        /// </summary>
+        /// <param name="groupName">群组名称</param>
+        /// <returns>匹配的群组列表</returns>
+        Task<List<GroupDTO>> SearchGroupsByNameAsync(string groupName, int userId);
+
+        /// <summary>
         /// 获取群组详情
         /// </summary>
         /// <param name="groupId">群组ID</param>

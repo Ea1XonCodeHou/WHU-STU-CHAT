@@ -161,5 +161,19 @@ namespace backend.Controllers
             }
             return Ok(new { code = 200, data = result, msg = "获取私聊列表成功" });
         }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchGroups([FromQuery] string groupName, [FromQuery] int userId)
+        {
+            try
+            {
+                var groups = await _groupService.SearchGroupsByNameAsync(groupName, userId);
+                return Ok(new { code = 200, data = groups, msg = "搜索群组成功" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { code = 400, msg = ex.Message });
+            }
+        }
     }
 } 

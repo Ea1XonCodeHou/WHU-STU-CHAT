@@ -232,7 +232,7 @@
         
         <div class="groups-container">
           <div class="groups-search">
-            <input type="text" placeholder="搜索群组..." v-model="groupSearch">
+            <input type="text" placeholder="搜索群组..." v-model="groupSearch" @input="handleGroupSearch">
             <button class="create-group-btn" @click="showCreateGroupModal = true">
               <i class="fa-solid fa-plus"></i> 创建群组
             </button>
@@ -637,7 +637,7 @@ export default {
     const filteredGroups = computed(() => {
       if (!groupSearch.value) return groups.value;
       return groups.value.filter(group => 
-        group.name.toLowerCase().includes(groupSearch.value.toLowerCase())
+        group.groupName.toLowerCase().includes(groupSearch.value.toLowerCase())
       );
     });
     
@@ -914,6 +914,42 @@ export default {
         alert('删除好友失败: ' + (error.response?.data?.msg || error.message));
       }
     };
+    
+    const searchGroups = async (searchTerm) => {
+      try {
+        if (!searchTerm) {
+          // 如果搜索词为空，获取所有群组
+          const response = await axios.get(`/api/group/user/${userId.value}`);
+          if (response.data.code === 200) {
+            groups.value = response.data.data;
+          } else {
+            console.error('获取群组列表失败:', response.data.msg);
+          }
+        } else {
+          // 调用搜索API
+          const response = await axios.get(`/api/group/search`, {
+            params: {
+              groupName: searchTerm,
+              userId: userId.value
+            }
+          });
+          if (response.data.code === 200) {
+            groups.value = response.data.data;
+            console.log('搜索结果:', response.data.data);
+          } else {
+            console.error('搜索群组失败:', response.data.msg);
+          }
+        }
+      } catch (error) {
+        console.error('搜索群组失败:', error);
+        showNotification('搜索群组失败: ' + (error.response?.data?.msg || error.message), 'error');
+      }
+    };
+    
+    // 监听搜索输入
+    watch(groupSearch, (newValue) => {
+      searchGroups(newValue);
+    });
     
     // 页面加载时的初始化
     onMounted(() => {

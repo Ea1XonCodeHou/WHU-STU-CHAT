@@ -1,6 +1,7 @@
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using backend.DTOs;
 
 namespace backend.Controllers
 {
@@ -12,7 +13,6 @@ namespace backend.Controllers
     public class DiscussionController : ControllerBase
     {
         private readonly IDiscussionService _discussionService;
-        private static bool _initialized = false;
 
         /// <summary>
         /// 构造函数
@@ -30,24 +30,22 @@ namespace backend.Controllers
         {
             try
             {
-                // 检查是否需要初始化讨论区数据
-                if (!_initialized)
+                // 获取所有讨论区
+                var discussions = await _discussionService.GetAllDiscussionsAsync();
+
+                // 如果数据库中没有讨论区数据，返回空列表但状态码为200表示成功
+                if (discussions == null || discussions.Count == 0)
                 {
-                    var discussions = await _discussionService.GetAllDiscussionsAsync();
-                    if (discussions == null || discussions.Count == 0)
-                    {
-                        // 初始化默认的讨论区数据
-                        await InitializeDefaultDiscussionsAsync();
-                    }
-                    _initialized = true;
+                    return Ok(new List<DiscussionDTO>());
                 }
-                
-                var result = await _discussionService.GetAllDiscussionsAsync();
-                return Ok(result);
+
+                return Ok(discussions);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"获取讨论区列表失败: {ex.Message}");
+                // 记录错误日志
+                Console.WriteLine($"获取讨论区失败: {ex.Message}");
+                return StatusCode(500, "获取讨论区失败");
             }
         }
         

@@ -4,33 +4,33 @@ using System.Collections.Generic;
 namespace backend.Utils
 {
     /// <summary>
-    /// Í¨ÓÃ½á¹ûÀà£¬·â×°API·µ»Ø½á¹û
+    /// é€šç”¨ç»“æœç±»ï¼Œå°è£…APIè¿”å›ç»“æœ
     /// </summary>
-    /// <typeparam name="T">Êı¾İÀàĞÍ</typeparam>
+    /// <typeparam name="T">æ•°æ®ç±»å‹</typeparam>
     public class Result<T>
     {
         /// <summary>
-        /// ×´Ì¬Âë
+        /// çŠ¶æ€ç 
         /// </summary>
         public int Code { get; set; }
 
         /// <summary>
-        /// ÏûÏ¢
+        /// æ¶ˆæ¯
         /// </summary>
         public string Msg { get; set; }
 
         /// <summary>
-        /// Êı¾İ
+        /// æ•°æ®
         /// </summary>
         public T Data { get; set; }
 
         /// <summary>
-        /// ³É¹¦
+        /// æˆåŠŸ
         /// </summary>
-        /// <param name="data">Êı¾İ</param>
-        /// <param name="msg">ÏûÏ¢</param>
-        /// <returns>Result¶ÔÏó</returns>
-        public static Result<T> Success(T data, string msg = "²Ù×÷³É¹¦")
+        /// <param name="data">æ•°æ®</param>
+        /// <param name="msg">æ¶ˆæ¯</param>
+        /// <returns>Resultå¯¹è±¡</returns>
+        public static Result<T> Success(T data, string msg = "æ“ä½œæˆåŠŸ")
         {
             return new Result<T>
             {
@@ -41,12 +41,23 @@ namespace backend.Utils
         }
 
         /// <summary>
-        /// Ê§°Ü
+        /// æˆåŠŸç»“æœ (åˆ«åæ–¹æ³•ï¼Œç­‰åŒäºSuccess)
         /// </summary>
-        /// <param name="msg">´íÎóÏûÏ¢</param>
-        /// <param name="code">´íÎóÂë</param>
-        /// <returns>Result¶ÔÏó</returns>
-        public static Result<T> Error(string msg = "²Ù×÷Ê§°Ü", int code = 500)
+        /// <param name="data">æ•°æ®</param>
+        /// <param name="msg">æ¶ˆæ¯</param>
+        /// <returns>Resultå¯¹è±¡</returns>
+        public static Result<T> SuccessResult(T data, string msg = "æ“ä½œæˆåŠŸ")
+        {
+            return Success(data, msg);
+        }
+
+        /// <summary>
+        /// å¤±è´¥
+        /// </summary>
+        /// <param name="msg">é”™è¯¯æ¶ˆæ¯</param>
+        /// <param name="code">é”™è¯¯ç </param>
+        /// <returns>Resultå¯¹è±¡</returns>
+        public static Result<T> Error(string msg = "æ“ä½œå¤±è´¥", int code = 500)
         {
             return new Result<T>
             {
@@ -57,11 +68,11 @@ namespace backend.Utils
         }
 
         /// <summary>
-        /// Î´ÊÚÈ¨
+        /// æœªæˆæƒ
         /// </summary>
-        /// <param name="msg">´íÎóÏûÏ¢</param>
-        /// <returns>Result¶ÔÏó</returns>
-        public static Result<T> Unauthorized(string msg = "Î´ÊÚÈ¨")
+        /// <param name="msg">é”™è¯¯æ¶ˆæ¯</param>
+        /// <returns>Resultå¯¹è±¡</returns>
+        public static Result<T> Unauthorized(string msg = "æœªæˆæƒ")
         {
             return new Result<T>
             {
@@ -73,26 +84,26 @@ namespace backend.Utils
     }
 
     /// <summary>
-    /// ÎŞ·ºĞÍ²ÎÊıµÄResult£¬ÓÃÓÚ²»ĞèÒª·µ»ØÊı¾İµÄ½Ó¿Ú
+    /// æ— æ³›å‹å‚æ•°çš„Resultï¼Œç”¨äºä¸éœ€è¦è¿”å›æ•°æ®çš„æ¥å£
     /// </summary>
     public class Result
     {
         /// <summary>
-        /// ×´Ì¬Âë
+        /// çŠ¶æ€ç 
         /// </summary>
         public int Code { get; set; }
 
         /// <summary>
-        /// ÏûÏ¢
+        /// æ¶ˆæ¯
         /// </summary>
         public string Msg { get; set; }
 
         /// <summary>
-        /// ³É¹¦
+        /// æˆåŠŸ
         /// </summary>
-        /// <param name="msg">ÏûÏ¢</param>
-        /// <returns>Result¶ÔÏó</returns>
-        public static Result Success(string msg = "²Ù×÷³É¹¦")
+        /// <param name="msg">æ¶ˆæ¯</param>
+        /// <returns>Resultå¯¹è±¡</returns>
+        public static Result Success(string msg = "æ“ä½œæˆåŠŸ")
         {
             return new Result
             {
@@ -102,12 +113,22 @@ namespace backend.Utils
         }
 
         /// <summary>
-        /// Ê§°Ü
+        /// æˆåŠŸç»“æœ (åˆ«åæ–¹æ³•ï¼Œç­‰åŒäºSuccess)
         /// </summary>
-        /// <param name="msg">´íÎóÏûÏ¢</param>
-        /// <param name="code">´íÎóÂë</param>
-        /// <returns>Result¶ÔÏó</returns>
-        public static Result Error(string msg = "²Ù×÷Ê§°Ü", int code = 500)
+        /// <param name="msg">æ¶ˆæ¯</param>
+        /// <returns>Resultå¯¹è±¡</returns>
+        public static Result SuccessResult(string msg = "æ“ä½œæˆåŠŸ")
+        {
+            return Success(msg);
+        }
+
+        /// <summary>
+        /// å¤±è´¥
+        /// </summary>
+        /// <param name="msg">é”™è¯¯æ¶ˆæ¯</param>
+        /// <param name="code">é”™è¯¯ç </param>
+        /// <returns>Resultå¯¹è±¡</returns>
+        public static Result Error(string msg = "æ“ä½œå¤±è´¥", int code = 500)
         {
             return new Result
             {
@@ -117,11 +138,11 @@ namespace backend.Utils
         }
 
         /// <summary>
-        /// Î´ÊÚÈ¨
+        /// æœªæˆæƒ
         /// </summary>
-        /// <param name="msg">´íÎóÏûÏ¢</param>
-        /// <returns>Result¶ÔÏó</returns>
-        public static Result Unauthorized(string msg = "Î´ÊÚÈ¨")
+        /// <param name="msg">é”™è¯¯æ¶ˆæ¯</param>
+        /// <returns>Resultå¯¹è±¡</returns>
+        public static Result Unauthorized(string msg = "æœªæˆæƒ")
         {
             return new Result
             {

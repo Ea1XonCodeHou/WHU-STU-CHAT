@@ -1,10 +1,13 @@
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using backend.DTOs;
 using backend.Models;
 using backend.Utils;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
 
@@ -16,14 +19,17 @@ namespace backend.Services
     public class UserService : IUserService
     {
         private readonly string _connectionString;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="configuration">配置</param>
-        public UserService(IConfiguration configuration)
+        /// <param name="webHostEnvironment">Web环境</param>
+        public UserService(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _webHostEnvironment = webHostEnvironment;
         }
 
         /// <summary>
@@ -109,7 +115,7 @@ namespace backend.Services
                             ExpireTime = expireTime
                         };
 
-                        return Result<LoginResultVO>.Success(result, "登录成功");
+                        return Result<LoginResultVO>.SuccessResult(result, "登录成功");
                     }
                 }
                 
@@ -172,7 +178,7 @@ namespace backend.Services
                         Avatar = null // 默认为null，可设置默认头像
                     };
 
-                    return Result<UserVO>.Success(userVo, "注册成功");
+                    return Result<UserVO>.SuccessResult(userVo, "注册成功");
                 }
             }
             catch (Exception ex)
@@ -191,7 +197,7 @@ namespace backend.Services
             try
             {
                 var exists = await CheckUsernameExistsInternalAsync(username);
-                return Result<bool>.Success(exists);
+                return Result<bool>.SuccessResult(exists);
             }
             catch (Exception ex)
             {
@@ -212,9 +218,36 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    var command = new MySqlCommand(
-                        "SELECT UserId, Username, Email, Phone, Avatar FROM Users WHERE UserId = @UserId",
-                        connection);
+                    // 检查Status字段是否存在
+                    bool statusFieldExists = false;
+                    try
+                    {
+                        var schemaCommand = new MySqlCommand(
+                            "SELECT COUNT(*) FROM information_schema.COLUMNS " +
+                            "WHERE TABLE_SCHEMA = 'whu-chat' " +
+                            "AND TABLE_NAME = 'Users' " +
+                            "AND COLUMN_NAME = 'Status'",
+                            connection);
+                        var count = Convert.ToInt32(await schemaCommand.ExecuteScalarAsync());
+                        statusFieldExists = count > 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"检查Status字段出错: {ex.Message}");
+                    }
+
+                    // 根据是否存在Status字段构建不同的SQL查询
+                    string sql;
+                    if (statusFieldExists)
+                    {
+                        sql = "SELECT UserId, Username, Email, Phone, Avatar, Signature, Status FROM Users WHERE UserId = @UserId";
+                    }
+                    else
+                    {
+                        sql = "SELECT UserId, Username, Email, Phone, Avatar, Signature FROM Users WHERE UserId = @UserId";
+                    }
+
+                    var command = new MySqlCommand(sql, connection);
                     command.Parameters.AddWithValue("@UserId", userId);
 
                     using (var reader = await command.ExecuteReaderAsync())
@@ -227,10 +260,18 @@ namespace backend.Services
                                 Username = reader.GetString(reader.GetOrdinal("Username")),
                                 Email = reader.IsDBNull(reader.GetOrdinal("Email")) ? null : reader.GetString(reader.GetOrdinal("Email")),
                                 Phone = reader.IsDBNull(reader.GetOrdinal("Phone")) ? null : reader.GetString(reader.GetOrdinal("Phone")),
-                                Avatar = reader.IsDBNull(reader.GetOrdinal("Avatar")) ? null : reader.GetString(reader.GetOrdinal("Avatar"))
+                                Avatar = reader.IsDBNull(reader.GetOrdinal("Avatar")) ? null : reader.GetString(reader.GetOrdinal("Avatar")),
+                                Signature = reader.IsDBNull(reader.GetOrdinal("Signature")) ? null : reader.GetString(reader.GetOrdinal("Signature")),
+                                Status = "offline" // 默认状态为离线
                             };
 
-                            return Result<UserVO>.Success(userVo);
+                            // 如果存在Status字段，则读取实际状态
+                            if (statusFieldExists)
+                            {
+                                userVo.Status = reader.IsDBNull(reader.GetOrdinal("Status")) ? "offline" : reader.GetString(reader.GetOrdinal("Status"));
+                            }
+
+                            return Result<UserVO>.SuccessResult(userVo);
                         }
                         else
                         {
@@ -316,7 +357,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 var command = new MySqlCommand(
-                    "SELECT UserId, Username FROM Users WHERE Username = @Username",
+                    "SELECT UserId, Username, Status, Avatar, Signature FROM Users WHERE Username = @Username",
                     connection);
                 command.Parameters.AddWithValue("@Username", username);
                 using (var reader = await command.ExecuteReaderAsync())
@@ -326,7 +367,10 @@ namespace backend.Services
                         return new UserDTO
                         {
                             Id = reader.GetInt32(0),
-                            Username = reader.GetString(1)
+                            Username = reader.GetString(1),
+                            Status = reader.IsDBNull(2) ? "offline" : reader.GetString(2),
+                            AvatarUrl = reader.IsDBNull(3) ? null : reader.GetString(3),
+                            Signature = reader.IsDBNull(4) ? null : reader.GetString(4)
                         };
                     }
                 }
@@ -339,7 +383,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 var command = new MySqlCommand(
-                    "SELECT UserId, Username FROM Users WHERE UserId = @UserId",
+                    "SELECT UserId, Username, Status, Avatar, Signature FROM Users WHERE UserId = @UserId",
                     connection);
                 command.Parameters.AddWithValue("@UserId", userId);
                 using (var reader = await command.ExecuteReaderAsync())
@@ -349,12 +393,444 @@ namespace backend.Services
                         return new UserDTO
                         {
                             Id = reader.GetInt32(0),
-                            Username = reader.GetString(1)
+                            Username = reader.GetString(1),
+                            Status = reader.IsDBNull(2) ? "offline" : reader.GetString(2),
+                            AvatarUrl = reader.IsDBNull(3) ? null : reader.GetString(3),
+                            Signature = reader.IsDBNull(4) ? null : reader.GetString(4)
                         };
                     }
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// 更新用户信息
+        /// </summary>
+        /// <param name="updateDto">更新信息</param>
+        /// <returns>更新结果</returns>
+        public async Task<Result<UserVO>> UpdateUserInfoAsync(UpdateUserDTO updateDto)
+        {
+            try
+            {
+                if (updateDto == null)
+                {
+                    return Result<UserVO>.Error("更新信息不能为空");
+                }
+
+                // 检查用户是否存在
+                var userExists = await CheckUserExistsAsync(updateDto.UserId);
+                if (!userExists)
+                {
+                    return Result<UserVO>.Error("用户不存在", 404);
+                }
+
+                // 如果更新用户名，需要检查用户名是否被占用
+                if (!string.IsNullOrEmpty(updateDto.Username))
+                {
+                    var usernameExists = await CheckUsernameExistsInternalAsync(updateDto.Username);
+                    // 如果用户名被占用且不是当前用户，则返回错误
+                    if (usernameExists)
+                    {
+                        var existingUserId = await GetUserIdByUsernameAsync(updateDto.Username);
+                        if (existingUserId != updateDto.UserId)
+                        {
+                            return Result<UserVO>.Error("用户名已被占用");
+                        }
+                    }
+                }
+
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    // 拼接SQL语句，只更新有值的字段
+                    var sql = "UPDATE Users SET UpdateTime = @UpdateTime";
+                    if (!string.IsNullOrEmpty(updateDto.Username))
+                    {
+                        sql += ", Username = @Username";
+                    }
+                    if (!string.IsNullOrEmpty(updateDto.Email))
+                    {
+                        sql += ", Email = @Email";
+                    }
+                    if (!string.IsNullOrEmpty(updateDto.Phone))
+                    {
+                        sql += ", Phone = @Phone";
+                    }
+                    // 如果需要添加个人签名字段，需要先在Users表中添加Signature字段
+                    if (!string.IsNullOrEmpty(updateDto.Signature))
+                    {
+                        sql += ", Signature = @Signature";
+                    }
+                    sql += " WHERE UserId = @UserId";
+
+                    using (var command = new MySqlCommand(sql, connection))
+                    {
+                        command.Parameters.AddWithValue("@UserId", updateDto.UserId);
+                        command.Parameters.AddWithValue("@UpdateTime", DateTime.Now);
+
+                        if (!string.IsNullOrEmpty(updateDto.Username))
+                        {
+                            command.Parameters.AddWithValue("@Username", updateDto.Username);
+                        }
+                        if (!string.IsNullOrEmpty(updateDto.Email))
+                        {
+                            command.Parameters.AddWithValue("@Email", updateDto.Email);
+                        }
+                        if (!string.IsNullOrEmpty(updateDto.Phone))
+                        {
+                            command.Parameters.AddWithValue("@Phone", updateDto.Phone);
+                        }
+                        if (!string.IsNullOrEmpty(updateDto.Signature))
+                        {
+                            command.Parameters.AddWithValue("@Signature", updateDto.Signature);
+                        }
+
+                        // 执行更新
+                        var rowsAffected = await command.ExecuteNonQueryAsync();
+                        if (rowsAffected <= 0)
+                        {
+                            return Result<UserVO>.Error("更新用户信息失败");
+                        }
+                    }
+
+                    // 获取更新后的用户信息
+                    return await GetUserInfoAsync(updateDto.UserId);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result<UserVO>.Error($"更新用户信息失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 更新用户头像
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="file">头像文件</param>
+        /// <returns>更新结果</returns>
+        public async Task<Result<string>> UpdateUserAvatarAsync(int userId, IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return Result<string>.Error("请上传有效的头像文件");
+                }
+
+                // 检查用户是否存在
+                var userExists = await CheckUserExistsAsync(userId);
+                if (!userExists)
+                {
+                    return Result<string>.Error("用户不存在", 404);
+                }
+
+                // 检查文件类型
+                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
+                bool isValidExtension = Array.Exists(allowedExtensions, ext => ext == extension);
+                if (!isValidExtension)
+                {
+                    return Result<string>.Error("不支持的文件类型，请上传jpg、jpeg、png或gif格式的图片");
+                }
+
+                // 创建保存头像的目录
+                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "avatars");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                // 生成唯一的文件名
+                var uniqueFileName = $"{userId}_{Guid.NewGuid()}{extension}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                // 保存文件
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // 获取相对路径
+                var relativePath = $"/uploads/avatars/{uniqueFileName}";
+
+                // 更新数据库中的头像路径
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    var command = new MySqlCommand(
+                        "UPDATE Users SET Avatar = @Avatar, UpdateTime = @UpdateTime WHERE UserId = @UserId",
+                        connection);
+                    command.Parameters.AddWithValue("@UserId", userId);
+                    command.Parameters.AddWithValue("@Avatar", relativePath);
+                    command.Parameters.AddWithValue("@UpdateTime", DateTime.Now);
+
+                    var rowsAffected = await command.ExecuteNonQueryAsync();
+                    if (rowsAffected <= 0)
+                    {
+                        // 如果更新失败，删除已上传的文件
+                        if (File.Exists(filePath))
+                        {
+                            File.Delete(filePath);
+                        }
+                        return Result<string>.Error("更新头像失败");
+                    }
+                }
+
+                return Result<string>.SuccessResult(relativePath, "头像上传成功");
+            }
+            catch (Exception ex)
+            {
+                return Result<string>.Error($"更新头像失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 内部方法：检查用户是否存在
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>用户是否存在</returns>
+        private async Task<bool> CheckUserExistsAsync(int userId)
+        {
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var command = new MySqlCommand(
+                    "SELECT COUNT(1) FROM Users WHERE UserId = @UserId",
+                    connection);
+                command.Parameters.AddWithValue("@UserId", userId);
+                var count = Convert.ToInt32(await command.ExecuteScalarAsync());
+                return count > 0;
+            }
+        }
+
+        /// <summary>
+        /// 内部方法：根据用户名获取用户ID
+        /// </summary>
+        /// <param name="username">用户名</param>
+        /// <returns>用户ID，如不存在则返回0</returns>
+        private async Task<int> GetUserIdByUsernameAsync(string username)
+        {
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var command = new MySqlCommand(
+                    "SELECT UserId FROM Users WHERE Username = @Username",
+                    connection);
+                command.Parameters.AddWithValue("@Username", username);
+                var result = await command.ExecuteScalarAsync();
+                return result != null ? Convert.ToInt32(result) : 0;
+            }
+        }
+        
+        /// <summary>
+        /// 保存用户设置
+        /// </summary>
+        /// <param name="settingsDto">设置信息</param>
+        /// <returns>保存结果</returns>
+        public async Task<Result<bool>> SaveUserSettingAsync(UserSettingsDTO settingsDto)
+        {
+            try
+            {
+                if (settingsDto == null)
+                {
+                    return Result<bool>.Error("设置信息不能为空");
+                }
+
+                // 检查用户是否存在
+                var userExists = await CheckUserExistsAsync(settingsDto.UserId);
+                if (!userExists)
+                {
+                    return Result<bool>.Error("用户不存在", 404);
+                }
+
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    // 首先检查是否已存在该设置
+                    var checkCommand = new MySqlCommand(
+                        "SELECT COUNT(1) FROM UserSettings WHERE UserId = @UserId AND SettingKey = @SettingKey",
+                        connection);
+                    checkCommand.Parameters.AddWithValue("@UserId", settingsDto.UserId);
+                    checkCommand.Parameters.AddWithValue("@SettingKey", settingsDto.SettingKey);
+                    
+                    var count = Convert.ToInt32(await checkCommand.ExecuteScalarAsync());
+                    
+                    // 根据是否存在决定执行更新还是插入
+                    string sql;
+                    if (count > 0)
+                    {
+                        sql = @"UPDATE UserSettings 
+                               SET SettingValue = @SettingValue, UpdateTime = @UpdateTime 
+                               WHERE UserId = @UserId AND SettingKey = @SettingKey";
+                    }
+                    else
+                    {
+                        sql = @"INSERT INTO UserSettings (UserId, SettingKey, SettingValue, CreateTime, UpdateTime) 
+                               VALUES (@UserId, @SettingKey, @SettingValue, @CreateTime, @UpdateTime)";
+                    }
+
+                    using (var command = new MySqlCommand(sql, connection))
+                    {
+                        command.Parameters.AddWithValue("@UserId", settingsDto.UserId);
+                        command.Parameters.AddWithValue("@SettingKey", settingsDto.SettingKey);
+                        command.Parameters.AddWithValue("@SettingValue", settingsDto.SettingValue);
+                        command.Parameters.AddWithValue("@UpdateTime", DateTime.Now);
+                        
+                        if (count == 0)
+                        {
+                            command.Parameters.AddWithValue("@CreateTime", DateTime.Now);
+                        }
+
+                        await command.ExecuteNonQueryAsync();
+                        return Result<bool>.SuccessResult(true, "设置保存成功");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result<bool>.Error($"保存设置失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 获取用户设置
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="settingKey">设置键</param>
+        /// <returns>设置值</returns>
+        public async Task<Result<string>> GetUserSettingAsync(int userId, string settingKey)
+        {
+            try
+            {
+                // 检查用户是否存在
+                var userExists = await CheckUserExistsAsync(userId);
+                if (!userExists)
+                {
+                    return Result<string>.Error("用户不存在", 404);
+                }
+
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    
+                    var command = new MySqlCommand(
+                        "SELECT SettingValue FROM UserSettings WHERE UserId = @UserId AND SettingKey = @SettingKey",
+                        connection);
+                    command.Parameters.AddWithValue("@UserId", userId);
+                    command.Parameters.AddWithValue("@SettingKey", settingKey);
+                    
+                    var result = await command.ExecuteScalarAsync();
+                    if (result != null)
+                    {
+                        return Result<string>.SuccessResult(result.ToString(), "获取设置成功");
+                    }
+                    else
+                    {
+                        return Result<string>.SuccessResult(null, "未找到指定设置");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result<string>.Error($"获取设置失败：{ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// 获取用户所有设置
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>所有设置</returns>
+        public async Task<Result<Dictionary<string, string>>> GetAllUserSettingsAsync(int userId)
+        {
+            try
+            {
+                // 检查用户是否存在
+                var userExists = await CheckUserExistsAsync(userId);
+                if (!userExists)
+                {
+                    return Result<Dictionary<string, string>>.Error("用户不存在", 404);
+                }
+
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    
+                    var command = new MySqlCommand(
+                        "SELECT SettingKey, SettingValue FROM UserSettings WHERE UserId = @UserId",
+                        connection);
+                    command.Parameters.AddWithValue("@UserId", userId);
+                    
+                    var settings = new Dictionary<string, string>();
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var key = reader.GetString(0);
+                            var value = reader.GetString(1);
+                            settings[key] = value;
+                        }
+                    }
+                    
+                    return Result<Dictionary<string, string>>.SuccessResult(settings, "获取设置成功");
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result<Dictionary<string, string>>.Error($"获取设置失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 更新用户在线状态
+        /// </summary>
+        /// <param name="statusDto">状态信息</param>
+        /// <returns>更新结果</returns>
+        public async Task<Result<bool>> UpdateUserStatusAsync(UserStatusDTO statusDto)
+        {
+            try
+            {
+                if (statusDto == null)
+                {
+                    return Result<bool>.Error("状态信息不能为空");
+                }
+
+                // 检查用户是否存在
+                var userExists = await CheckUserExistsAsync(statusDto.UserId);
+                if (!userExists)
+                {
+                    return Result<bool>.Error("用户不存在", 404);
+                }
+
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    
+                    var command = new MySqlCommand(
+                        "UPDATE Users SET Status = @Status, IsStatusVisible = @IsVisible, UpdateTime = @UpdateTime WHERE UserId = @UserId",
+                        connection);
+                    command.Parameters.AddWithValue("@UserId", statusDto.UserId);
+                    command.Parameters.AddWithValue("@Status", statusDto.IsOnline ? "online" : "offline");
+                    command.Parameters.AddWithValue("@IsVisible", statusDto.IsVisible);
+                    command.Parameters.AddWithValue("@UpdateTime", DateTime.Now);
+
+                    var rowsAffected = await command.ExecuteNonQueryAsync();
+                    if (rowsAffected <= 0)
+                    {
+                        return Result<bool>.Error("更新状态失败");
+                    }
+                }
+
+                return Result<bool>.SuccessResult(true, "状态更新成功");
+            }
+            catch (Exception ex)
+            {
+                return Result<bool>.Error($"更新状态失败：{ex.Message}");
+            }
         }
     }
 } 

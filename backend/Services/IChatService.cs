@@ -82,5 +82,21 @@ namespace backend.Services
         /// <param name="roomId">聊天室ID</param>
         /// <param name="userId">用户ID</param>
         void RemoveUserFromRoom(int roomId, int userId);
+        
+        /// <summary>
+        /// 获取私聊历史消息
+        /// </summary>
+        /// <param name="userId">当前用户ID</param>
+        /// <param name="friendId">好友用户ID</param>
+        /// <param name="count">消息数量</param>
+        /// <returns>消息列表</returns>
+        Task<List<MessageDTO>> GetPrivateChatHistoryAsync(int userId, int friendId, int count);
+        
+        /// <summary>
+        /// 保存私聊消息
+        /// </summary>
+        /// <param name="message">消息对象</param>
+        /// <returns>消息ID</returns>
+        Task<int> SavePrivateMessageAsync(MessageDTO message);
     }
 } 

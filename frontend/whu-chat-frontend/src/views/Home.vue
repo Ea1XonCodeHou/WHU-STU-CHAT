@@ -12,6 +12,7 @@
         <div class="user-info">
           <h3 class="username">{{ username }}</h3>
           <p class="status">在线</p>
+          <p v-if="userSignature" class="user-signature">{{ userSignature }}</p>
         </div>
         <div class="user-menu" @click="toggleUserMenu">
           <i class="fa-solid fa-ellipsis-vertical"></i>
@@ -53,17 +54,16 @@
             <div class="notification-badge" v-if="chatroomNotifications > 0">{{ chatroomNotifications }}</div>
           </div>
           <div class="nav-item" 
-               @click="activeSection = 'forums'" 
-               :class="{ active: activeSection === 'forums' }">
-            <i class="fa-solid fa-list-ul"></i>
-            <span>讨论区</span>
-            <div class="notification-badge pulse" v-if="forumNotifications > 0">{{ forumNotifications }}</div>
-          </div>
-          <div class="nav-item" 
                @click="navigateToAIChat()" 
                :class="{ active: false }">
             <i class="fa-solid fa-robot"></i>
             <span>AI咨询</span>
+          </div>
+          <div class="nav-item" 
+               @click="navigateToForums()" 
+               :class="{ active: false }">
+            <i class="fa-solid fa-comment-dots"></i>
+            <span>讨论区</span>
           </div>
         </div>
         
@@ -198,6 +198,7 @@
               <div class="friend-details">
                 <h3>{{ friend.username }}</h3>
                 <p class="friend-status-text">{{ friend.status === 'online' ? '在线' : '离线' }}</p>
+                <p v-if="friend.signature" class="friend-signature">{{ friend.signature }}</p>
               </div>
               <div class="friend-actions">
                 <button class="action-button chat">
@@ -232,7 +233,7 @@
         
         <div class="groups-container">
           <div class="groups-search">
-            <input type="text" placeholder="搜索群组..." v-model="groupSearch" @input="handleGroupSearch">
+            <input type="text" placeholder="搜索群组..." v-model="groupSearch">
             <button class="create-group-btn" @click="showCreateGroupModal = true">
               <i class="fa-solid fa-plus"></i> 创建群组
             </button>
@@ -262,32 +263,6 @@
               <button class="create-group-btn" @click="showCreateGroupModal = true">
                 创建群组
               </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 讨论区部分 -->
-      <div v-if="activeSection === 'forums'" class="content-section forums-section">
-        <div class="section-title">
-          <h2><i class="fa-solid fa-list-ul"></i> 校园讨论区</h2>
-          <p>浏览校园热门话题</p>
-        </div>
-        
-        <div class="forums-container">
-          <div class="forums-categories">
-            <div v-for="category in forumCategories" :key="category.id"
-                 class="category-card" @click="selectForumCategory(category)">
-              <div class="category-icon">
-                <i :class="category.icon"></i>
-              </div>
-              <div class="category-details">
-                <h3>{{ category.name }}</h3>
-                <p>{{ category.description }}</p>
-              </div>
-              <div class="category-stats">
-                <span><i class="fa-solid fa-file-lines"></i> {{ category.postCount }} 帖子</span>
-              </div>
             </div>
           </div>
         </div>
@@ -470,6 +445,22 @@
         </div>
       </div>
     </div>
+
+    <!-- 个人资料模态框 -->
+    <user-profile 
+      v-if="showProfileModal" 
+      :visible="showProfileModal"
+      @close="showProfileModal = false"
+      @profile-updated="handleProfileUpdated"
+    />
+
+    <!-- 设置模态框 -->
+    <user-settings 
+      v-if="showSettingsModal" 
+      :visible="showSettingsModal"
+      @close="showSettingsModal = false"
+      @settings-updated="handleSettingsUpdated"
+    />
   </div>
 </template>
 
@@ -477,16 +468,33 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import UserProfile from '@/components/UserProfile.vue';
+import UserSettings from '@/components/UserSettings.vue';
 
 export default {
   name: 'HomeView',
+  components: {
+    UserProfile,
+    UserSettings
+  },
   setup() {
     const router = useRouter();
     
     // 用户信息
     const userId = ref(localStorage.getItem('userId') || '');
     const username = ref(localStorage.getItem('username') || '');
-    const userAvatar = ref(localStorage.getItem('userAvatar') || '');
+    
+    // 获取完整的头像URL
+    const getFullAvatarUrl = (avatarPath) => {
+      if (!avatarPath) return null;
+      if (avatarPath.startsWith('http')) return avatarPath;
+      
+      const origin = window.location.origin;
+      return avatarPath.startsWith('/') ? `${origin}${avatarPath}` : `${origin}/${avatarPath}`;
+    };
+
+    const userAvatar = ref(getFullAvatarUrl(localStorage.getItem('userAvatar')));
+    const userSignature = ref(localStorage.getItem('userSignature') || '');
     
     // UI 状态
     const activeSection = ref('chatrooms');
@@ -512,10 +520,43 @@ export default {
     const chatroomNotifications = ref(0);
     const friendNotifications = ref(0);
     const groupNotifications = ref(2);
-    const forumNotifications = ref(5);
     
     // 群组列表
     const groups = ref([]);
+    
+    // 聊天室列表
+    const chatRooms = ref([
+      {
+        id: 1,
+        name: '校园交流',
+        description: '讨论校园生活、学习和各种活动',
+        icon: 'fa-solid fa-school',
+        onlineCount: 42,
+        messageCount: 152
+      },
+      {
+        id: 2,
+        name: '技术讨论',
+        description: '分享IT技术、编程经验',
+        icon: 'fa-solid fa-code',
+        onlineCount: 28,
+        messageCount: 98
+      },
+      {
+        id: 3,
+        name: '考研交流',
+        description: '交流考研经验、资料分享',
+        icon: 'fa-solid fa-graduation-cap',
+        onlineCount: 35,
+        messageCount: 120
+      }
+    ]);
+    
+    // 好友列表
+    const friends = ref([]);
+    
+    // 最近聊天列表
+    const recentChats = ref([]);
     
     // 群组详情相关
     const selectedGroup = ref(null);
@@ -543,35 +584,7 @@ export default {
       }
     };
     
-    // 模拟数据 - 实际项目中应从API获取
-    const chatRooms = ref([
-      {
-        id: 1,
-        name: 'WHU 校园公共聊天室',
-        description: '欢迎来到武汉大学校园公共聊天室，这里是交流分享的空间！',
-        icon: 'fa-solid fa-school',
-        onlineCount: 24,
-        messageCount: 1253
-      },
-      {
-        id: 2,
-        name: '计算机学院交流群',
-        description: '计算机学院同学技术交流、学习讨论的地方',
-        icon: 'fa-solid fa-laptop-code',
-        onlineCount: 12,
-        messageCount: 856
-      },
-      {
-        id: 3,
-        name: '校园活动通知',
-        description: '发布和讨论校园各类活动的聊天室',
-        icon: 'fa-solid fa-calendar-days',
-        onlineCount: 8,
-        messageCount: 432
-      }
-    ]);
-    
-    const friends = ref([]);
+    // 加载好友列表
     const fetchFriends = async () => {
       const res = await axios.get(`/api/group/user/${userId.value}/private`);
       if (res.data.code === 200) {
@@ -584,7 +597,8 @@ export default {
                 id: other.id,
                 username: other.username,
                 status: other.status || 'offline',
-                avatar: other.avatar || null,
+                avatar: getFullAvatarUrl(other.avatar) || null,
+                signature: other.signature || '',
                 groupId: group.groupId
               });
             }
@@ -637,7 +651,7 @@ export default {
     const filteredGroups = computed(() => {
       if (!groupSearch.value) return groups.value;
       return groups.value.filter(group => 
-        group.groupName.toLowerCase().includes(groupSearch.value.toLowerCase())
+        group.name.toLowerCase().includes(groupSearch.value.toLowerCase())
       );
     });
     
@@ -660,6 +674,14 @@ export default {
     };
     
     const openPrivateChat = (friend) => {
+      // 保存当前聊天对象的信息到localStorage
+      localStorage.setItem('currentChatFriend', JSON.stringify({
+        id: friend.id,
+        username: friend.username,
+        avatar: friend.avatar,
+        status: friend.status,
+        signature: friend.signature
+      }));
       router.push(`/private-chat/${friend.id}`);
     };
     
@@ -667,10 +689,6 @@ export default {
       localStorage.setItem('currentGroupId', group.groupId);
       localStorage.setItem('currentGroupName', group.groupName);
       router.push(`/groupchat/${group.groupId}`);
-    };
-    
-    const selectForumCategory = (category) => {
-      console.log(`选择论坛分类: ${category.name}`);
     };
     
     const addFriend = async () => {
@@ -731,15 +749,35 @@ export default {
       localStorage.removeItem('userId');
       localStorage.removeItem('username');
       localStorage.removeItem('userAvatar');
+      localStorage.removeItem('userSignature');
       router.push('/login');
     };
     
     const navigateToAIChat = () => {
-      router.push('/chat');
+      const userId = localStorage.getItem('userId');
+      const username = localStorage.getItem('username');
+      
+      if (!userId || !username) {
+        alert('登录信息已失效，请重新登录');
+        router.push('/login');
+        return;
+      }
+      
+      router.push({
+        path: '/chat',
+        query: {
+          userId: userId,
+          username: username
+        }
+      });
     };
     
     const navigateToGroupChat = () => {
       router.push('/groupchat');
+    };
+    
+    const navigateToForums = () => {
+      router.push('/discussion');
     };
     
     const selectGroup = async (group) => {
@@ -915,41 +953,25 @@ export default {
       }
     };
     
-    const searchGroups = async (searchTerm) => {
-      try {
-        if (!searchTerm) {
-          // 如果搜索词为空，获取所有群组
-          const response = await axios.get(`/api/group/user/${userId.value}`);
-          if (response.data.code === 200) {
-            groups.value = response.data.data;
-          } else {
-            console.error('获取群组列表失败:', response.data.msg);
-          }
-        } else {
-          // 调用搜索API
-          const response = await axios.get(`/api/group/search`, {
-            params: {
-              groupName: searchTerm,
-              userId: userId.value
-            }
-          });
-          if (response.data.code === 200) {
-            groups.value = response.data.data;
-            console.log('搜索结果:', response.data.data);
-          } else {
-            console.error('搜索群组失败:', response.data.msg);
-          }
-        }
-      } catch (error) {
-        console.error('搜索群组失败:', error);
-        showNotification('搜索群组失败: ' + (error.response?.data?.msg || error.message), 'error');
-      }
+    // 处理个人资料更新
+    const handleProfileUpdated = (profileData) => {
+      // 更新本地状态
+      username.value = profileData.username || username.value;
+      userAvatar.value = getFullAvatarUrl(profileData.avatar) || userAvatar.value;
+      userSignature.value = profileData.signature || userSignature.value;
+      
+      // 关闭个人资料弹窗
+      showProfileModal.value = false;
     };
     
-    // 监听搜索输入
-    watch(groupSearch, (newValue) => {
-      searchGroups(newValue);
-    });
+    // 处理设置更新
+    const handleSettingsUpdated = (settingsData) => {
+      // 关闭设置弹窗
+      showSettingsModal.value = false;
+      
+      // 应用设置
+      // 如果需要立即应用其他设置，可以在此处添加代码
+    };
     
     // 页面加载时的初始化
     onMounted(() => {
@@ -961,12 +983,14 @@ export default {
       
       document.title = 'WHU-Chat | 主页';
       
-      // 自动加载好友和群组
-      if (activeSection.value === 'groups') {
-        fetchGroups();
-      }
-      if (activeSection.value === 'friends') {
-        fetchFriends();
+      // 自动加载数据
+      fetchFriends(); // 加载好友列表
+      fetchGroups(); // 加载群组列表
+      
+      // 根据活动区域加载数据
+      if (activeSection.value === 'chatrooms') {
+        // chatRooms是静态数据，不需要加载
+        // 如果将来需要从后端加载，可以在这里添加逻辑
       }
     });
     
@@ -978,6 +1002,9 @@ export default {
       if (newValue === 'friends') {
         fetchFriends();
       }
+      if (newValue === 'chatrooms') {
+        // 如果将来需要从后端加载聊天室数据，可以在这里添加逻辑
+      }
     });
     
     return {
@@ -985,6 +1012,7 @@ export default {
       userId,
       username,
       userAvatar,
+      userSignature,
       
       // UI状态
       activeSection,
@@ -1010,13 +1038,11 @@ export default {
       chatroomNotifications,
       friendNotifications,
       groupNotifications,
-      forumNotifications,
       
       // 数据列表
       chatRooms,
       friends,
       groups,
-      forumCategories,
       onlineFriends,
       filteredFriends,
       filteredGroups,
@@ -1039,12 +1065,12 @@ export default {
       enterChatRoom,
       openPrivateChat,
       openGroupChat,
-      selectForumCategory,
       addFriend,
       createGroup,
       logout,
       navigateToAIChat,
       navigateToGroupChat,
+      navigateToForums,
       selectGroup,
       confirmDeleteGroup,
       deleteGroup,
@@ -1053,7 +1079,11 @@ export default {
       fetchNotifications,
       acceptFriend,
       confirmDeleteFriend,
-      deleteFriend
+      deleteFriend,
+      
+      // 新增返回项
+      handleProfileUpdated,
+      handleSettingsUpdated
     };
   }
 };
@@ -1117,6 +1147,7 @@ export default {
 .user-avatar img {
   width: 100%;
   height: 100%;
+  border-radius: 50%;
   object-fit: cover;
 }
 
@@ -1145,6 +1176,16 @@ export default {
 .status {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.8);
+}
+
+.user-signature {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
 }
 
 .user-menu {
@@ -1395,17 +1436,11 @@ export default {
   margin-right: 10px;
 }
 
-.friend-avatar img, .avatar-placeholder {
+.friend-avatar img {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background-color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #4776E6;
-  font-weight: bold;
-  font-size: 12px;
+  object-fit: cover;
 }
 
 .friend-status {
@@ -1707,6 +1742,16 @@ export default {
   color: #666;
 }
 
+.friend-signature {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+}
+
 .group-stats {
   display: flex;
   font-size: 12px;
@@ -1787,68 +1832,6 @@ export default {
   color: #666;
   margin-bottom: 15px;
   font-size: 14px;
-}
-
-/* 论坛分类卡片 */
-.forums-categories {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.category-card {
-  background-color: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-.category-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.category-icon {
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 15px;
-  color: white;
-  font-size: 20px;
-}
-
-.category-details h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-.category-details p {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 15px;
-  flex: 1;
-}
-
-.category-stats {
-  color: #666;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-}
-
-.category-stats i {
-  margin-right: 5px;
-  color: #8E54E9;
 }
 
 /* 群组详情面板样式 */
@@ -2211,5 +2194,18 @@ export default {
 
 .action-button.delete:hover {
   background-color: #ff2e43;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4776E6;
+  font-weight: bold;
+  font-size: 12px;
 }
 </style> 

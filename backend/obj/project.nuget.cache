@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "9Nj8hwsBVkU=",
+  "dgSpecHash": "hsfki8mytRQ=",
   "success": true,
   "projectFilePath": "E:\\C\\test3\\WHU-STU-CHAT\\backend\\backend.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Lenovo13\\.nuget\\packages\\bouncycastle.cryptography\\2.2.1\\bouncycastle.cryptography.2.2.1.nupkg.sha512",
+    "C:\\Users\\Lenovo13\\.nuget\\packages\\dapper\\2.1.66\\dapper.2.1.66.nupkg.sha512",
     "C:\\Users\\Lenovo13\\.nuget\\packages\\google.protobuf\\3.21.9\\google.protobuf.3.21.9.nupkg.sha512",
     "C:\\Users\\Lenovo13\\.nuget\\packages\\k4os.compression.lz4\\1.3.5\\k4os.compression.lz4.1.3.5.nupkg.sha512",
     "C:\\Users\\Lenovo13\\.nuget\\packages\\k4os.compression.lz4.streams\\1.3.5\\k4os.compression.lz4.streams.1.3.5.nupkg.sha512",

@@ -3,53 +3,63 @@ using System;
 namespace backend.DTOs
 {
     /// <summary>
-    /// ÓÃ»§ĞÅÏ¢ÊÓÍ¼¶ÔÏó
+    /// ç”¨æˆ·ä¿¡æ¯è§†å›¾å¯¹è±¡
     /// </summary>
     public class UserVO
     {
         /// <summary>
-        /// ÓÃ»§ID
+        /// ç”¨æˆ·ID
         /// </summary>
         public int Id { get; set; }
 
         /// <summary>
-        /// ÓÃ»§Ãû
+        /// ç”¨æˆ·å
         /// </summary>
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         /// <summary>
-        /// ÓÊÏä
+        /// é‚®ç®±
         /// </summary>
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         /// <summary>
-        /// ÊÖ»úºÅ
+        /// æ‰‹æœºå·
         /// </summary>
-        public string Phone { get; set; }
+        public string? Phone { get; set; }
 
         /// <summary>
-        /// Í·Ïñ
+        /// å¤´åƒ
         /// </summary>
-        public string Avatar { get; set; }
+        public string? Avatar { get; set; }
+
+        /// <summary>
+        /// ä¸ªæ€§ç­¾å
+        /// </summary>
+        public string? Signature { get; set; }
+
+        /// <summary>
+        /// åœ¨çº¿çŠ¶æ€
+        /// </summary>
+        public string? Status { get; set; }
     }
 
     /// <summary>
-    /// µÇÂ¼³É¹¦ºó·µ»ØµÄÊÓÍ¼¶ÔÏó
+    /// ç™»å½•æˆåŠŸåè¿”å›çš„è§†å›¾å¯¹è±¡
     /// </summary>
     public class LoginResultVO
     {
         /// <summary>
-        /// ÓÃ»§»ù±¾ĞÅÏ¢
+        /// ç”¨æˆ·åŸºæœ¬ä¿¡æ¯
         /// </summary>
-        public UserVO UserInfo { get; set; }
+        public UserVO? UserInfo { get; set; }
 
         /// <summary>
-        /// Éí·İÑéÖ¤ÁîÅÆ
+        /// èº«ä»½éªŒè¯ä»¤ç‰Œ
         /// </summary>
-        public string Token { get; set; }
+        public string? Token { get; set; }
 
         /// <summary>
-        /// ÁîÅÆ¹ıÆÚÊ±¼ä
+        /// ä»¤ç‰Œè¿‡æœŸæ—¶é—´
         /// </summary>
         public DateTime ExpireTime { get; set; }
     }

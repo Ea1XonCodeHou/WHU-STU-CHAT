@@ -7,6 +7,7 @@ import GroupChat from '../views/GroupChat.vue'
 
 import Home from '../views/Home.vue'
 import AIChat from '@/components/AIChat.vue'
+import Discussion from '../views/Discussion.vue'
 
 
 const routes = [
@@ -40,25 +41,22 @@ const routes = [
     meta: { requiresAuth: true } // 需要登录才能访问
   },
   {
-
     path: '/groupchat',
     name: 'GroupChat',
     component: GroupChat,
     meta: { requiresAuth: true } // 需要登录才能访问
   },
-
   {
     path: '/chat',
     name: 'AIChat',
     component: AIChat,
-    meta: {
-      requiresAuth: true
-    },
-    props: route => ({
-      userId: Number(localStorage.getItem('userId')),
-      username: localStorage.getItem('username')
-    })
-
+    meta: { requiresAuth: true } // 需要登录才能访问
+  },
+  {
+    path: '/discussion',
+    name: 'Discussion',
+    component: Discussion,
+    meta: { requiresAuth: true } // 需要登录才能访问
   },
   {
     path: '/private-chat/:id',
@@ -68,25 +66,26 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
 
-// 全局路由守卫，已登录用户访问登录页时自动重定向到主页
+// 全局导航守卫，用于检查是否需要登录
 router.beforeEach((to, from, next) => {
-  // 检查本地存储中是否有token
-  const isLoggedIn = !!localStorage.getItem('token');
-  
-  // 如果需要登录但用户未登录，则重定向到登录页
-  if (to.meta.requiresAuth && !isLoggedIn) {
-    next({ path: '/login' });
-  }
-  // 如果已登录且访问登录页或注册页，重定向到主页
-  else if (isLoggedIn && (to.path === '/login' || to.path === '/register')) {
-    next({ path: '/home' });
+  // 检查目标路由是否需要认证
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // 这个路由需要认证，检查是否有token
+    if (!localStorage.getItem('token')) {
+      // 如果没有，重定向到登录页面
+      next({ path: '/login' })
+    } else {
+      // 已登录，允许访问
+      next()
+    }
   } else {
-    next();
+    // 不需要认证的路由，直接放行
+    next()
   }
-});
+})
 
 export default router

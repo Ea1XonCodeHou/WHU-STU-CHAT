@@ -194,3 +194,4 @@ E:\C\test3\WHU-STU-CHAT\backend\obj\Debug\net8.0\refint\backend.dll
 E:\C\test3\WHU-STU-CHAT\backend\obj\Debug\net8.0\backend.pdb
 E:\C\test3\WHU-STU-CHAT\backend\obj\Debug\net8.0\backend.genruntimeconfig.cache
 E:\C\test3\WHU-STU-CHAT\backend\obj\Debug\net8.0\ref\backend.dll
+E:\C\test3\WHU-STU-CHAT\backend\bin\Debug\net8.0\Dapper.dll

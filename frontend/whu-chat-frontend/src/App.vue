@@ -5,33 +5,46 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'App'
 };
 </script>
 
 <style>
-/* 全局样式 */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+:root {
+  --background-color: #ffffff;
+  --text-color: #333333;
+  --border-color: #eaeaea;
+  --highlight-color: #4776E6;
+  --secondary-color: #8E54E9;
 }
 
-html, body {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+body {
+  margin: 0;
+  font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-  background-color: #f5f7fb;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.dark-mode {
+  --background-color: #1f1f1f;
+  --text-color: #f0f0f0;
+  --border-color: #444444;
+}
+
+/* 全局 CSS 样式重置 */
+* {
+  box-sizing: border-box;
 }
 
 #app {
-  height: 100%;
   width: 100%;
+  height: 100vh;
+  overflow: hidden;
 }
 
 a {

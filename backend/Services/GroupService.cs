@@ -53,11 +53,10 @@ namespace backend.Services
 
                             // 用新 groupId 插入 GroupMembers
                             var insertMemberCommand = new MySqlCommand(
-                                @"INSERT INTO GroupMembers (MemberId, GroupId, UserId, JoinTime) 
-                                  VALUES (@MemberId, @GroupId, @UserId, @JoinTime)",
+                                @"INSERT INTO GroupMembers (GroupId, UserId, JoinTime) 
+                                  VALUES (@GroupId, @UserId, @JoinTime)",
                                 connection, transaction);
 
-                            insertMemberCommand.Parameters.AddWithValue("@MemberId", $"{groupId}+{groupRegDto.CreatorId}");
                             insertMemberCommand.Parameters.AddWithValue("@GroupId", groupId);
                             insertMemberCommand.Parameters.AddWithValue("@UserId", groupRegDto.CreatorId);
                             insertMemberCommand.Parameters.AddWithValue("@JoinTime", DateTime.UtcNow);
@@ -94,12 +93,6 @@ namespace backend.Services
                 using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-
-                    var deleteGroupMessagesCommand = new MySqlCommand(
-                "DELETE FROM GroupMessages WHERE GroupId = @GroupId",
-                connection);
-                    deleteGroupMessagesCommand.Parameters.AddWithValue("@GroupId", groupId);
-                    await deleteGroupMessagesCommand.ExecuteNonQueryAsync();
 
                     // 删除 GroupMembers 表中所有 GroupId 为指定 groupId 的记录
                     var deleteGroupMembersCommand = new MySqlCommand(
@@ -182,55 +175,7 @@ namespace backend.Services
             }
         }
 
-        public async Task<List<GroupDTO>> SearchGroupsByNameAsync(string groupName, int userId)
-        {
-            try
-            {
-                using (var connection = new MySqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-
-                    // 查询用户所在的群组，并根据群组名称模糊匹配
-                    var command = new MySqlCommand(
-                        @"SELECT g.GroupId, g.GroupName, g.Description, g.CreatorId, g.MemberCount, g.CreateTime, g.UpdateTime
-                          FROM ChatGroups g
-                          JOIN GroupMembers gm ON g.GroupId = gm.GroupId
-                          WHERE gm.UserId = @UserId AND g.GroupName LIKE @GroupName",
-                        connection);
-
-                    // 添加参数
-                    command.Parameters.AddWithValue("@UserId", userId);
-                    command.Parameters.AddWithValue("@GroupName", $"%{groupName}%");
-
-                    var groups = new List<GroupDTO>();
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            groups.Add(new GroupDTO
-                            {
-                                GroupId = reader.GetInt32(reader.GetOrdinal("GroupId")),
-                                GroupName = reader.GetString(reader.GetOrdinal("GroupName")),
-                                Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? null : reader.GetString(reader.GetOrdinal("Description")),
-                                CreatorId = reader.GetInt32(reader.GetOrdinal("CreatorId")),
-                                MemberCount = reader.GetInt32(reader.GetOrdinal("MemberCount")),
-                                CreateTime = reader.GetDateTime(reader.GetOrdinal("CreateTime")),
-                                UpdateTime = reader.GetDateTime(reader.GetOrdinal("UpdateTime"))
-                            });
-                        }
-                    }
-
-                    return groups;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"搜索群组失败: {ex.Message}");
-            }
-        }
-
-
-
+        
         public async Task<GroupDetailDTO> GetGroupDetailsAsync(int groupId)
         {
             try
@@ -325,11 +270,10 @@ namespace backend.Services
 
                     // Step 2: 插入新成员到 GroupMembers 表
                     var addMemberCommand = new MySqlCommand(
-                        "INSERT INTO GroupMembers (MemberId, GroupId, UserId, JoinTime) VALUES (@MemberId, @GroupId, @UserId, @JoinTime)",
+                        "INSERT INTO GroupMembers (GroupId, UserId, JoinTime) VALUES (@GroupId, @UserId, @JoinTime)",
                         connection);
                     addMemberCommand.Parameters.AddWithValue("@GroupId", groupId);
                     addMemberCommand.Parameters.AddWithValue("@UserId", userId);
-                    addMemberCommand.Parameters.AddWithValue("@MemberId", groupId.ToString() + "+" + userId.ToString());
                     addMemberCommand.Parameters.AddWithValue("@JoinTime", DateTime.UtcNow);
                     var rowsAffected = await addMemberCommand.ExecuteNonQueryAsync();
 
@@ -492,11 +436,10 @@ namespace backend.Services
             using (var connection = new MySqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-
                 var command = new MySqlCommand(
                     "SELECT COUNT(1) FROM ChatGroups WHERE GroupName = @GroupName",
                     connection);
-                command.Parameters.AddWithValue("@Username", groupName);
+                command.Parameters.AddWithValue("@GroupName", groupName);
 
                 var count = Convert.ToInt32(await command.ExecuteScalarAsync());
                 return count > 0;
@@ -512,33 +455,33 @@ namespace backend.Services
         public async Task<List<GroupDTO>> GetPrivateGroupBetweenUsersAsync(int userId1, int userId2)
         {
             var result = new List<GroupDTO>();
-            
+             
             using (var connection = new MySqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                
+
                 // 查询两个用户都在其中且只有这两个用户的群组
                 // 使用子查询确保群组只有两个成员且包含这两个用户
                 var query = @"
                     SELECT g.GroupId, g.GroupName, g.Description, g.CreatorId, g.MemberCount, g.CreateTime, g.UpdateTime 
-                    FROM ChatGroups g
-                    WHERE g.MemberCount = 2
-                    AND g.GroupId IN (
-                        SELECT gm1.GroupId 
-                        FROM GroupMembers gm1
-                        WHERE gm1.UserId = @UserId1
-                        AND EXISTS (
-                            SELECT 1 
-                            FROM GroupMembers gm2 
-                            WHERE gm2.GroupId = gm1.GroupId 
-                            AND gm2.UserId = @UserId2
-                        )
-                        AND (
-                            SELECT COUNT(*) 
-                            FROM GroupMembers gm3 
-                            WHERE gm3.GroupId = gm1.GroupId
-                        ) = 2
-                    )";
+                     FROM ChatGroups g
+                WHERE g.MemberCount = 2
+                AND g.GroupId IN (
+                    SELECT gm1.GroupId 
+                    FROM GroupMembers gm1
+                    WHERE gm1.UserId = @UserId1
+                    AND EXISTS (
+                        SELECT 1 
+                        FROM GroupMembers gm2 
+                        WHERE gm2.GroupId = gm1.GroupId 
+                        AND gm2.UserId = @UserId2
+                    )
+                    AND (
+                        SELECT COUNT(*) 
+                        FROM GroupMembers gm3 
+                        WHERE gm3.GroupId = gm1.GroupId
+                    ) = 2
+                )";
                 
                 var command = new MySqlCommand(query, connection);
                 command.Parameters.AddWithValue("@UserId1", userId1);
@@ -552,7 +495,7 @@ namespace backend.Services
                         {
                             GroupId = reader.GetInt32(reader.GetOrdinal("GroupId")),
                             GroupName = reader.GetString(reader.GetOrdinal("GroupName")),
-                            Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? null : reader.GetString(reader.GetOrdinal("Description")),
+                            Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? string.Empty : reader.GetString(reader.GetOrdinal("Description")),
                             CreatorId = reader.GetInt32(reader.GetOrdinal("CreatorId")),
                             MemberCount = reader.GetInt32(reader.GetOrdinal("MemberCount")),
                             CreateTime = reader.GetDateTime(reader.GetOrdinal("CreateTime")),
@@ -565,6 +508,58 @@ namespace backend.Services
             }
             
             return result;
+        }
+
+        /// <summary>
+        /// 根据群组名称搜索群组
+        /// </summary>
+        /// <param name="groupName">群组名称</param>
+        /// <param name="userId">用户ID</param>
+        /// <returns>匹配的群组列表</returns>
+        public async Task<List<GroupDTO>> SearchGroupsByNameAsync(string groupName, int userId)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    // 1. 获取该用户所在的所有群组
+                    var sql = @"
+                        SELECT g.GroupId, g.GroupName, g.Description, g.UpdateTime, g.MemberCount 
+                        FROM ChatGroups g
+                        JOIN GroupMembers m ON g.GroupId = m.GroupId
+                        WHERE m.UserId = @UserId AND g.GroupName LIKE @SearchPattern
+                        ORDER BY g.UpdateTime DESC";
+
+                    using (var command = new MySqlCommand(sql, connection))
+                    {
+                        command.Parameters.AddWithValue("@UserId", userId);
+                        command.Parameters.AddWithValue("@SearchPattern", $"%{groupName}%");
+
+                        var groups = new List<GroupDTO>();
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                groups.Add(new GroupDTO
+                                {
+                                    GroupId = reader.GetInt32(0),
+                                    GroupName = reader.GetString(1),
+                                    Description = reader.GetString(2),
+                                    UpdateTime = reader.GetDateTime(3),
+                                    MemberCount = reader.GetInt32(4)
+                                });
+                            }
+                        }
+                        return groups;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"搜索群组失败: {ex.Message}");
+            }
         }
     }
 }

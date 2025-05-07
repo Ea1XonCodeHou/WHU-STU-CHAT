@@ -4,100 +4,105 @@ using System;
 namespace backend.DTOs
 {
     /// <summary>
-    /// ÓÃ»§µÇÂ¼ÇëÇóDTO
+    /// ç”¨æˆ·ç™»å½•è¯·æ±‚DTO
     /// </summary>
     public class LoginDTO
     {
         /// <summary>
-        /// ÓÃ»§Ãû
+        /// ç”¨æˆ·å
         /// </summary>
-        [Required(ErrorMessage = "ÓÃ»§Ãû²»ÄÜÎª¿Õ")]
-        public string Username { get; set; }
+        [Required(ErrorMessage = "ç”¨æˆ·åä¸èƒ½ä¸ºç©º")]
+        public string? Username { get; set; }
 
         /// <summary>
-        /// ÃÜÂë
+        /// å¯†ç 
         /// </summary>
-        [Required(ErrorMessage = "ÃÜÂë²»ÄÜÎª¿Õ")]
-        public string Password { get; set; }
+        [Required(ErrorMessage = "å¯†ç ä¸èƒ½ä¸ºç©º")]
+        public string? Password { get; set; }
 
         /// <summary>
-        /// ¼Ç×¡ÎÒ
+        /// è®°ä½æˆ‘
         /// </summary>
         public bool RememberMe { get; set; }
     }
 
     /// <summary>
-    /// ÓÃ»§×¢²áÇëÇóDTO
+    /// ç”¨æˆ·æ³¨å†Œè¯·æ±‚DTO
     /// </summary>
     public class RegisterDTO
     {
         /// <summary>
-        /// ÓÃ»§Ãû
+        /// ç”¨æˆ·å
         /// </summary>
-        [Required(ErrorMessage = "ÓÃ»§Ãû²»ÄÜÎª¿Õ")]
-        [StringLength(50, MinimumLength = 3, ErrorMessage = "ÓÃ»§Ãû³¤¶È±ØĞëÔÚ3-50¸ö×Ö·ûÖ®¼ä")]
-        public string Username { get; set; }
+        [Required(ErrorMessage = "ç”¨æˆ·åä¸èƒ½ä¸ºç©º")]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "ç”¨æˆ·åé•¿åº¦å¿…é¡»åœ¨3-50ä¸ªå­—ç¬¦ä¹‹é—´")]
+        public string? Username { get; set; }
 
         /// <summary>
-        /// ÃÜÂë
+        /// å¯†ç 
         /// </summary>
-        [Required(ErrorMessage = "ÃÜÂë²»ÄÜÎª¿Õ")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "ÃÜÂë³¤¶È±ØĞëÔÚ6-100¸ö×Ö·ûÖ®¼ä")]
-        public string Password { get; set; }
+        [Required(ErrorMessage = "å¯†ç ä¸èƒ½ä¸ºç©º")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "å¯†ç é•¿åº¦å¿…é¡»åœ¨6-100ä¸ªå­—ç¬¦ä¹‹é—´")]
+        public string? Password { get; set; }
 
         /// <summary>
-        /// È·ÈÏÃÜÂë
+        /// ç¡®è®¤å¯†ç 
         /// </summary>
-        [Required(ErrorMessage = "È·ÈÏÃÜÂë²»ÄÜÎª¿Õ")]
-        [Compare("Password", ErrorMessage = "Á½´ÎÃÜÂëÊäÈë²»Ò»ÖÂ")]
-        public string ConfirmPassword { get; set; }
+        [Required(ErrorMessage = "ç¡®è®¤å¯†ç ä¸èƒ½ä¸ºç©º")]
+        [Compare("Password", ErrorMessage = "ä¸¤æ¬¡è¾“å…¥çš„å¯†ç ä¸ä¸€è‡´")]
+        public string? ConfirmPassword { get; set; }
 
         /// <summary>
-        /// ÓÊÏä
+        /// é‚®ç®±
         /// </summary>
-        [EmailAddress(ErrorMessage = "ÓÊÏä¸ñÊ½²»ÕıÈ·")]
-        public string Email { get; set; }
+        [EmailAddress(ErrorMessage = "é‚®ç®±æ ¼å¼ä¸æ­£ç¡®")]
+        public string? Email { get; set; }
 
         /// <summary>
-        /// ÊÖ»úºÅ
+        /// æ‰‹æœºå·
         /// </summary>
-        [Phone(ErrorMessage = "ÊÖ»úºÅ¸ñÊ½²»ÕıÈ·")]
-        public string Phone { get; set; }
+        [Phone(ErrorMessage = "æ‰‹æœºå·æ ¼å¼ä¸æ­£ç¡®")]
+        public string? Phone { get; set; }
     }
 
     /// <summary>
-    /// ÓÃ»§Êı¾İ´«Êä¶ÔÏó
+    /// ç”¨æˆ·æ•°æ®ä¼ è¾“å¯¹è±¡
     /// </summary>
     public class UserDTO
     {
         /// <summary>
-        /// ÓÃ»§ID
+        /// ç”¨æˆ·ID
         /// </summary>
         public int Id { get; set; }
 
         /// <summary>
-        /// ÓÃ»§Ãû
+        /// ç”¨æˆ·å
         /// </summary>
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         /// <summary>
-        /// êÇ³Æ
+        /// æ˜µç§°
         /// </summary>
-        public string Nickname { get; set; }
+        public string? Nickname { get; set; }
 
         /// <summary>
-        /// Í·ÏñURL
+        /// å¤´åƒURL
         /// </summary>
-        public string AvatarUrl { get; set; }
+        public string? AvatarUrl { get; set; }
 
         /// <summary>
-        /// ×´Ì¬£¨ÔÚÏß/ÀëÏß£©
+        /// çŠ¶æ€ï¼ˆåœ¨çº¿/ç¦»çº¿ï¼‰
         /// </summary>
-        public string Status { get; set; }
+        public string? Status { get; set; }
 
         /// <summary>
-        /// ×îºó»îÔ¾Ê±¼ä
+        /// æœ€åæ´»è·ƒæ—¶é—´
         /// </summary>
         public DateTime LastActive { get; set; }
+
+        /// <summary>
+        /// ä¸ªæ€§ç­¾å
+        /// </summary>
+        public string? Signature { get; set; }
     }
 } 

@@ -33,6 +33,16 @@ namespace backend.DTOs
         public string SenderName { get; set; }
 
         /// <summary>
+        /// 接收者ID（用于私聊）
+        /// </summary>
+        public int ReceiverId { get; set; }
+
+        /// <summary>
+        /// 接收者用户名（用于私聊）
+        /// </summary>
+        public string ReceiverName { get; set; }
+
+        /// <summary>
         /// 聊天室ID
         /// </summary>
         public int RoomId { get; set; }
@@ -66,32 +76,32 @@ namespace backend.DTOs
     public class GroupMessageDTO
     {
         /// <summary>
-        /// ��ϢID
+        /// 消息ID
         /// </summary>
         public int MessageId { get; set; }
 
         /// <summary>
-        /// ��Ϣ����
+        /// 消息内容
         /// </summary>
         public string Content { get; set; }
 
         /// <summary>
-        /// ����ʱ��
+        /// 创建时间
         /// </summary>
         public DateTime CreateTime { get; set; }
 
         /// <summary>
-        /// ������ID
+        /// 发送者ID
         /// </summary>
         public int SenderId { get; set; }
 
         /// <summary>
-        /// �������û���
+        /// 发送者用户名
         /// </summary>
         public string SenderName { get; set; }
 
         /// <summary>
-        /// ������ID
+        /// 群组ID
         /// </summary>
         public int GroupId { get; set; }
         

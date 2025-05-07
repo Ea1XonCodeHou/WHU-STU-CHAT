@@ -13,7 +13,7 @@ using System.Text.Json;
 namespace backend.Services
 {
     /// <summary>
-    /// ÁÄÌì·şÎñÊµÏÖ
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½
     /// </summary>
     public class ChatService : IChatService
     {
@@ -28,10 +28,10 @@ namespace backend.Services
             _connectionString = configuration.GetConnectionString("DefaultConnection");
             _logger = logger;
             
-            // ÉèÖÃÁÙÊ±ÎÄ¼şÄ¿Â¼
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Ä¼ï¿½Ä¿Â¼
             _tempFileDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp", "uploads");
             
-            // È·±£Ä¿Â¼´æÔÚ
+            // È·ï¿½ï¿½Ä¿Â¼ï¿½ï¿½ï¿½ï¿½
             if (!Directory.Exists(_tempFileDirectory))
             {
                 Directory.CreateDirectory(_tempFileDirectory);
@@ -39,7 +39,7 @@ namespace backend.Services
         }
 
         /// <summary>
-        /// »ñÈ¡ÁÄÌìÊÒÃû³Æ
+        /// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public async Task<string> GetRoomNameAsync(int roomId)
         {
@@ -60,13 +60,13 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"»ñÈ¡ÁÄÌìÊÒÃû³ÆÊ§°Ü: {ex.Message}");
+                _logger.LogError(ex, $"ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½: {ex.Message}");
                 return null;
             }
         }
 
         /// <summary>
-        /// »ñÈ¡ÁÄÌìÊÒÀúÊ·ÏûÏ¢
+        /// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê·ï¿½ï¿½Ï¢
         /// </summary>
         public async Task<List<MessageDTO>> GetRoomMessagesAsync(int roomId, int count)
         {
@@ -78,7 +78,7 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // Ê¹ÓÃĞŞ¸ÄºóµÄSQL²éÑ¯£¬°üº¬MessageTypeºÍFileUrl×Ö¶Î
+                    // Ê¹ï¿½ï¿½ï¿½Ş¸Äºï¿½ï¿½SQLï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½MessageTypeï¿½ï¿½FileUrlï¿½Ö¶ï¿½
                     var command = new MySqlCommand(
                         @"SELECT m.MessageId, m.SenderId, u.Username AS SenderName, m.Content, 
                           m.CreateTime, m.RoomId, m.MessageType, m.FileUrl
@@ -106,7 +106,7 @@ namespace backend.Services
                                 fileUrl = reader.GetString(reader.GetOrdinal("FileUrl"));
                             }
                             
-                            // ¶ÔÓÚÎÄ¼şÀàĞÍÏûÏ¢£¬½âÎöJSONÄÚÈİ»ñÈ¡ÎÄ¼şÃûºÍ´óĞ¡ĞÅÏ¢
+                            // ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½JSONï¿½ï¿½ï¿½İ»ï¿½È¡ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Í´ï¿½Ğ¡ï¿½ï¿½Ï¢
                             string fileName = null;
                             long? fileSize = null;
                             
@@ -123,15 +123,15 @@ namespace backend.Services
                                         if (fileInfo.TryGetValue("fileSize", out var size) && long.TryParse(size, out var sizeValue))
                                             fileSize = sizeValue;
                                             
-                                        // Èç¹ûÊÇÎÄ¼şÀàĞÍ£¬¸üĞÂÏÔÊ¾ÄÚÈİ
+                                        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
                                         if (messageType == "file" && !string.IsNullOrEmpty(fileName))
-                                            content = $"ÎÄ¼ş: {fileName}";
+                                            content = $"ï¿½Ä¼ï¿½: {fileName}";
                                     }
                                 }
                                 catch (Exception ex)
                                 {
-                                    _logger.LogWarning(ex, "½âÎöÎÄ¼şĞÅÏ¢Ê§°Ü");
-                                    // ½âÎöÊ§°ÜÊ±±£³ÖÔ­Ê¼ÄÚÈİ
+                                    _logger.LogWarning(ex, "ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ï¢Ê§ï¿½ï¿½");
+                                    // ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½Ô­Ê¼ï¿½ï¿½ï¿½ï¿½
                                 }
                             }
                             
@@ -153,28 +153,28 @@ namespace backend.Services
                     }
                 }
                 
-                // °´Ê±¼äÉıĞò·µ»ØÏûÏ¢
+                // ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ò·µ»ï¿½ï¿½ï¿½Ï¢
                 messages.Reverse();
                 return messages;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"»ñÈ¡ÁÄÌìÊÒÀúÊ·ÏûÏ¢Ê§°Ü: {ex.Message}");
+                _logger.LogError(ex, $"ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê·ï¿½ï¿½Ï¢Ê§ï¿½ï¿½: {ex.Message}");
                 return messages;
             }
         }
 
         /// <summary>
-        /// ±£´æÁÄÌìÊÒÏûÏ¢
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
         /// </summary>
         public async Task<int> SaveRoomMessageAsync(int roomId, int userId, string message)
         {
-            // µ÷ÓÃ´øÀàĞÍµÄ·½·¨£¬Ä¬ÈÏÎªtextÀàĞÍ
+            // ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ÍµÄ·ï¿½ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½Îªtextï¿½ï¿½ï¿½ï¿½
             return await SaveRoomMessageWithTypeAsync(roomId, userId, message, "text");
         }
         
         /// <summary>
-        /// ±£´æÁÄÌìÊÒÏûÏ¢£¨´øÏûÏ¢ÀàĞÍ£©
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½Í£ï¿½
         /// </summary>
         public async Task<int> SaveRoomMessageWithTypeAsync(int roomId, int userId, string message, 
             string messageType, string fileUrl = null, string fileName = null, long? fileSize = null)
@@ -185,7 +185,7 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // ¶ÔÓÚÎÄ¼şÀàĞÍÏûÏ¢£¬½«ÎÄ¼şĞÅÏ¢ĞòÁĞ»¯ÎªJSON´æ´¢
+                    // ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½Ğ»ï¿½ÎªJSONï¿½æ´¢
                     string content = message;
                     if ((messageType == "file" || messageType == "image") && !string.IsNullOrEmpty(fileName))
                     {
@@ -197,7 +197,7 @@ namespace backend.Services
                         content = JsonSerializer.Serialize(fileInfo);
                     }
 
-                    // Ê¹ÓÃĞŞ¸ÄºóµÄSQL²åÈëÓï¾ä£¬°üº¬MessageTypeºÍFileUrl×Ö¶Î
+                    // Ê¹ï¿½ï¿½ï¿½Ş¸Äºï¿½ï¿½SQLï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ä£¬ï¿½ï¿½ï¿½ï¿½MessageTypeï¿½ï¿½FileUrlï¿½Ö¶ï¿½
                     var command = new MySqlCommand(
                         @"INSERT INTO RoomMessages (RoomId, SenderId, Content, CreateTime, MessageType, FileUrl) 
                           VALUES (@RoomId, @SenderId, @Content, @CreateTime, @MessageType, @FileUrl);
@@ -220,13 +220,13 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"±£´æÁÄÌìÊÒÏûÏ¢Ê§°Ü: {ex.Message}");
+                _logger.LogError(ex, $"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢Ê§ï¿½ï¿½: {ex.Message}");
                 return 0;
             }
         }
         
         /// <summary>
-        /// ÉÏ´«ÎÄ¼şµ½ÁÙÊ±Ä¿Â¼
+        /// ï¿½Ï´ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½Ê±Ä¿Â¼
         /// </summary>
         public async Task<(string FileUrl, string FileName, long FileSize)> UploadTempFileAsync(IFormFile file)
         {
@@ -234,39 +234,39 @@ namespace backend.Services
             {
                 if (file == null || file.Length == 0)
                 {
-                    throw new ArgumentException("Ã»ÓĞÑ¡ÔñÎÄ¼ş»òÎÄ¼şÎª¿Õ");
+                    throw new ArgumentException("Ã»ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½Îªï¿½ï¿½");
                 }
 
-                // ÏŞÖÆÎÄ¼ş´óĞ¡£¨Èç10MB£©
+                // ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ğ¡ï¿½ï¿½ï¿½ï¿½10MBï¿½ï¿½
                 if (file.Length > 10 * 1024 * 1024)
                 {
-                    throw new ArgumentException("ÎÄ¼ş´óĞ¡³¬¹ıÏŞÖÆ");
+                    throw new ArgumentException("ï¿½Ä¼ï¿½ï¿½ï¿½Ğ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
                 }
 
-                // Éú³ÉÎ¨Ò»ÎÄ¼şÃû
+                // ï¿½ï¿½ï¿½ï¿½Î¨Ò»ï¿½Ä¼ï¿½ï¿½ï¿½
                 string fileExtension = Path.GetExtension(file.FileName);
                 string uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
                 string filePath = Path.Combine(_tempFileDirectory, uniqueFileName);
                 
-                // ±£´æÎÄ¼ş
+                // ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
                 
-                // ·µ»Ø¿É·ÃÎÊµÄURLºÍÎÄ¼şĞÅÏ¢
+                // ï¿½ï¿½ï¿½Ø¿É·ï¿½ï¿½Êµï¿½URLï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Ï¢
                 string fileUrl = $"/temp/uploads/{uniqueFileName}";
                 return (fileUrl, file.FileName, file.Length);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"ÉÏ´«ÎÄ¼şÊ§°Ü: {ex.Message}");
-                throw; // ÖØĞÂÅ×³öÒì³£ÒÔ±ã¿ØÖÆÆ÷´¦Àí
+                _logger.LogError(ex, $"ï¿½Ï´ï¿½ï¿½Ä¼ï¿½Ê§ï¿½ï¿½: {ex.Message}");
+                throw; // ï¿½ï¿½ï¿½ï¿½ï¿½×³ï¿½ï¿½ì³£ï¿½Ô±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             }
         }
 
         /// <summary>
-        /// »ñÈ¡ÁÄÌìÊÒÔÚÏßÓÃ»§
+        /// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½
         /// </summary>
         public async Task<List<UserDTO>> GetRoomOnlineUsersAsync(int roomId)
         {
@@ -274,20 +274,20 @@ namespace backend.Services
             
             try
             {
-                // ÏÈ´ÓÄÚ´æÖĞ»ñÈ¡ÔÚÏßÓÃ»§ĞÅÏ¢
+                // ï¿½È´ï¿½ï¿½Ú´ï¿½ï¿½Ğ»ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½Ï¢
                 if (_onlineUsers.TryGetValue(roomId, out var roomUsers))
                 {
                     users.AddRange(roomUsers.Values);
                 }
                 
-                // Èç¹ûÃ»ÓĞÔÚÏßÓÃ»§£¬´ÓÊı¾İ¿â»ñÈ¡×î½ü»îÔ¾ÓÃ»§
+                // ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ô¾ï¿½Ã»ï¿½
                 if (users.Count == 0)
                 {
                     using (var connection = new MySqlConnection(_connectionString))
                     {
                         await connection.OpenAsync();
 
-                        // ĞŞ¸ÄSQL²éÑ¯£¬È·±£ORDER BYÁĞ°üº¬ÔÚSELECTÁĞ±íÖĞ
+                        // ï¿½Ş¸ï¿½SQLï¿½ï¿½Ñ¯ï¿½ï¿½È·ï¿½ï¿½ORDER BYï¿½Ğ°ï¿½ï¿½ï¿½ï¿½ï¿½SELECTï¿½Ğ±ï¿½ï¿½ï¿½
                         var command = new MySqlCommand(
                             @"SELECT DISTINCT u.UserId, u.Username, u.Avatar, MAX(m.CreateTime) as LastActivity
                               FROM Users u
@@ -322,13 +322,13 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"»ñÈ¡ÁÄÌìÊÒÔÚÏßÓÃ»§Ê§°Ü: {ex.Message}");
+                _logger.LogError(ex, $"ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½Ê§ï¿½ï¿½: {ex.Message}");
                 return users;
             }
         }
 
         /// <summary>
-        /// »ñÈ¡»ò´´½¨Ä¬ÈÏÁÄÌìÊÒ
+        /// ï¿½ï¿½È¡ï¿½ò´´½ï¿½Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         /// </summary>
         public async Task<int> GetOrCreateDefaultRoomAsync()
         {
@@ -338,9 +338,9 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // ²éÕÒÄ¬ÈÏÁÄÌìÊÒ
+                    // ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     var selectCommand = new MySqlCommand(
-                        "SELECT RoomId FROM ChatRooms WHERE RoomName = 'WHU Ğ£Ô°¹«¹²ÁÄÌìÊÒ' LIMIT 1",
+                        "SELECT RoomId FROM ChatRooms WHERE RoomName = 'WHU Ğ£Ô°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½' LIMIT 1",
                         connection);
 
                     var roomId = await selectCommand.ExecuteScalarAsync();
@@ -350,10 +350,10 @@ namespace backend.Services
                         return Convert.ToInt32(roomId);
                     }
 
-                    // ´´½¨Ä¬ÈÏÁÄÌìÊÒ
+                    // ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     var insertCommand = new MySqlCommand(
                         @"INSERT INTO ChatRooms (RoomName, Description, CreateTime, UpdateTime) 
-                          VALUES ('WHU Ğ£Ô°¹«¹²ÁÄÌìÊÒ', '»¶Ó­À´µ½Îäºº´óÑ§Ğ£Ô°¹«¹²ÁÄÌìÊÒ£¬ÕâÀïÊÇ½»Á÷·ÖÏíµÄ¿Õ¼ä£¡', NOW(), NOW());
+                          VALUES ('WHU Ğ£Ô°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', 'ï¿½ï¿½Ó­ï¿½ï¿½ï¿½ï¿½ï¿½äººï¿½ï¿½Ñ§Ğ£Ô°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿Õ¼ä£¡', NOW(), NOW());
                           SELECT LAST_INSERT_ID();",
                         connection);
 
@@ -363,13 +363,13 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"»ñÈ¡»ò´´½¨Ä¬ÈÏÁÄÌìÊÒÊ§°Ü: {ex.Message}");
-                return 1; // Ä¬ÈÏ·µ»Ø1£¬Í¨³£ÊÇµÚÒ»¸öÁÄÌìÊÒ
+                _logger.LogError(ex, $"ï¿½ï¿½È¡ï¿½ò´´½ï¿½Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½: {ex.Message}");
+                return 1; // Ä¬ï¿½Ï·ï¿½ï¿½ï¿½1ï¿½ï¿½Í¨ï¿½ï¿½ï¿½Çµï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             }
         }
 
         /// <summary>
-        /// Ìí¼ÓÓÃ»§µ½ÁÄÌìÊÒÁĞ±í
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ±ï¿½
         /// </summary>
         public void AddUserToRoom(int roomId, UserDTO user)
         {
@@ -378,18 +378,117 @@ namespace backend.Services
         }
 
         /// <summary>
-        /// ´ÓÁÄÌìÊÒÁĞ±íÒÆ³ıÓÃ»§
+        /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ±ï¿½ï¿½Æ³ï¿½ï¿½Ã»ï¿½
         /// </summary>
         public void RemoveUserFromRoom(int roomId, int userId)
         {
-            if (_onlineUsers.TryGetValue(roomId, out var roomUsers))
+            // å®ç°ä»£ç 
+        }
+        
+        /// <summary>
+        /// è·å–ç§èŠå†å²æ¶ˆæ¯
+        /// </summary>
+        public async Task<List<MessageDTO>> GetPrivateChatHistoryAsync(int userId, int friendId, int count)
+        {
+            List<MessageDTO> messages = new List<MessageDTO>();
+            
+            using (var connection = new MySqlConnection(_connectionString))
             {
-                roomUsers.TryRemove(userId, out _);
+                await connection.OpenAsync();
                 
-                // Èç¹ûÁÄÌìÊÒÓÃ»§ÒÑÃ»ÈË£¬ÒÆ³ıÁÄÌìÊÒ¼ÇÂ¼
-                if (roomUsers.IsEmpty)
+                // è·å–åŒå‘ç§èŠè®°å½•
+                string sql = @"
+                    SELECT pm.id, pm.sender_id, pm.receiver_id, pm.content, pm.message_type, 
+                        pm.file_url, pm.file_name, pm.file_size, pm.send_time, pm.is_read,
+                        u1.Username as sender_name, u2.Username as receiver_name
+                    FROM private_messages pm
+                    JOIN Users u1 ON pm.sender_id = u1.UserId
+                    JOIN Users u2 ON pm.receiver_id = u2.UserId
+                    WHERE (pm.sender_id = @userId AND pm.receiver_id = @friendId)
+                       OR (pm.sender_id = @friendId AND pm.receiver_id = @userId)
+                    ORDER BY pm.send_time DESC
+                    LIMIT @count";
+                
+                using (var command = new MySqlCommand(sql, connection))
                 {
-                    _onlineUsers.TryRemove(roomId, out _);
+                    command.Parameters.AddWithValue("@userId", userId);
+                    command.Parameters.AddWithValue("@friendId", friendId);
+                    command.Parameters.AddWithValue("@count", count);
+                    
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            messages.Add(new MessageDTO
+                            {
+                                MessageId = reader.GetInt32(reader.GetOrdinal("id")),
+                                SenderId = reader.GetInt32(reader.GetOrdinal("sender_id")),
+                                SenderName = reader.GetString(reader.GetOrdinal("sender_name")),
+                                ReceiverId = reader.GetInt32(reader.GetOrdinal("receiver_id")),
+                                ReceiverName = reader.GetString(reader.GetOrdinal("receiver_name")),
+                                Content = reader.GetString(reader.GetOrdinal("content")),
+                                MessageType = reader.GetString(reader.GetOrdinal("message_type")),
+                                FileUrl = !reader.IsDBNull(reader.GetOrdinal("file_url")) ? reader.GetString(reader.GetOrdinal("file_url")) : null,
+                                FileName = !reader.IsDBNull(reader.GetOrdinal("file_name")) ? reader.GetString(reader.GetOrdinal("file_name")) : null,
+                                FileSize = !reader.IsDBNull(reader.GetOrdinal("file_size")) ? reader.GetInt32(reader.GetOrdinal("file_size")) : 0,
+                                SendTime = reader.GetDateTime(reader.GetOrdinal("send_time")),
+                                IsRead = reader.GetBoolean(reader.GetOrdinal("is_read"))
+                            });
+                        }
+                    }
+                }
+                
+                // å°†å¥½å‹å‘é€çš„æ¶ˆæ¯æ ‡è®°ä¸ºå·²è¯»
+                await UpdateMessagesAsReadAsync(connection, userId, friendId);
+            }
+            
+            // åè½¬æ¶ˆæ¯åˆ—è¡¨ï¼Œä½¿å…¶æŒ‰æ—¶é—´å‡åºæ’åˆ—
+            messages.Reverse();
+            return messages;
+        }
+        
+        private async Task UpdateMessagesAsReadAsync(MySqlConnection connection, int userId, int friendId)
+        {
+            string sql = @"
+                UPDATE private_messages
+                SET is_read = TRUE
+                WHERE sender_id = @friendId AND receiver_id = @userId AND is_read = FALSE";
+            
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@userId", userId);
+                command.Parameters.AddWithValue("@friendId", friendId);
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+        
+        /// <summary>
+        /// ä¿å­˜ç§èŠæ¶ˆæ¯
+        /// </summary>
+        public async Task<int> SavePrivateMessageAsync(MessageDTO message)
+        {
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                
+                string sql = @"
+                    INSERT INTO private_messages (sender_id, receiver_id, content, message_type, file_url, file_name, file_size, send_time, is_read)
+                    VALUES (@senderId, @receiverId, @content, @messageType, @fileUrl, @fileName, @fileSize, @sendTime, FALSE);
+                    SELECT LAST_INSERT_ID();";
+                
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@senderId", message.SenderId);
+                    command.Parameters.AddWithValue("@receiverId", message.ReceiverId);
+                    command.Parameters.AddWithValue("@content", message.Content ?? "");
+                    command.Parameters.AddWithValue("@messageType", message.MessageType ?? "text");
+                    command.Parameters.AddWithValue("@fileUrl", message.FileUrl as object ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@fileName", message.FileName as object ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@fileSize", message.FileSize as object ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@sendTime", message.SendTime != default ? message.SendTime : DateTime.Now);
+                    
+                    var result = await command.ExecuteScalarAsync();
+                    return Convert.ToInt32(result);
                 }
             }
         }

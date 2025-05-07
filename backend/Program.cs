@@ -30,6 +30,7 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IAIService, AIService>();
 builder.Services.AddHttpClient(); // 为AI服务添加HttpClient
 builder.Services.AddScoped<IGroupService, GroupService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 // ��֤���ݿ�����
 using (var connection = new MySqlConnection(builder.Configuration.GetConnectionString("DefaultConnection")))
 {

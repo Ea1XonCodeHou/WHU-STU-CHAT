@@ -59,6 +59,11 @@ const routes = [
       username: localStorage.getItem('username')
     })
 
+  },
+  {
+    path: '/private-chat/:id',
+    name: 'PrivateChat',
+    component: () => import('../views/PrivateChat.vue')
   }
 ]
 

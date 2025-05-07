@@ -36,14 +36,13 @@ namespace backend.Services
                     {
                         try
                         {
-                            // 插入 ChatGroups 表
+                            // 插入 ChatGroups 表（不传 GroupId，让数据库自增）
                             var insertGroupCommand = new MySqlCommand(
-                                @"INSERT INTO ChatGroups (GroupId, GroupName, Description, CreatorId, MemberCount, CreateTime) 
-                                  VALUES (@GroupId, @GroupName, @Description, @CreatorId, @MemberCount, @CreateTime); 
+                                @"INSERT INTO ChatGroups (GroupName, Description, CreatorId, MemberCount, CreateTime) 
+                                  VALUES (@GroupName, @Description, @CreatorId, @MemberCount, @CreateTime); 
                                   SELECT LAST_INSERT_ID();",
                                 connection, transaction);
 
-                            insertGroupCommand.Parameters.AddWithValue("@GroupId", groupRegDto.GroupId);
                             insertGroupCommand.Parameters.AddWithValue("@GroupName", groupRegDto.GroupName);
                             insertGroupCommand.Parameters.AddWithValue("@Description", groupRegDto.Description);
                             insertGroupCommand.Parameters.AddWithValue("@CreatorId", groupRegDto.CreatorId);
@@ -52,14 +51,14 @@ namespace backend.Services
 
                             var groupId = Convert.ToInt32(await insertGroupCommand.ExecuteScalarAsync());
 
-                            // 插入 GroupMembers 表
+                            // 用新 groupId 插入 GroupMembers
                             var insertMemberCommand = new MySqlCommand(
                                 @"INSERT INTO GroupMembers (MemberId, GroupId, UserId, JoinTime) 
                                   VALUES (@MemberId, @GroupId, @UserId, @JoinTime)",
                                 connection, transaction);
 
-                            insertMemberCommand.Parameters.AddWithValue("@MemberId", $"{groupRegDto.GroupId}+{groupRegDto.CreatorId}");
-                            insertMemberCommand.Parameters.AddWithValue("@GroupId", groupRegDto.GroupId);
+                            insertMemberCommand.Parameters.AddWithValue("@MemberId", $"{groupId}+{groupRegDto.CreatorId}");
+                            insertMemberCommand.Parameters.AddWithValue("@GroupId", groupId);
                             insertMemberCommand.Parameters.AddWithValue("@UserId", groupRegDto.CreatorId);
                             insertMemberCommand.Parameters.AddWithValue("@JoinTime", DateTime.UtcNow);
 
@@ -150,7 +149,7 @@ namespace backend.Services
 
                     // Step 2: 从 ChatGroups 表中查询这些 GroupId 对应的 GroupDTO
                     var getGroupsCommand = new MySqlCommand(
-                        $"SELECT GroupId, GroupName, UpdateTime FROM ChatGroups WHERE GroupId IN ({string.Join(",", groupIds)})",
+                        $"SELECT GroupId, GroupName, UpdateTime, MemberCount FROM ChatGroups WHERE GroupId IN ({string.Join(",", groupIds)})",
                         connection);
 
                     var groups = new List<GroupDTO>();
@@ -162,7 +161,8 @@ namespace backend.Services
                             {
                                 GroupId = reader.GetInt32(0),
                                 GroupName = reader.GetString(1),
-                                UpdateTime = reader.GetDateTime(2)
+                                UpdateTime = reader.GetDateTime(2),
+                                MemberCount = reader.GetInt32(3)
                             });
                         }
                     }
@@ -342,7 +342,10 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
                     var command = new MySqlCommand(
-                        "SELECT UserId, Username,LastLoginTime FROM Users WHERE UserId IN (SELECT UserId FROM GroupMembers WHERE GroupId = @GroupId)",
+                        @"SELECT u.UserId, u.Username, u.LastLoginTime
+                          FROM GroupMembers gm
+                          JOIN Users u ON gm.UserId = u.UserId
+                          WHERE gm.GroupId = @GroupId",
                         connection);
                     command.Parameters.AddWithValue("@GroupId", groupId);
                     var users = new List<UserDTO>();
@@ -354,7 +357,6 @@ namespace backend.Services
                             {
                                 Id = reader.GetInt32(0),
                                 Username = reader.GetString(1),
-                                
                                 LastActive = reader.GetDateTime(2)
                             });
                         }
@@ -445,6 +447,70 @@ namespace backend.Services
                 var count = Convert.ToInt32(await command.ExecuteScalarAsync());
                 return count > 0;
             }
+        }
+
+        /// <summary>
+        /// 获取两个用户之间的私聊群组
+        /// </summary>
+        /// <param name="userId1">用户1的ID</param>
+        /// <param name="userId2">用户2的ID</param>
+        /// <returns>私聊群组列表</returns>
+        public async Task<List<GroupDTO>> GetPrivateGroupBetweenUsersAsync(int userId1, int userId2)
+        {
+            var result = new List<GroupDTO>();
+            
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                
+                // 查询两个用户都在其中且只有这两个用户的群组
+                // 使用子查询确保群组只有两个成员且包含这两个用户
+                var query = @"
+                    SELECT g.GroupId, g.GroupName, g.Description, g.CreatorId, g.MemberCount, g.CreateTime, g.UpdateTime 
+                    FROM ChatGroups g
+                    WHERE g.MemberCount = 2
+                    AND g.GroupId IN (
+                        SELECT gm1.GroupId 
+                        FROM GroupMembers gm1
+                        WHERE gm1.UserId = @UserId1
+                        AND EXISTS (
+                            SELECT 1 
+                            FROM GroupMembers gm2 
+                            WHERE gm2.GroupId = gm1.GroupId 
+                            AND gm2.UserId = @UserId2
+                        )
+                        AND (
+                            SELECT COUNT(*) 
+                            FROM GroupMembers gm3 
+                            WHERE gm3.GroupId = gm1.GroupId
+                        ) = 2
+                    )";
+                
+                var command = new MySqlCommand(query, connection);
+                command.Parameters.AddWithValue("@UserId1", userId1);
+                command.Parameters.AddWithValue("@UserId2", userId2);
+                
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var group = new GroupDTO
+                        {
+                            GroupId = reader.GetInt32(reader.GetOrdinal("GroupId")),
+                            GroupName = reader.GetString(reader.GetOrdinal("GroupName")),
+                            Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? null : reader.GetString(reader.GetOrdinal("Description")),
+                            CreatorId = reader.GetInt32(reader.GetOrdinal("CreatorId")),
+                            MemberCount = reader.GetInt32(reader.GetOrdinal("MemberCount")),
+                            CreateTime = reader.GetDateTime(reader.GetOrdinal("CreateTime")),
+                            UpdateTime = reader.GetDateTime(reader.GetOrdinal("UpdateTime"))
+                        };
+                        
+                        result.Add(group);
+                    }
+                }
+            }
+            
+            return result;
         }
     }
 }

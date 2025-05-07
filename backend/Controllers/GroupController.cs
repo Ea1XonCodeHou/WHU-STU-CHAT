@@ -134,5 +134,32 @@ namespace backend.Controllers
                 return BadRequest(new { code = 400, msg = ex.Message });
             }
         }
+
+        [HttpGet("user/{userId}/private")]
+        public async Task<IActionResult> GetUserPrivateChats(int userId)
+        {
+            var groups = await _groupService.GetAllGroupsAsync(userId);
+            // 只保留成员数为2的群聊
+            var privateChats = groups.Where(g => g.MemberCount == 2).ToList();
+
+            var result = new List<object>();
+            foreach (var group in privateChats)
+            {
+                var members = await _groupService.GetGroupUsersAsync(group.GroupId);
+                result.Add(new {
+                    groupId = group.GroupId,
+                    groupName = group.GroupName,
+                    updateTime = group.UpdateTime,
+                    memberCount = members.Count,
+                    members = members.Select(m => new {
+                        id = m.Id,
+                        username = m.Username,
+                        status = m.Status,
+                        avatar = m.AvatarUrl
+                    }).ToList()
+                });
+            }
+            return Ok(new { code = 200, data = result, msg = "获取私聊列表成功" });
+        }
     }
 } 

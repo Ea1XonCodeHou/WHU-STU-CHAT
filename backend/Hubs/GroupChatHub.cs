@@ -124,7 +124,6 @@ namespace backend.Hubs
                     Content = message,
                     GroupId = userConnection.RoomId,
                     CreateTime = DateTime.Now,
-                    
                 };
 
                 // 将消息发送给群组所有成员

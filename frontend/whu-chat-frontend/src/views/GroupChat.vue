@@ -11,10 +11,6 @@
         </div>
       </div>
       <div class="user-info">
-        <button class="summary-button" @click="requestChatSummary" :disabled="!isConnected || summarizing">
-          <i class="summary-icon"></i>
-          {{ summarizing ? '正在总结...' : '总结聊天' }}
-        </button>
         <span class="username">{{ username }}</span>
         <div class="avatar" v-if="userAvatar">
           <img :src="userAvatar" alt="用户头像" />
@@ -32,6 +28,14 @@
       <div class="sidebar">
         <div class="sidebar-header">
           <h2>我的群组</h2>
+          <div class="search-box">
+            <input 
+              type="text" 
+              v-model="groupSearch" 
+              placeholder="搜索群组..." 
+              @input="handleGroupSearch"
+            >
+          </div>
         </div>
         <div class="groups-list">
           <div 
@@ -69,7 +73,7 @@
             <p>还没有任何消息，开始聊天吧！</p>
           </div>
 
-          <div v-for="(message, index) in [...messages].reverse()" :key="message.messageId || index" 
+          <div v-for="(message, index) in messages" :key="message.messageId || index" 
                class="message-item" 
                :class="getMessageClass(message)">
             
@@ -154,14 +158,6 @@
       <div class="toolbar">
         <div class="tool-button emoji-button" @click="toggleEmojiPanel">
           <i class="emoji-icon"></i>
-        </div>
-        <div class="tool-button image-button">
-          <input type="file" accept="image/*" ref="imageInput" @change="handleImageUpload" class="file-input" />
-          <i class="image-icon"></i>
-        </div>
-        <div class="tool-button file-button">
-          <input type="file" ref="fileInput" @change="handleFileUpload" class="file-input" />
-          <i class="file-icon"></i>
         </div>
       </div>
       
@@ -316,6 +312,7 @@ export default {
     // 群组信息
     const groups = ref([]);
     const currentGroup = ref(null);
+    const groupSearch = ref('');
     
     // 连接状态
     const isConnected = ref(false);
@@ -403,6 +400,15 @@ export default {
         showNotification('连接已关闭', 'error');
       });
       
+      connection.value.on('Error', (errorMessage) => {
+        console.error('SignalR错误:', errorMessage);
+        if (errorMessage.includes('用户已在群组中')) {
+          showNotification('已成功加入群组', 'success');
+        } else {
+          showNotification(errorMessage, 'error');
+        }
+      });
+      
       registerSignalRHandlers();
       startConnection();
     };
@@ -478,8 +484,8 @@ export default {
               groupId: msg.groupId,
               messageType: 'text' // 默认消息类型为文本
             };
-          });
-          messages.value = formattedMessages.sort((a, b) => new Date(b.sendTime) - new Date(a.sendTime));
+          }).sort((a, b) => new Date(a.sendTime) - new Date(b.sendTime));
+          messages.value = formattedMessages;
           
           nextTick(() => scrollToBottom());
         }
@@ -489,11 +495,6 @@ export default {
         if (currentGroup.value) {
           currentGroup.value.memberCount = members.length;
         }
-      });
-      
-      connection.value.on('Error', (errorMessage) => {
-        console.error('SignalR错误:', errorMessage);
-        showNotification(errorMessage, 'error');
       });
     };
     
@@ -566,7 +567,7 @@ export default {
               groupId: msg.groupId,
               messageType: 'text' // 默认消息类型为文本
             };
-          });
+          }).sort((a, b) => new Date(a.sendTime) - new Date(b.sendTime));
           nextTick(() => scrollToBottom());
         } else {
           throw new Error(response.data?.msg || '获取历史消息失败');
@@ -612,7 +613,7 @@ export default {
         }
       
       try {
-        await connection.value.invoke('SendMessageToGroup', currentGroup.value.groupId, messageText.value);
+        await connection.value.invoke('SendMessageToGroup', messageText.value);
         messageText.value = '';
         messageInput.value.focus();
       } catch (error) {
@@ -973,6 +974,27 @@ export default {
       return formatted;
     });
     
+    // 处理群组搜索
+    const handleGroupSearch = async () => {
+      try {
+        if (!groupSearch.value.trim()) {
+          // 如果搜索框为空，获取所有群组
+          await loadUserGroups();
+        } else {
+          // 调用搜索API
+          const response = await axios.get(`${window.apiBaseUrl}/api/Group/search?groupName=${encodeURIComponent(groupSearch.value)}&userId=${userId.value}`);
+          if (response.data && response.data.code === 200) {
+            groups.value = response.data.data;
+          } else {
+            throw new Error(response.data?.msg || '搜索群组失败');
+          }
+        }
+      } catch (error) {
+        console.error('搜索群组失败:', error);
+        showNotification('搜索群组失败: ' + error.message, 'error');
+      }
+    };
+    
     // 组件挂载时
     onMounted(() => {
       if (!userId.value || !username.value) {
@@ -1031,6 +1053,7 @@ export default {
       // 群组信息
       groups,
       currentGroup,
+      groupSearch,
       
       // 连接状态
       isConnected,
@@ -1095,7 +1118,8 @@ export default {
       getMessageClass,
       shouldShowDateSeparator,
       requestChatSummary,
-      closeSummaryModal
+      closeSummaryModal,
+      handleGroupSearch
     };
   }
 };
@@ -1213,16 +1237,33 @@ export default {
 }
 
 .sidebar-header {
-  padding: 20px;
+  padding: 15px;
   border-bottom: 1px solid #eee;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .sidebar-header h2 {
+  margin: 0 0 10px 0;
   font-size: 18px;
   color: #333;
+}
+
+.search-box {
+  margin-top: 10px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  border-color: #4776E6;
+  box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.1);
+  outline: none;
 }
 
 .groups-list {
@@ -1504,23 +1545,126 @@ export default {
 .tool-button {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f5f5f5;
-  color: #4776E6;
-  margin-right: 8px;
+  margin-right: 15px;
   cursor: pointer;
-  transition: all 0.2s;
+  position: relative;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  background-color: #f0f2f5;
 }
 
 .tool-button:hover {
-  background-color: #e6f0ff;
+  background-color: #e0e3e9;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.emoji-icon, .image-icon, .file-icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.emoji-icon {
+  background-color: #ffd666;
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(255, 214, 102, 0.3);
+}
+
+.emoji-icon::before {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #fff;
+  top: 7px;
+  left: 7px;
+}
+
+.emoji-icon::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 6px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  bottom: 5px;
+  left: 6px;
+}
+
+.image-icon {
+  background-color: #91d5ff;
+  border-radius: 4px;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(145, 213, 255, 0.3);
+}
+
+.image-icon::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 14px;
+  background-color: #fff;
+  border-radius: 2px;
+  top: 5px;
+  left: 3px;
+}
+
+.image-icon::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: #91d5ff;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  top: 7px;
+  left: 5px;
+}
+
+.file-icon {
+  background-color: #b7eb8f;
+  border-radius: 4px;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(183, 235, 143, 0.3);
+}
+
+.file-icon::before {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 18px;
+  background-color: #fff;
+  border-radius: 2px;
+  top: 3px;
+  left: 5px;
+}
+
+.file-icon::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 2px;
+  background-color: #b7eb8f;
+  top: 8px;
+  left: 8px;
+  box-shadow: 0 3px 0 #b7eb8f, 0 6px 0 #b7eb8f;
 }
 
 .file-input {
-  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .input-container {

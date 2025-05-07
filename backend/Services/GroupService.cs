@@ -95,6 +95,12 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
+                    var deleteGroupMessagesCommand = new MySqlCommand(
+                "DELETE FROM GroupMessages WHERE GroupId = @GroupId",
+                connection);
+                    deleteGroupMessagesCommand.Parameters.AddWithValue("@GroupId", groupId);
+                    await deleteGroupMessagesCommand.ExecuteNonQueryAsync();
+
                     // 删除 GroupMembers 表中所有 GroupId 为指定 groupId 的记录
                     var deleteGroupMembersCommand = new MySqlCommand(
                         "DELETE FROM GroupMembers WHERE GroupId = @GroupId",
@@ -176,7 +182,55 @@ namespace backend.Services
             }
         }
 
-        
+        public async Task<List<GroupDTO>> SearchGroupsByNameAsync(string groupName, int userId)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    // 查询用户所在的群组，并根据群组名称模糊匹配
+                    var command = new MySqlCommand(
+                        @"SELECT g.GroupId, g.GroupName, g.Description, g.CreatorId, g.MemberCount, g.CreateTime, g.UpdateTime
+                          FROM ChatGroups g
+                          JOIN GroupMembers gm ON g.GroupId = gm.GroupId
+                          WHERE gm.UserId = @UserId AND g.GroupName LIKE @GroupName",
+                        connection);
+
+                    // 添加参数
+                    command.Parameters.AddWithValue("@UserId", userId);
+                    command.Parameters.AddWithValue("@GroupName", $"%{groupName}%");
+
+                    var groups = new List<GroupDTO>();
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            groups.Add(new GroupDTO
+                            {
+                                GroupId = reader.GetInt32(reader.GetOrdinal("GroupId")),
+                                GroupName = reader.GetString(reader.GetOrdinal("GroupName")),
+                                Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? null : reader.GetString(reader.GetOrdinal("Description")),
+                                CreatorId = reader.GetInt32(reader.GetOrdinal("CreatorId")),
+                                MemberCount = reader.GetInt32(reader.GetOrdinal("MemberCount")),
+                                CreateTime = reader.GetDateTime(reader.GetOrdinal("CreateTime")),
+                                UpdateTime = reader.GetDateTime(reader.GetOrdinal("UpdateTime"))
+                            });
+                        }
+                    }
+
+                    return groups;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"搜索群组失败: {ex.Message}");
+            }
+        }
+
+
+
         public async Task<GroupDetailDTO> GetGroupDetailsAsync(int groupId)
         {
             try

@@ -10,17 +10,7 @@ USE `whu-chat`;
 -- 基础用户和权限表
 -- =====================================================
 
--- 新添加 5月8号 好友更新
-ALTER TABLE `whu-chat`.`chatgroups` 
-ADD COLUMN `IsPrivate` TINYINT NULL AFTER `UpdateTime`;
-ALTER TABLE friendship
-DROP FOREIGN KEY friendship_ibfk_1;
-ALTER TABLE friendship
-ADD CONSTRAINT friendship_ibfk_1
-FOREIGN KEY (GroupId) REFERENCES ChatGroups(GroupId)
-ON DELETE CASCADE;
-ALTER TABLE Users ADD COLUMN Status VARCHAR(50) DEFAULT 'offline';
-ALTER TABLE Users ADD COLUMN Signature VARCHAR(50) DEFAULT ' ';
+
 
 
 -- 用户表 - 存储用户基本信息
@@ -55,17 +45,32 @@ CREATE TABLE IF NOT EXISTS UserSettings (
 );
 
 -- 好友关系表
-CREATE TABLE IF NOT EXISTS Friendships (
-    FriendshipId INT AUTO_INCREMENT PRIMARY KEY,
-    UserId INT NOT NULL,
-    FriendId INT NOT NULL,
-    Status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, accepted, rejected, blocked
-    CreateTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdateTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
-    FOREIGN KEY (FriendId) REFERENCES Users(UserId) ON DELETE CASCADE,
-    UNIQUE KEY (UserId, FriendId)
+CREATE TABLE Friendship (
+    ShipId INT PRIMARY KEY AUTO_INCREMENT,
+    UserId1 INT NOT NULL,
+    UserId2 INT NOT NULL,
+    CreateTime DATETIME NOT NULL,
+    GroupId INT,
+    FOREIGN KEY (GroupId) REFERENCES ChatGroups(GroupId),
+    CONSTRAINT CHK_UserIds_Different CHECK (UserId1 <> UserId2)
 );
+
+-- 通过触发器实现唯一性检查
+DELIMITER //
+CREATE TRIGGER trg_Friendship_UniquePair
+BEFORE INSERT ON Friendship
+FOR EACH ROW
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM Friendship 
+        WHERE (UserId1 = NEW.UserId2 AND UserId2 = NEW.UserId1)
+           OR (UserId1 = NEW.UserId1 AND UserId2 = NEW.UserId2)
+    ) THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Friendship relationship already exists';
+    END IF;
+END//
+DELIMITER ;
 
 -- =====================================================
 -- 私聊相关表
@@ -374,6 +379,16 @@ VALUES
 ALTER TABLE `whu-chat`.`chatgroups` 
 ADD COLUMN `IsPrivate` TINYINT NULL AFTER `UpdateTime`;
 
-
+-- 新添加 5月8号 好友更新
+ALTER TABLE `whu-chat`.`chatgroups` 
+ADD COLUMN `IsPrivate` TINYINT NULL AFTER `UpdateTime`;
+ALTER TABLE Friendship
+DROP FOREIGN KEY friendship_ibfk_1;
+ALTER TABLE Friendship
+ADD CONSTRAINT friendship_ibfk_1
+FOREIGN KEY (GroupId) REFERENCES ChatGroups(GroupId)
+ON DELETE CASCADE;
+ALTER TABLE Users ADD COLUMN Status VARCHAR(50) DEFAULT 'offline';
+ALTER TABLE Users ADD COLUMN Signature VARCHAR(50) DEFAULT ' ';
 
 

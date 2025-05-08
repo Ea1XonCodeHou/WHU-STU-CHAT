@@ -31,7 +31,7 @@ const routes = [
     path: '/home',
     name: 'Home',
     component: Home,
-    meta: { requiresAuth: true } // 需要登录才能访问
+    meta: { requiresAuth: false } // 需要登录才能访问
   },
   {
     path: '/chatroom/:id',
@@ -50,6 +50,10 @@ const routes = [
     path: '/chat',
     name: 'AIChat',
     component: AIChat,
+    props: route => ({ 
+      userId: Number(route.query.userId), 
+      username: route.query.username 
+    }),
     meta: { requiresAuth: true } // 需要登录才能访问
   },
   {

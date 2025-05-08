@@ -2531,24 +2531,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\noteles\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\lenovo\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\backend.csproj",
+      "projectUniqueName": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\backend.csproj",
       "projectName": "backend",
-      "projectPath": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\backend.csproj",
-      "packagesPath": "C:\\Users\\noteles\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\obj\\",
+      "projectPath": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\backend.csproj",
+      "packagesPath": "C:\\Users\\lenovo\\.nuget\\packages\\",
+      "outputPath": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\noteles\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Users\\lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -2573,8 +2568,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.200"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -2616,20 +2610,8 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.202/PortableRuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1903",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "包 \"System.Data.SqlClient\" 4.8.5 具有已知的 高 严重性漏洞，https://github.com/advisories/GHSA-98g6-xh36-x2p7",
-      "libraryId": "System.Data.SqlClient",
-      "targetGraphs": [
-        "net8.0"
-      ]
-    }
-  ]
+  }
 }

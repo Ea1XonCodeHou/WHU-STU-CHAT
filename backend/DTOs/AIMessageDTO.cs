@@ -89,7 +89,12 @@ namespace backend.DTOs
         /// <summary>
         /// 聊天室ID
         /// </summary>
-        public int RoomId { get; set; }
+        public int? RoomId { get; set; }
+        
+        /// <summary>
+        /// 群组ID
+        /// </summary>
+        public int? GroupId { get; set; }
         
         /// <summary>
         /// 请求用户ID

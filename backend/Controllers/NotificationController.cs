@@ -28,14 +28,21 @@ namespace backend.Controllers
         [HttpPost("friend-request")]
         public async Task<IActionResult> SendFriendRequest([FromBody] FriendRequestDTO dto)
         {
-            var targetUser = await _userService.GetUserByUsernameAsync(dto.TargetUsername);
-            if (targetUser == null)
-                return NotFound(new { msg = "用户不存在" });
+            try 
+            {
+                var targetUser = await _userService.GetUserByUsernameAsync(dto.TargetUsername);
+                if (targetUser == null)
+                    return NotFound(new { msg = "用户不存在" });
 
-            var content = $"{dto.RequesterUsername} 请求加你为好友";
-            await _notificationService.CreateNotificationAsync(targetUser.Id, content);
+                var content = $"{dto.RequesterUsername} 请求加你为好友";
+                await _notificationService.CreateNotificationAsync(targetUser.Id, content);
 
-            return Ok(new { msg = "好友请求已发送" });
+                return Ok(new { msg = "好友请求已发送" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { msg = $"发送好友请求失败: {ex.Message}" });
+            }
         }
 
         // 2. 获取用户所有通知
@@ -69,8 +76,7 @@ namespace backend.Controllers
                 MemberCount = 1, // 只包含创建者
                 Description = "私聊"
             };
-            var groupId = await _groupService.CreateGroupAsync(groupRegDto);
-            await _groupService.AddUserToGroupAsync(groupId, receiver.Id);
+            await _groupService.AddFriendAsync(requester.Id, receiver.Id);
 
             // 标记通知为已处理（你可以实现为删除或加状态字段）
             await _notificationService.MarkAsHandled(dto.NotificationId);
@@ -85,18 +91,17 @@ namespace backend.Controllers
             try
             {
                 // 获取用户之间的私聊群组
-                var privateGroups = await _groupService.GetPrivateGroupBetweenUsersAsync(userId, friendId);
+                var privateGroups = await _groupService.GetFriendByIdAsync(userId, friendId);
                 
-                if (privateGroups == null || privateGroups.Count == 0)
+                if (privateGroups == null )
                 {
                     return NotFound(new { msg = "未找到与该用户的好友关系" });
                 }
                 
                 // 删除找到的私聊群组（应该只有一个）
-                foreach (var group in privateGroups)
-                {
-                    await _groupService.DeleteGroupAsync(group.GroupId);
-                }
+                
+                await _groupService.DeleteGroupAsync(privateGroups.GroupId);
+                
                 
                 // 创建通知告知对方
                 var currentUser = await _userService.GetUserByIdAsync(userId);

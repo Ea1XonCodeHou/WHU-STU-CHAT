@@ -302,8 +302,8 @@
             </div>
             <div class="add-member-form">
               <div class="form-group">
-                <label for="userId">用户ID</label>
-                <input type="number" id="userId" v-model="newUserId" placeholder="输入用户ID...">
+                <label for="userName">用户名</label>
+                <input type="text" id="userName" v-model="newUserName" placeholder="输入用户名...">
               </div>
               <div class="form-actions">
                 <button class="action-button cancel" @click="showAddUserModal = false">
@@ -563,7 +563,7 @@ export default {
     const groupMembers = ref([]);
     const memberSearch = ref('');
     const showAddUserModal = ref(false);
-    const newUserId = ref('');
+    const newUserName = ref('');
     
     // 系统通知相关
     const notifications = ref([]);
@@ -634,22 +634,14 @@ export default {
     const fetchFriends = async () => {
       const res = await axios.get(`/api/group/user/${userId.value}/private`);
       if (res.data.code === 200) {
-        friends.value = [];
-        res.data.data.forEach(group => {
-          if (Array.isArray(group.members)) {
-            const other = group.members.find(m => String(m.id) !== String(userId.value));
-            if (other) {
-              friends.value.push({
-                id: other.id,
-                username: other.username,
-                status: other.status || 'offline',
-                avatar: getFullAvatarUrl(other.avatar) || null,
-                signature: other.signature || '',
-                groupId: group.groupId
-              });
-            }
-          }
-        });
+        friends.value = res.data.data.map(friend => ({
+          id: friend.friendId,  // 使用 friendId 作为 id
+          username: friend.username,
+          status: 'offline',    // 设置默认状态
+          avatar: null,         // 设置默认头像
+          signature: '',        // 设置默认签名
+          groupId: friend.groupId
+        }));
       }
     };
     
@@ -731,17 +723,34 @@ export default {
     };
     
     const addFriend = async () => {
-      if (!friendUsername.value) return;
+      if (!friendUsername.value) {
+        alert('请输入用户名');
+        return;
+      }
+      
       try {
-        await axios.post('/api/notification/friend-request', {
-          TargetUsername: friendUsername.value,
-          RequesterUsername: username.value
+        const response = await axios.post('/api/notification/friend-request', {
+          targetUsername: friendUsername.value,
+          requesterUsername: username.value
         });
-        alert('好友请求已发送');
-        friendUsername.value = '';
-        showAddFriendModal.value = false;
+        
+        if (response.data && response.data.msg) {
+          alert(response.data.msg);
+          friendUsername.value = '';
+          showAddFriendModal.value = false;
+        }
       } catch (error) {
-        alert('添加好友失败: ' + (error.response?.data?.msg || error.message));
+        console.error('添加好友失败:', error);
+        if (error.response) {
+          // 服务器返回了错误响应
+          alert('添加好友失败: ' + (error.response.data?.msg || '服务器错误'));
+        } else if (error.request) {
+          // 请求发送失败
+          alert('添加好友失败: 无法连接到服务器');
+        } else {
+          // 其他错误
+          alert('添加好友失败: ' + error.message);
+        }
       }
     };
     
@@ -871,21 +880,24 @@ export default {
       }
     };
     
-    const addUserToGroup = async (member) => {
-      if (!selectedGroup.value || !newUserId.value) {
-        alert('请输入用户ID');
+    const addUserToGroup = async () => {
+      if (!selectedGroup.value || !newUserName.value) {
+        alert('请输入用户名');
         return;
       }
       
       try {
-        const response = await axios.post(`/api/group/${selectedGroup.value.groupId}/add-user/${newUserId.value}`);
+        const response = await axios.post(`/api/group/${selectedGroup.value.groupId}/add-user-by-username`, {
+          userName: newUserName.value
+        });
+        
         if (response.data.code === 200) {
           // 刷新成员列表
           const membersResponse = await axios.get(`/api/group/${selectedGroup.value.groupId}/users`);
           if (membersResponse.data.code === 200) {
             groupMembers.value = membersResponse.data.data;
           }
-          newUserId.value = '';
+          newUserName.value = '';
           showAddUserModal.value = false;
           alert('添加成员成功');
         } else {
@@ -1091,7 +1103,7 @@ export default {
       groupMembers,
       memberSearch,
       showAddUserModal,
-      newUserId,
+      newUserName,
       filteredMembers,
       
       // 系统通知相关

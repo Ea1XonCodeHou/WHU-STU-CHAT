@@ -573,16 +573,62 @@ export default {
     // 获取群组列表
     const fetchGroups = async () => {
       try {
-        const response = await axios.get(`/api/group/user/${userId.value}`);
-        if (response.data.code === 200) {
+        const response = await axios.get(`${window.apiBaseUrl}/api/Group/user/${userId.value}`);
+        if (response.data && response.data.code === 200) {
           groups.value = response.data.data;
         } else {
-          console.error('获取群组列表失败:', response.data.msg);
+          throw new Error(response.data?.msg || '获取群组列表失败');
         }
       } catch (error) {
         console.error('获取群组列表失败:', error);
+        showNotification('获取群组列表失败: ' + error.message, 'error');
       }
     };
+    
+    // 处理群组搜索
+    const handleGroupSearch = async () => {
+      try {
+        if (!groupSearch.value.trim()) {
+          // 如果搜索框为空，获取所有群组
+          await fetchGroups();
+        } else {
+          // 调用搜索API
+          const response = await axios.get(`${window.apiBaseUrl}/api/Group/search?groupName=${encodeURIComponent(groupSearch.value)}&userId=${userId.value}`);
+          if (response.data && response.data.code === 200) {
+            groups.value = response.data.data;
+          } else {
+            throw new Error(response.data?.msg || '搜索群组失败');
+          }
+        }
+      } catch (error) {
+        console.error('搜索群组失败:', error);
+        showNotification('搜索群组失败: ' + error.message, 'error');
+      }
+    };
+
+    // 添加防抖函数
+    const debounce = (fn, delay) => {
+      let timer = null;
+      return function (...args) {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          fn.apply(this, args);
+        }, delay);
+      };
+    };
+
+    // 使用防抖处理搜索
+    const debouncedGroupSearch = debounce(handleGroupSearch, 300);
+
+    // 监听搜索输入
+    watch(groupSearch, () => {
+      debouncedGroupSearch();
+    });
+
+    // 修改计算属性
+    const filteredGroups = computed(() => {
+      return groups.value;
+    });
     
     // 加载好友列表
     const fetchFriends = async () => {
@@ -645,13 +691,6 @@ export default {
       if (!friendSearch.value) return friends.value;
       return friends.value.filter(friend => 
         friend.username.toLowerCase().includes(friendSearch.value.toLowerCase())
-      );
-    });
-    
-    const filteredGroups = computed(() => {
-      if (!groupSearch.value) return groups.value;
-      return groups.value.filter(group => 
-        group.name.toLowerCase().includes(groupSearch.value.toLowerCase())
       );
     });
     

@@ -995,6 +995,25 @@ export default {
       }
     };
     
+    // 添加防抖函数
+    const debounce = (fn, delay) => {
+      let timer = null;
+      return function (...args) {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          fn.apply(this, args);
+        }, delay);
+      };
+    };
+
+    // 使用防抖处理搜索
+    const debouncedSearch = debounce(handleGroupSearch, 300);
+
+    // 监听搜索输入
+    watch(groupSearch, () => {
+      debouncedSearch();
+    });
+    
     // 组件挂载时
     onMounted(() => {
       if (!userId.value || !username.value) {

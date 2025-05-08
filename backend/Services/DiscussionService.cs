@@ -691,15 +691,15 @@ namespace backend.Services
         /// </summary>
         public async Task<bool> LikePostAsync(int postId, int userId)
         {
-            using (var connection = GetConnection())
+            try
             {
-                try
+                using (var connection = GetConnection())
                 {
                     // 打开数据库连接
                     await connection.OpenAsync();
 
                     // 检查帖子是否存在
-                    string checkPostSql = "SELECT * FROM post WHERE PostId = @PostId";
+                    string checkPostSql = "SELECT * FROM Post WHERE PostId = @PostId";
                     var post = await connection.QueryFirstOrDefaultAsync<Post>(checkPostSql, new { PostId = postId });
                     if (post == null)
                     {
@@ -707,7 +707,7 @@ namespace backend.Services
                     }
 
                     // 检查用户是否已经点赞
-                    string checkLikeSql = "SELECT * FROM post_like WHERE PostId = @PostId AND UserId = @UserId";
+                    string checkLikeSql = "SELECT * FROM PostLike WHERE PostId = @PostId AND UserId = @UserId";
                     var existingLike = await connection.QueryFirstOrDefaultAsync<dynamic>(checkLikeSql, new { PostId = postId, UserId = userId });
                     if (existingLike != null)
                     {
@@ -722,7 +722,7 @@ namespace backend.Services
                         {
                             // 插入点赞记录
                             string insertLikeSql = @"
-                                INSERT INTO post_like (PostId, UserId, CreateTime) 
+                                INSERT INTO PostLike (PostId, UserId, CreateTime) 
                                 VALUES (@PostId, @UserId, @CreateTime)";
                             await connection.ExecuteAsync(insertLikeSql, new 
                             { 
@@ -733,7 +733,7 @@ namespace backend.Services
 
                             // 更新帖子点赞数
                             string updatePostSql = @"
-                                UPDATE post 
+                                UPDATE Post 
                                 SET LikeCount = LikeCount + 1 
                                 WHERE PostId = @PostId";
                             await connection.ExecuteAsync(updatePostSql, new { PostId = postId }, transaction);
@@ -750,11 +750,11 @@ namespace backend.Services
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"点赞帖子失败: {ex.Message}");
-                    return false;
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"点赞帖子失败: {ex.Message}");
+                return false;
             }
         }
 
@@ -763,15 +763,15 @@ namespace backend.Services
         /// </summary>
         public async Task<bool> UnlikePostAsync(int postId, int userId)
         {
-            using (var connection = GetConnection())
+            try
             {
-                try
+                using (var connection = GetConnection())
                 {
                     // 打开数据库连接
                     await connection.OpenAsync();
 
                     // 检查帖子是否存在
-                    string checkPostSql = "SELECT * FROM post WHERE PostId = @PostId";
+                    string checkPostSql = "SELECT * FROM Post WHERE PostId = @PostId";
                     var post = await connection.QueryFirstOrDefaultAsync<Post>(checkPostSql, new { PostId = postId });
                     if (post == null)
                     {
@@ -779,7 +779,7 @@ namespace backend.Services
                     }
 
                     // 检查用户是否已经点赞
-                    string checkLikeSql = "SELECT * FROM post_like WHERE PostId = @PostId AND UserId = @UserId";
+                    string checkLikeSql = "SELECT * FROM PostLike WHERE PostId = @PostId AND UserId = @UserId";
                     var existingLike = await connection.QueryFirstOrDefaultAsync<dynamic>(checkLikeSql, new { PostId = postId, UserId = userId });
                     if (existingLike == null)
                     {
@@ -794,13 +794,13 @@ namespace backend.Services
                         {
                             // 删除点赞记录
                             string deleteLikeSql = @"
-                                DELETE FROM post_like 
+                                DELETE FROM PostLike 
                                 WHERE PostId = @PostId AND UserId = @UserId";
                             await connection.ExecuteAsync(deleteLikeSql, new { PostId = postId, UserId = userId }, transaction);
 
                             // 更新帖子点赞数
                             string updatePostSql = @"
-                                UPDATE post 
+                                UPDATE Post 
                                 SET LikeCount = GREATEST(LikeCount - 1, 0) 
                                 WHERE PostId = @PostId";
                             await connection.ExecuteAsync(updatePostSql, new { PostId = postId }, transaction);
@@ -817,11 +817,11 @@ namespace backend.Services
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"取消点赞帖子失败: {ex.Message}");
-                    return false;
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"取消点赞帖子失败: {ex.Message}");
+                return false;
             }
         }
 
@@ -830,24 +830,24 @@ namespace backend.Services
         /// </summary>
         public async Task<bool> HasUserLikedPostAsync(int postId, int userId)
         {
-            using (var connection = GetConnection())
+            try
             {
-                try
+                using (var connection = GetConnection())
                 {
                     // 打开数据库连接
                     await connection.OpenAsync();
 
                     // 检查用户是否已经点赞
-                    string checkLikeSql = "SELECT COUNT(1) FROM post_like WHERE PostId = @PostId AND UserId = @UserId";
+                    string checkLikeSql = "SELECT COUNT(1) FROM PostLike WHERE PostId = @PostId AND UserId = @UserId";
                     int count = await connection.ExecuteScalarAsync<int>(checkLikeSql, new { PostId = postId, UserId = userId });
-                    
+
                     return count > 0;
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"检查用户点赞状态失败: {ex.Message}");
-                    return false;
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"检查用户点赞状态失败: {ex.Message}");
+                return false;
             }
         }
 

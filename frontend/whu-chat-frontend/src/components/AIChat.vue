@@ -2,7 +2,7 @@
   <div class="ai-chat-container">
     <div class="chat-header">
       <div class="header-left">
-        <router-link to="/" class="back-button">
+        <router-link to="/home" class="back-button">
           <i class="back-icon"></i>
           返回主页
         </router-link>
@@ -105,6 +105,7 @@
 <script>
 import { ref, onMounted, nextTick, watch } from 'vue';
 import axios from 'axios';
+import { useRoute } from 'vue-router';
 
 export default {
   name: 'AIChat',
@@ -125,6 +126,15 @@ export default {
     const chatContent = ref(null);
     const inputField = ref(null);
     const showClearConfirm = ref(false);
+    const route = useRoute();
+    
+    // 获取用户信息，优先使用props，如果没有则从route.query或localStorage获取
+    const userId = ref(props.userId || Number(route.query.userId) || Number(localStorage.getItem('userId')));
+    const username = ref(props.username || route.query.username || localStorage.getItem('username'));
+    
+    if (!userId.value || !username.value) {
+      console.error('AI聊天缺少必要的用户信息');
+    }
     
     // 预设问题建议
     const suggestions = ref([
@@ -139,7 +149,7 @@ export default {
     // 加载历史消息
     const loadMessages = async () => {
       try {
-        const response = await axios.get(`${window.apiBaseUrl || 'http://localhost:5067'}/api/ai/history/${props.userId}`);
+        const response = await axios.get(`${window.apiBaseUrl || 'http://localhost:5067'}/api/ai/history/${userId.value}`);
         if (response.data && response.data.success) {
           const history = response.data.history;
           if (history && history.length > 0) {
@@ -199,8 +209,8 @@ export default {
         
         // 发送请求
         const response = await axios.post(`${window.apiBaseUrl || 'http://localhost:5067'}/api/ai/chat`, {
-          userId: props.userId,
-          username: props.username,
+          userId: userId.value,
+          username: username.value,
           message: userMessageText,
           history: recentMessages
         });
@@ -251,7 +261,7 @@ export default {
     // 清空聊天历史
     const clearHistory = async () => {
       try {
-        const response = await axios.delete(`${window.apiBaseUrl || 'http://localhost:5067'}/api/ai/history/${props.userId}`);
+        const response = await axios.delete(`${window.apiBaseUrl || 'http://localhost:5067'}/api/ai/history/${userId.value}`);
         if (response.data && response.data.success) {
           messages.value = [];
           showClearConfirm.value = false;
@@ -329,7 +339,7 @@ export default {
       formatMessage,
       formatTime,
       scrollToBottom,
-      username: props.username
+      username: username.value
     };
   }
 };

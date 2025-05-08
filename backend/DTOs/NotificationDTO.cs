@@ -18,9 +18,19 @@ namespace backend.DTOs
         public int UserId { get; set; }
 
         /// <summary>
+        /// 通知标题
+        /// </summary>
+        public string Title { get; set; }
+
+        /// <summary>
         /// 通知内容
         /// </summary>
         public string Content { get; set; }
+
+        /// <summary>
+        /// 通知类型
+        /// </summary>
+        public string Type { get; set; }
 
         /// <summary>
         /// 通知创建时间
@@ -28,9 +38,14 @@ namespace backend.DTOs
         public DateTime CreatedAt { get; set; }
 
         /// <summary>
-        /// （可选）通知是否已处理
+        /// 通知是否已读
         /// </summary>
-        public bool? IsHandled { get; set; }
+        public bool IsRead { get; set; }
+
+        /// <summary>
+        /// 通知是否已处理
+        /// </summary>
+        public bool IsHandled { get; set; }
     }
 
     public class FriendRequestDTO

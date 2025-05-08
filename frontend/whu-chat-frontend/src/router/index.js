@@ -13,7 +13,7 @@ import Discussion from '../views/Discussion.vue'
 const routes = [
   {
     path: '/',
-    redirect: '/login'
+    redirect: '/home'
   },
   {
     path: '/login',
@@ -50,6 +50,10 @@ const routes = [
     path: '/chat',
     name: 'AIChat',
     component: AIChat,
+    props: route => ({ 
+      userId: Number(route.query.userId), 
+      username: route.query.username 
+    }),
     meta: { requiresAuth: true } // 需要登录才能访问
   },
   {

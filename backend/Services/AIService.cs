@@ -8,6 +8,8 @@ using backend.DTOs;
 using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Configuration;
+using System.Threading;
+using System.Linq;
 
 namespace backend.Services
 {
@@ -145,13 +147,41 @@ namespace backend.Services
         {
             try
             {
-                _logger.LogInformation($"用户 {request.Username}({request.UserId}) 请求总结聊天室 {request.RoomId} 的记录");
+                _logger.LogInformation($"开始生成聊天总结，群组ID: {request.GroupId}, 聊天室ID: {request.RoomId}");
                 
-                // 获取聊天室的历史消息
-                var chatMessages = await GetRoomMessagesAsync(request.RoomId, request.MessageCount);
-                
-                if (chatMessages.Count == 0)
+                // 获取聊天记录
+                List<ChatMessage> messages;
+                if (request.RoomId.HasValue)
                 {
+                    messages = await GetRoomMessagesAsync(request.RoomId.Value, request.MessageCount);
+                    _logger.LogInformation($"获取到聊天室 {request.RoomId} 的 {messages.Count} 条消息");
+                }
+                else if (request.GroupId.HasValue)
+                {
+                    // 实现获取群聊消息的逻辑
+                    _logger.LogWarning("群组消息总结暂未实现");
+                    return new AIChatResponseDTO
+                    {
+                        Success = false,
+                        Error = "群组消息总结功能暂未实现",
+                        Timestamp = DateTime.Now
+                    };
+                }
+                else
+                {
+                    _logger.LogError("请求中未提供RoomId或GroupId");
+                    return new AIChatResponseDTO
+                    {
+                        Success = false,
+                        Error = "请求参数错误：需要提供RoomId或GroupId",
+                        Timestamp = DateTime.Now
+                    };
+                }
+                
+                // 检查消息数量
+                if (messages.Count == 0)
+                {
+                    _logger.LogWarning("没有找到需要总结的消息");
                     return new AIChatResponseDTO
                     {
                         Success = false,
@@ -160,20 +190,19 @@ namespace backend.Services
                     };
                 }
                 
-                // 构建提示词
-                string prompt = $@"请总结以下聊天记录的主要内容，提取关键信息和讨论要点。聊天记录来自聊天室ID:{request.RoomId}。
-                总结应该清晰、简洁，突出重点内容，把相关话题归类。聊天记录如下：
-
-                {FormatChatMessagesForPrompt(chatMessages)}
+                // 如果消息数量过多，可能会导致超时，进行裁剪
+                if (messages.Count > 30)
+                {
+                    _logger.LogWarning($"消息数量过多({messages.Count})，已裁剪为最近的30条");
+                    messages = messages.Skip(Math.Max(0, messages.Count - 30)).ToList();
+                }
                 
-                请提供一个结构化的总结，包括：
-                1. 讨论的主要话题
-                2. 重要的观点和信息
-                3. 聊天中提出的问题或疑问
-                4. 达成的共识或结论（如果有）";
+                // 格式化聊天记录作为提示词
+                string prompt = $"请简洁总结以下聊天记录的主要内容：\n\n{FormatChatMessagesForPrompt(messages)}";
+                _logger.LogInformation($"生成的提示词长度: {prompt.Length}");
                 
-                // 构建消息列表
-                var messages = new List<Dictionary<string, string>>
+                // 构建消息数组
+                var apiMessages = new List<Dictionary<string, string>>
                 {
                     new Dictionary<string, string>
                     {
@@ -191,9 +220,9 @@ namespace backend.Services
                 var requestBody = new
                 {
                     model = "deepseek-chat",
-                    messages,
-                    temperature = 0.3, // 较低的温度使输出更加可预测和聚焦
-                    max_tokens = 1200  // 更长的输出以容纳详细总结
+                    messages = apiMessages,
+                    temperature = 0.2, // 降低温度值使输出更加确定和精简
+                    max_tokens = 600  // 减少最大token以加快响应速度
                 };
                 
                 // 序列化请求体
@@ -202,9 +231,14 @@ namespace backend.Services
                     Encoding.UTF8,
                     "application/json"
                 );
+
+                _logger.LogInformation("正在发送总结请求到AI API...");
+                
+                // 创建一个带超时的CancellationTokenSource，增加超时时间
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(180));
                 
                 // 发送请求
-                var response = await _httpClient.PostAsync(_apiEndpoint, content);
+                var response = await _httpClient.PostAsync(_apiEndpoint, content, cts.Token);
                 var responseBody = await response.Content.ReadAsStringAsync();
                 
                 if (response.IsSuccessStatusCode)
@@ -230,14 +264,34 @@ namespace backend.Services
                             Timestamp = DateTime.Now
                         };
                     }
+                    else
+                    {
+                        _logger.LogError("无法从API响应中解析出总结内容");
+                        return new AIChatResponseDTO
+                        {
+                            Success = false,
+                            Error = "无法解析API响应",
+                            Timestamp = DateTime.Now
+                        };
+                    }
                 }
                 
                 // 如果解析失败或请求不成功
-                _logger.LogError($"AI总结生成失败: {responseBody}");
+                _logger.LogError($"AI总结生成失败: HTTP {response.StatusCode}, {responseBody}");
                 return new AIChatResponseDTO
                 {
                     Success = false,
                     Error = $"处理AI总结请求失败: {response.StatusCode}",
+                    Timestamp = DateTime.Now
+                };
+            }
+            catch (TaskCanceledException ex)
+            {
+                _logger.LogError(ex, "AI总结请求超时");
+                return new AIChatResponseDTO
+                {
+                    Success = false,
+                    Error = $"AI总结请求超时: {ex.Message}",
                     Timestamp = DateTime.Now
                 };
             }
@@ -272,33 +326,33 @@ namespace backend.Services
                                      rm.Content, rm.CreateTime
                                      FROM RoomMessages rm
                                      JOIN Users u ON rm.SenderId = u.UserId
-                                     WHERE rm.RoomId = @RoomId
+                                     WHERE rm.RoomId = @RoomId AND rm.MessageType = 'text'
                                      ORDER BY rm.CreateTime DESC";
                     
-                    if (count > 0)
-                    {
-                        query += " LIMIT @Count";
-                    }
+                    // 限制消息数量，防止处理过多消息导致超时
+                    int messageLimit = count > 0 ? Math.Min(count, 50) : 50;
+                    query += " LIMIT @Count";
                     
                     using (var command = new MySqlCommand(query, connection))
                     {
                         command.Parameters.AddWithValue("@RoomId", roomId);
-                        
-                        if (count > 0)
-                        {
-                            command.Parameters.AddWithValue("@Count", count);
-                        }
+                        command.Parameters.AddWithValue("@Count", messageLimit);
                         
                         using (var reader = await command.ExecuteReaderAsync())
                         {
                             while (await reader.ReadAsync())
                             {
+                                // 跳过空消息内容
+                                string content = reader["Content"].ToString();
+                                if (string.IsNullOrWhiteSpace(content))
+                                    continue;
+                                    
                                 messages.Add(new ChatMessage
                                 {
                                     MessageId = Convert.ToInt32(reader["MessageId"]),
                                     SenderId = Convert.ToInt32(reader["SenderId"]),
                                     SenderName = reader["SenderName"].ToString(),
-                                    Content = reader["Content"].ToString(),
+                                    Content = content,
                                     SendTime = Convert.ToDateTime(reader["CreateTime"])
                                 });
                             }
@@ -309,6 +363,7 @@ namespace backend.Services
                 // 按时间正序排列，便于处理
                 messages.Reverse();
                 
+                _logger.LogInformation($"获取了 {messages.Count} 条消息用于总结");
                 return messages;
             }
             catch (Exception ex)

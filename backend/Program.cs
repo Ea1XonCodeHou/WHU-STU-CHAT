@@ -35,8 +35,8 @@ builder.Services.AddScoped<IDiscussionService, DiscussionService>(); // 添加�
 // 为AI服务添加HttpClient
 builder.Services.AddHttpClient<IAIService, AIService>(client =>
 {
-    // 配置HttpClient超时时间
-    client.Timeout = TimeSpan.FromSeconds(30);
+    // 配置HttpClient超时时间，增加到300秒以处理大量聊天记录
+    client.Timeout = TimeSpan.FromSeconds(300);
 });
 
 // 测试数据库连接

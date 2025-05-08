@@ -22,7 +22,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 var command = new MySqlCommand(
-                    "INSERT INTO Notifications (UserId, Content, CreatedAt, IsHandled) VALUES (@UserId, @Content, @CreatedAt, 0)",
+                    "INSERT INTO Notifications (UserId, Content, Title, Type, IsRead, IsHandled, CreatedAt) VALUES (@UserId, @Content, '系统通知', 'system', 0, 0, @CreatedAt)",
                     connection);
                 command.Parameters.AddWithValue("@UserId", userId);
                 command.Parameters.AddWithValue("@Content", content);
@@ -38,7 +38,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 var command = new MySqlCommand(
-                    "SELECT NotificationId, UserId, Content, CreatedAt, IsHandled FROM Notifications WHERE UserId = @UserId",
+                    "SELECT NotificationId, UserId, Content, Title, Type, CreatedAt, IsRead, IsHandled FROM Notifications WHERE UserId = @UserId",
                     connection);
                 command.Parameters.AddWithValue("@UserId", userId);
                 using (var reader = await command.ExecuteReaderAsync())
@@ -50,8 +50,11 @@ namespace backend.Services
                             NotificationId = reader.GetInt32(0),
                             UserId = reader.GetInt32(1),
                             Content = reader.GetString(2),
-                            CreatedAt = reader.GetDateTime(3),
-                            IsHandled = reader.IsDBNull(4) ? (bool?)null : reader.GetBoolean(4)
+                            Title = reader.GetString(3),
+                            Type = reader.GetString(4),
+                            CreatedAt = reader.GetDateTime(5),
+                            IsRead = reader.IsDBNull(6) ? false : reader.GetBoolean(6),
+                            IsHandled = reader.IsDBNull(7) ? false : reader.GetBoolean(7)
                         });
                     }
                 }
@@ -65,7 +68,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 var command = new MySqlCommand(
-                    "SELECT NotificationId, UserId, Content, CreatedAt, IsHandled FROM Notifications WHERE NotificationId = @NotificationId",
+                    "SELECT NotificationId, UserId, Content, Title, Type, CreatedAt, IsRead, IsHandled FROM Notifications WHERE NotificationId = @NotificationId",
                     connection);
                 command.Parameters.AddWithValue("@NotificationId", notificationId);
                 using (var reader = await command.ExecuteReaderAsync())
@@ -77,8 +80,11 @@ namespace backend.Services
                             NotificationId = reader.GetInt32(0),
                             UserId = reader.GetInt32(1),
                             Content = reader.GetString(2),
-                            CreatedAt = reader.GetDateTime(3),
-                            IsHandled = reader.IsDBNull(4) ? (bool?)null : reader.GetBoolean(4)
+                            Title = reader.GetString(3),
+                            Type = reader.GetString(4),
+                            CreatedAt = reader.GetDateTime(5),
+                            IsRead = reader.IsDBNull(6) ? false : reader.GetBoolean(6),
+                            IsHandled = reader.IsDBNull(7) ? false : reader.GetBoolean(7)
                         };
                     }
                 }
@@ -92,7 +98,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 var command = new MySqlCommand(
-                    "UPDATE Notifications SET IsHandled = 1 WHERE NotificationId = @NotificationId",
+                    "UPDATE Notifications SET IsHandled = 1, IsRead = 1 WHERE NotificationId = @NotificationId",
                     connection);
                 command.Parameters.AddWithValue("@NotificationId", notificationId);
                 await command.ExecuteNonQueryAsync();

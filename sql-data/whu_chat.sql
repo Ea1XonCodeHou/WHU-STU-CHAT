@@ -10,6 +10,19 @@ USE `whu-chat`;
 -- 基础用户和权限表
 -- =====================================================
 
+-- 新添加 5月8号 好友更新
+ALTER TABLE `whu-chat`.`chatgroups` 
+ADD COLUMN `IsPrivate` TINYINT NULL AFTER `UpdateTime`;
+ALTER TABLE friendship
+DROP FOREIGN KEY friendship_ibfk_1;
+ALTER TABLE friendship
+ADD CONSTRAINT friendship_ibfk_1
+FOREIGN KEY (GroupId) REFERENCES ChatGroups(GroupId)
+ON DELETE CASCADE;
+ALTER TABLE Users ADD COLUMN Status VARCHAR(50) DEFAULT 'offline';
+ALTER TABLE Users ADD COLUMN Signature VARCHAR(50) DEFAULT ' ';
+
+
 -- 用户表 - 存储用户基本信息
 CREATE TABLE IF NOT EXISTS Users (
     UserId INT PRIMARY KEY AUTO_INCREMENT,
@@ -245,6 +258,10 @@ CREATE TABLE IF NOT EXISTS Notifications (
     Type VARCHAR(50) NOT NULL DEFAULT 'system', -- system, friend_request, group_invite, message, etc.
     RelatedId INT,                           -- 相关联的实体ID（如消息ID、好友请求ID等）
     IsRead TINYINT(1) NOT NULL DEFAULT 0,
+<<<<<<< HEAD
+=======
+    IsHandled TINYINT(1) NOT NULL DEFAULT 0, -- 是否已处理
+>>>>>>> f8272c33ad61caee02b3de0ad804aa587f2eae7c
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (NotificationId),
     INDEX idx_user_id (UserId),
@@ -348,6 +365,7 @@ VALUES
 (1, 'setting_showMyOnlineStatus', 'true');
 
 -- 添加测试通知
+
 INSERT INTO Notifications (UserId, Title, Content, Type, IsRead, CreatedAt)
 VALUES
 (1, '欢迎加入WHU-STU-CHAT', '欢迎加入武汉大学学生互助交流平台！', 'system', 0, NOW()); 
@@ -355,3 +373,7 @@ VALUES
 -- 添加isprivate列
 ALTER TABLE `whu-chat`.`chatgroups` 
 ADD COLUMN `IsPrivate` TINYINT NULL AFTER `UpdateTime`;
+
+
+
+

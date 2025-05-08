@@ -2,7 +2,7 @@
   <div class="ai-chat-container">
     <div class="chat-header">
       <div class="header-left">
-        <router-link to="/" class="back-button">
+        <router-link to="/home" class="back-button">
           <i class="back-icon"></i>
           返回主页
         </router-link>

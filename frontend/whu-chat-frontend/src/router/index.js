@@ -13,7 +13,7 @@ import Discussion from '../views/Discussion.vue'
 const routes = [
   {
     path: '/',
-    redirect: '/login'
+    redirect: '/home'
   },
   {
     path: '/login',
@@ -31,7 +31,7 @@ const routes = [
     path: '/home',
     name: 'Home',
     component: Home,
-    meta: { requiresAuth: false } // 需要登录才能访问
+    meta: { requiresAuth: true } // 需要登录才能访问
   },
   {
     path: '/chatroom/:id',

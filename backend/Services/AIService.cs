@@ -191,14 +191,14 @@ namespace backend.Services
                 }
                 
                 // 如果消息数量过多，可能会导致超时，进行裁剪
-                if (messages.Count > 50)
+                if (messages.Count > 30)
                 {
-                    _logger.LogWarning($"消息数量过多({messages.Count})，已裁剪为最近的50条");
-                    messages = messages.Skip(Math.Max(0, messages.Count - 50)).ToList();
+                    _logger.LogWarning($"消息数量过多({messages.Count})，已裁剪为最近的30条");
+                    messages = messages.Skip(Math.Max(0, messages.Count - 30)).ToList();
                 }
                 
                 // 格式化聊天记录作为提示词
-                string prompt = $"请总结以下聊天记录的主要内容：\n\n{FormatChatMessagesForPrompt(messages)}";
+                string prompt = $"请简洁总结以下聊天记录的主要内容：\n\n{FormatChatMessagesForPrompt(messages)}";
                 _logger.LogInformation($"生成的提示词长度: {prompt.Length}");
                 
                 // 构建消息数组
@@ -221,8 +221,8 @@ namespace backend.Services
                 {
                     model = "deepseek-chat",
                     messages = apiMessages,
-                    temperature = 0.3, // 较低的温度使输出更加可预测和聚焦
-                    max_tokens = 800  // 减少最大token以加快响应速度
+                    temperature = 0.2, // 降低温度值使输出更加确定和精简
+                    max_tokens = 600  // 减少最大token以加快响应速度
                 };
                 
                 // 序列化请求体
@@ -234,8 +234,8 @@ namespace backend.Services
 
                 _logger.LogInformation("正在发送总结请求到AI API...");
                 
-                // 创建一个带超时的CancellationTokenSource
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(100));
+                // 创建一个带超时的CancellationTokenSource，增加超时时间
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(180));
                 
                 // 发送请求
                 var response = await _httpClient.PostAsync(_apiEndpoint, content, cts.Token);
@@ -330,7 +330,7 @@ namespace backend.Services
                                      ORDER BY rm.CreateTime DESC";
                     
                     // 限制消息数量，防止处理过多消息导致超时
-                    int messageLimit = count > 0 ? Math.Min(count, 100) : 100;
+                    int messageLimit = count > 0 ? Math.Min(count, 50) : 50;
                     query += " LIMIT @Count";
                     
                     using (var command = new MySqlCommand(query, connection))
@@ -342,12 +342,17 @@ namespace backend.Services
                         {
                             while (await reader.ReadAsync())
                             {
+                                // 跳过空消息内容
+                                string content = reader["Content"].ToString();
+                                if (string.IsNullOrWhiteSpace(content))
+                                    continue;
+                                    
                                 messages.Add(new ChatMessage
                                 {
                                     MessageId = Convert.ToInt32(reader["MessageId"]),
                                     SenderId = Convert.ToInt32(reader["SenderId"]),
                                     SenderName = reader["SenderName"].ToString(),
-                                    Content = reader["Content"].ToString(),
+                                    Content = content,
                                     SendTime = Convert.ToDateTime(reader["CreateTime"])
                                 });
                             }

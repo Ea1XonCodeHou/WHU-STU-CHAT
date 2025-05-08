@@ -13,7 +13,7 @@ using System.Text.Json;
 namespace backend.Services
 {
     /// <summary>
-    /// �������ʵ��
+    /// 聊天服务实现
     /// </summary>
     public class ChatService : IChatService
     {
@@ -28,10 +28,10 @@ namespace backend.Services
             _connectionString = configuration.GetConnectionString("DefaultConnection");
             _logger = logger;
             
-            // ������ʱ�ļ�Ŀ¼
+            // 临时文件目录
             _tempFileDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp", "uploads");
             
-            // ȷ��Ŀ¼����
+            // 确保目录存在
             if (!Directory.Exists(_tempFileDirectory))
             {
                 Directory.CreateDirectory(_tempFileDirectory);
@@ -39,7 +39,7 @@ namespace backend.Services
         }
 
         /// <summary>
-        /// ��ȡ����������
+        /// 获取聊天室名称
         /// </summary>
         public async Task<string> GetRoomNameAsync(int roomId)
         {
@@ -60,13 +60,13 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"��ȡ����������ʧ��: {ex.Message}");
+                _logger.LogError(ex, $"获取聊天室名称失败: {ex.Message}");
                 return null;
             }
         }
 
         /// <summary>
-        /// ��ȡ��������ʷ��Ϣ
+        /// 获取聊天室历史消息
         /// </summary>
         public async Task<List<MessageDTO>> GetRoomMessagesAsync(int roomId, int count)
         {
@@ -78,7 +78,7 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // ʹ���޸ĺ��SQL��ѯ������MessageType��FileUrl�ֶ�
+                    // 使用修改后的SQL查询，包含MessageType和FileUrl字段
                     var command = new MySqlCommand(
                         @"SELECT m.MessageId, m.SenderId, u.Username AS SenderName, m.Content, 
                           m.CreateTime, m.RoomId, m.MessageType, m.FileUrl
@@ -106,7 +106,7 @@ namespace backend.Services
                                 fileUrl = reader.GetString(reader.GetOrdinal("FileUrl"));
                             }
                             
-                            // �����ļ�������Ϣ������JSON���ݻ�ȡ�ļ����ʹ�С��Ϣ
+                            // 处理文件消息，从JSON内容中获取文件名和大小信息
                             string fileName = null;
                             long? fileSize = null;
                             
@@ -123,15 +123,15 @@ namespace backend.Services
                                         if (fileInfo.TryGetValue("fileSize", out var size) && long.TryParse(size, out var sizeValue))
                                             fileSize = sizeValue;
                                             
-                                        // ������ļ����ͣ�������ʾ����
+                                        // 如果是文件消息且有文件名，则显示文件名
                                         if (messageType == "file" && !string.IsNullOrEmpty(fileName))
-                                            content = $"�ļ�: {fileName}";
+                                            content = $"文件: {fileName}";
                                     }
                                 }
                                 catch (Exception ex)
                                 {
-                                    _logger.LogWarning(ex, "�����ļ���Ϣʧ��");
-                                    // ����ʧ��ʱ����ԭʼ����
+                                    _logger.LogWarning(ex, "解析文件信息失败");
+                                    // 解析失败时保留原始内容
                                 }
                             }
                             
@@ -153,28 +153,28 @@ namespace backend.Services
                     }
                 }
                 
-                // ��ʱ�����򷵻���Ϣ
+                // 时间倒序返回消息
                 messages.Reverse();
                 return messages;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"��ȡ��������ʷ��Ϣʧ��: {ex.Message}");
+                _logger.LogError(ex, $"获取聊天室历史消息失败: {ex.Message}");
                 return messages;
             }
         }
 
         /// <summary>
-        /// ������������Ϣ
+        /// 保存聊天室消息
         /// </summary>
         public async Task<int> SaveRoomMessageAsync(int roomId, int userId, string message)
         {
-            // ���ô����͵ķ�����Ĭ��Ϊtext����
+            // 默认消息类型为text，如果需要其他类型，请使用SaveRoomMessageWithTypeAsync方法
             return await SaveRoomMessageWithTypeAsync(roomId, userId, message, "text");
         }
         
         /// <summary>
-        /// ������������Ϣ������Ϣ���ͣ�
+        /// 保存聊天室消息，包含消息类型、文件URL等信息
         /// </summary>
         public async Task<int> SaveRoomMessageWithTypeAsync(int roomId, int userId, string message, 
             string messageType, string fileUrl = null, string fileName = null, long? fileSize = null)
@@ -185,7 +185,7 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // �����ļ�������Ϣ�����ļ���Ϣ���л�ΪJSON�洢
+                    // 如果是文件消息，将文件信息转为JSON存储
                     string content = message;
                     if ((messageType == "file" || messageType == "image") && !string.IsNullOrEmpty(fileName))
                     {
@@ -197,7 +197,7 @@ namespace backend.Services
                         content = JsonSerializer.Serialize(fileInfo);
                     }
 
-                    // ʹ���޸ĺ��SQL������䣬����MessageType��FileUrl�ֶ�
+                    // 使用修改后的SQL插入，包含MessageType和FileUrl字段
                     var command = new MySqlCommand(
                         @"INSERT INTO RoomMessages (RoomId, SenderId, Content, CreateTime, MessageType, FileUrl) 
                           VALUES (@RoomId, @SenderId, @Content, @CreateTime, @MessageType, @FileUrl);
@@ -220,13 +220,13 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"������������Ϣʧ��: {ex.Message}");
+                _logger.LogError(ex, $"保存聊天室消息失败: {ex.Message}");
                 return 0;
             }
         }
         
         /// <summary>
-        /// �ϴ��ļ�����ʱĿ¼
+        /// 上传文件到临时目录
         /// </summary>
         public async Task<(string FileUrl, string FileName, long FileSize)> UploadTempFileAsync(IFormFile file)
         {
@@ -234,39 +234,39 @@ namespace backend.Services
             {
                 if (file == null || file.Length == 0)
                 {
-                    throw new ArgumentException("û��ѡ���ļ����ļ�Ϊ��");
+                    throw new ArgumentException("未选择文件或文件为空");
                 }
 
-                // �����ļ���С����10MB��
+                // 文件大小限制为10MB
                 if (file.Length > 10 * 1024 * 1024)
                 {
-                    throw new ArgumentException("�ļ���С��������");
+                    throw new ArgumentException("文件大小超过限制");
                 }
 
-                // ����Ψһ�ļ���
+                // 生成唯一文件名
                 string fileExtension = Path.GetExtension(file.FileName);
                 string uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
                 string filePath = Path.Combine(_tempFileDirectory, uniqueFileName);
                 
-                // �����ļ�
+                // 保存文件
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
                 
-                // ���ؿɷ��ʵ�URL���ļ���Ϣ
+                // 生成文件URL和文件信息
                 string fileUrl = $"/temp/uploads/{uniqueFileName}";
                 return (fileUrl, file.FileName, file.Length);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"�ϴ��ļ�ʧ��: {ex.Message}");
-                throw; // �����׳��쳣�Ա����������
+                _logger.LogError(ex, $"上传文件失败: {ex.Message}");
+                throw; // 上传失败时抛出异常，由调用方处理
             }
         }
 
         /// <summary>
-        /// ��ȡ�����������û�
+        /// 获取聊天室在线用户
         /// </summary>
         public async Task<List<UserDTO>> GetRoomOnlineUsersAsync(int roomId)
         {
@@ -274,20 +274,20 @@ namespace backend.Services
             
             try
             {
-                // �ȴ��ڴ��л�ȡ�����û���Ϣ
+                // 尝试从内存中获取在线用户信息
                 if (_onlineUsers.TryGetValue(roomId, out var roomUsers))
                 {
                     users.AddRange(roomUsers.Values);
                 }
                 
-                // ���û�������û��������ݿ��ȡ�����Ծ�û�
+                // 如果内存中没有用户，则从数据库获取最近活跃的用户
                 if (users.Count == 0)
                 {
                     using (var connection = new MySqlConnection(_connectionString))
                     {
                         await connection.OpenAsync();
 
-                        // �޸�SQL��ѯ��ȷ��ORDER BY�а�����SELECT�б���
+                        // 修改SQL查询，确定ORDER BY的顺序和SELECT列表的顺序
                         var command = new MySqlCommand(
                             @"SELECT DISTINCT u.UserId, u.Username, u.Avatar, MAX(m.CreateTime) as LastActivity
                               FROM Users u
@@ -322,13 +322,13 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"��ȡ�����������û�ʧ��: {ex.Message}");
+                _logger.LogError(ex, $"获取聊天室在线用户失败: {ex.Message}");
                 return users;
             }
         }
 
         /// <summary>
-        /// ��ȡ�򴴽�Ĭ��������
+        /// 获取或创建默认聊天室
         /// </summary>
         public async Task<int> GetOrCreateDefaultRoomAsync()
         {
@@ -338,9 +338,9 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // ����Ĭ��������
+                    // 查询默认聊天室
                     var selectCommand = new MySqlCommand(
-                        "SELECT RoomId FROM ChatRooms WHERE RoomName = 'WHU У԰����������' LIMIT 1",
+                        "SELECT RoomId FROM ChatRooms WHERE RoomName = 'WHU У԰' LIMIT 1",
                         connection);
 
                     var roomId = await selectCommand.ExecuteScalarAsync();
@@ -350,10 +350,10 @@ namespace backend.Services
                         return Convert.ToInt32(roomId);
                     }
 
-                    // ����Ĭ��������
+                    // 创建默认聊天室
                     var insertCommand = new MySqlCommand(
                         @"INSERT INTO ChatRooms (RoomName, Description, CreateTime, UpdateTime) 
-                          VALUES ('WHU У԰����������', '��ӭ�����人��ѧУ԰���������ң������ǽ��������Ŀռ䣡', NOW(), NOW());
+                          VALUES ('WHU У԰', '由学生会人事部创建，用于学生交流和讨论，欢迎大家踊跃参与！', NOW(), NOW());
                           SELECT LAST_INSERT_ID();",
                         connection);
 
@@ -363,13 +363,13 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"��ȡ�򴴽�Ĭ��������ʧ��: {ex.Message}");
-                return 1; // Ĭ�Ϸ���1��ͨ���ǵ�һ��������
+                _logger.LogError(ex, $"获取或创建默认聊天室失败: {ex.Message}");
+                return 1; // 默认返回1，表示第一个聊天室
             }
         }
 
         /// <summary>
-        /// �����û����������б�
+        /// 添加用户到聊天室
         /// </summary>
         public void AddUserToRoom(int roomId, UserDTO user)
         {
@@ -378,7 +378,7 @@ namespace backend.Services
         }
 
         /// <summary>
-        /// ���������б��Ƴ��û�
+        /// 从聊天室移除用户
         /// </summary>
         public void RemoveUserFromRoom(int roomId, int userId)
         {
@@ -398,15 +398,15 @@ namespace backend.Services
                 
                 // 获取双向私聊记录
                 string sql = @"
-                    SELECT pm.id, pm.sender_id, pm.receiver_id, pm.content, pm.message_type, 
-                        pm.file_url, pm.file_name, pm.file_size, pm.send_time, pm.is_read,
+                    SELECT pm.MessageId, pm.SenderId, pm.ReceiverId, pm.Content, pm.MessageType, 
+                        pm.FileUrl, pm.FileName, pm.FileSize, pm.CreateTime as SendTime, pm.IsRead,
                         u1.Username as sender_name, u2.Username as receiver_name
-                    FROM private_messages pm
-                    JOIN Users u1 ON pm.sender_id = u1.UserId
-                    JOIN Users u2 ON pm.receiver_id = u2.UserId
-                    WHERE (pm.sender_id = @userId AND pm.receiver_id = @friendId)
-                       OR (pm.sender_id = @friendId AND pm.receiver_id = @userId)
-                    ORDER BY pm.send_time DESC
+                    FROM PrivateMessages pm
+                    JOIN Users u1 ON pm.SenderId = u1.UserId
+                    JOIN Users u2 ON pm.ReceiverId = u2.UserId
+                    WHERE (pm.SenderId = @userId AND pm.ReceiverId = @friendId)
+                       OR (pm.SenderId = @friendId AND pm.ReceiverId = @userId)
+                    ORDER BY pm.CreateTime DESC
                     LIMIT @count";
                 
                 using (var command = new MySqlCommand(sql, connection))
@@ -421,18 +421,18 @@ namespace backend.Services
                         {
                             messages.Add(new MessageDTO
                             {
-                                MessageId = reader.GetInt32(reader.GetOrdinal("id")),
-                                SenderId = reader.GetInt32(reader.GetOrdinal("sender_id")),
+                                MessageId = reader.GetInt32(reader.GetOrdinal("MessageId")),
+                                SenderId = reader.GetInt32(reader.GetOrdinal("SenderId")),
                                 SenderName = reader.GetString(reader.GetOrdinal("sender_name")),
-                                ReceiverId = reader.GetInt32(reader.GetOrdinal("receiver_id")),
+                                ReceiverId = reader.GetInt32(reader.GetOrdinal("ReceiverId")),
                                 ReceiverName = reader.GetString(reader.GetOrdinal("receiver_name")),
-                                Content = reader.GetString(reader.GetOrdinal("content")),
-                                MessageType = reader.GetString(reader.GetOrdinal("message_type")),
-                                FileUrl = !reader.IsDBNull(reader.GetOrdinal("file_url")) ? reader.GetString(reader.GetOrdinal("file_url")) : null,
-                                FileName = !reader.IsDBNull(reader.GetOrdinal("file_name")) ? reader.GetString(reader.GetOrdinal("file_name")) : null,
-                                FileSize = !reader.IsDBNull(reader.GetOrdinal("file_size")) ? reader.GetInt32(reader.GetOrdinal("file_size")) : 0,
-                                SendTime = reader.GetDateTime(reader.GetOrdinal("send_time")),
-                                IsRead = reader.GetBoolean(reader.GetOrdinal("is_read"))
+                                Content = reader.GetString(reader.GetOrdinal("Content")),
+                                MessageType = reader.GetString(reader.GetOrdinal("MessageType")),
+                                FileUrl = !reader.IsDBNull(reader.GetOrdinal("FileUrl")) ? reader.GetString(reader.GetOrdinal("FileUrl")) : null,
+                                FileName = !reader.IsDBNull(reader.GetOrdinal("FileName")) ? reader.GetString(reader.GetOrdinal("FileName")) : null,
+                                FileSize = !reader.IsDBNull(reader.GetOrdinal("FileSize")) ? reader.GetInt32(reader.GetOrdinal("FileSize")) : 0,
+                                SendTime = reader.GetDateTime(reader.GetOrdinal("SendTime")),
+                                IsRead = reader.GetBoolean(reader.GetOrdinal("IsRead"))
                             });
                         }
                     }
@@ -450,9 +450,9 @@ namespace backend.Services
         private async Task UpdateMessagesAsReadAsync(MySqlConnection connection, int userId, int friendId)
         {
             string sql = @"
-                UPDATE private_messages
-                SET is_read = TRUE
-                WHERE sender_id = @friendId AND receiver_id = @userId AND is_read = FALSE";
+                UPDATE PrivateMessages
+                SET IsRead = TRUE
+                WHERE SenderId = @friendId AND ReceiverId = @userId AND IsRead = FALSE";
             
             using (var command = new MySqlCommand(sql, connection))
             {
@@ -467,29 +467,57 @@ namespace backend.Services
         /// </summary>
         public async Task<int> SavePrivateMessageAsync(MessageDTO message)
         {
-            using (var connection = new MySqlConnection(_connectionString))
+            try
             {
-                await connection.OpenAsync();
-                
-                string sql = @"
-                    INSERT INTO private_messages (sender_id, receiver_id, content, message_type, file_url, file_name, file_size, send_time, is_read)
-                    VALUES (@senderId, @receiverId, @content, @messageType, @fileUrl, @fileName, @fileSize, @sendTime, FALSE);
-                    SELECT LAST_INSERT_ID();";
-                
-                using (var command = new MySqlCommand(sql, connection))
+                using (var connection = new MySqlConnection(_connectionString))
                 {
-                    command.Parameters.AddWithValue("@senderId", message.SenderId);
-                    command.Parameters.AddWithValue("@receiverId", message.ReceiverId);
-                    command.Parameters.AddWithValue("@content", message.Content ?? "");
-                    command.Parameters.AddWithValue("@messageType", message.MessageType ?? "text");
-                    command.Parameters.AddWithValue("@fileUrl", message.FileUrl as object ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@fileName", message.FileName as object ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@fileSize", message.FileSize as object ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@sendTime", message.SendTime != default ? message.SendTime : DateTime.Now);
+                    await connection.OpenAsync();
                     
-                    var result = await command.ExecuteScalarAsync();
-                    return Convert.ToInt32(result);
+                    string sql = @"
+                        INSERT INTO PrivateMessages (
+                            SenderId, 
+                            ReceiverId, 
+                            Content, 
+                            MessageType, 
+                            FileUrl, 
+                            FileName, 
+                            FileSize, 
+                            CreateTime, 
+                            IsRead
+                        )
+                        VALUES (
+                            @senderId, 
+                            @receiverId, 
+                            @content, 
+                            @messageType, 
+                            @fileUrl, 
+                            @fileName, 
+                            @fileSize, 
+                            @createTime, 
+                            FALSE
+                        );
+                        SELECT LAST_INSERT_ID();";
+                    
+                    using (var command = new MySqlCommand(sql, connection))
+                    {
+                        command.Parameters.AddWithValue("@senderId", message.SenderId);
+                        command.Parameters.AddWithValue("@receiverId", message.ReceiverId);
+                        command.Parameters.AddWithValue("@content", message.Content ?? "");
+                        command.Parameters.AddWithValue("@messageType", message.MessageType ?? "text");
+                        command.Parameters.AddWithValue("@fileUrl", message.FileUrl as object ?? DBNull.Value);
+                        command.Parameters.AddWithValue("@fileName", message.FileName as object ?? DBNull.Value);
+                        command.Parameters.AddWithValue("@fileSize", message.FileSize as object ?? DBNull.Value);
+                        command.Parameters.AddWithValue("@createTime", message.SendTime != default ? message.SendTime : DateTime.Now);
+                        
+                        var result = await command.ExecuteScalarAsync();
+                        return Convert.ToInt32(result);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"保存私聊消息失败: {ex.Message}");
+                return 0;
             }
         }
     }

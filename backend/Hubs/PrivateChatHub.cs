@@ -123,6 +123,36 @@ namespace backend.Hubs
             }
         }
         
+        // 获取私聊历史消息
+        public async Task GetPrivateChatHistory(int friendId, int count = 50)
+        {
+            try
+            {
+                // 从request中获取用户ID
+                if (!Context.GetHttpContext().Request.Query.TryGetValue("userId", out var userIdValue) ||
+                    !int.TryParse(userIdValue, out int userId))
+                {
+                    await Clients.Caller.SendAsync("Error", "无法识别用户ID");
+                    return;
+                }
+                
+                _logger.LogInformation($"用户 {userId} 正在获取与用户 {friendId} 的私聊历史消息");
+                
+                // 获取历史消息
+                var messages = await _chatService.GetPrivateChatHistoryAsync(userId, friendId, count);
+                
+                // 发送历史消息给客户端
+                await Clients.Caller.SendAsync("ReceiveHistoryMessages", messages);
+                
+                _logger.LogInformation($"已发送 {messages.Count} 条历史消息给用户 {userId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"获取私聊历史消息时出错: {ex.Message}");
+                await Clients.Caller.SendAsync("Error", "获取历史消息失败: " + ex.Message);
+            }
+        }
+        
         // 断开连接处理
         public override async Task OnDisconnectedAsync(Exception exception)
         {

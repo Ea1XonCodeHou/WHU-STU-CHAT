@@ -7,6 +7,9 @@ namespace backend.Services
     public class GroupService:IGroupService
     {
         private readonly string _connectionString;
+        // 全局在线用户列表
+        private static readonly ConcurrentDictionary<int, bool> _globalOnlineUsers = new ConcurrentDictionary<int, bool>();
+        
         public GroupService(IConfiguration configuration) 
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -560,6 +563,28 @@ namespace backend.Services
             {
                 throw new Exception($"搜索群组失败: {ex.Message}");
             }
+        }
+
+        public bool IsUserOnline(int userId)
+        {
+            return _globalOnlineUsers.ContainsKey(userId) && _globalOnlineUsers[userId];
+        }
+
+        public void SetUserOnline(int userId, bool isOnline)
+        {
+            if (isOnline)
+            {
+                _globalOnlineUsers.AddOrUpdate(userId, true, (_, __) => true);
+            }
+            else
+            {
+                _globalOnlineUsers.TryRemove(userId, out _);
+            }
+        }
+        
+        public List<int> GetOnlineUsers()
+        {
+            return _globalOnlineUsers.Where(u => u.Value).Select(u => u.Key).ToList();
         }
     }
 }

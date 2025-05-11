@@ -99,5 +99,20 @@ namespace backend.Services
         /// <param name="userId2">用户2的ID</param>
         /// <returns>私聊群组列表</returns>
         Task<List<GroupDTO>> GetPrivateGroupBetweenUsersAsync(int userId1, int userId2);
+        
+        /// <summary>
+        /// 获取用户在线状态
+        /// </summary>
+        bool IsUserOnline(int userId);
+
+        /// <summary>
+        /// 设置用户在线状态
+        /// </summary>
+        void SetUserOnline(int userId, bool isOnline);
+        
+        /// <summary>
+        /// 获取在线用户列表
+        /// </summary>
+        List<int> GetOnlineUsers();
     }
 }

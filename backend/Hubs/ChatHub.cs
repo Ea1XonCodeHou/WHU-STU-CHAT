@@ -51,6 +51,9 @@ namespace backend.Hubs
                 
                 _logger.LogInformation($"用户 {username}({userId}) 已加入SignalR组 Room_{roomId}");
 
+                // 设置用户在线状态
+                _chatService.SetUserOnline(userId, true);
+                
                 // 将用户加入到在线用户列表
                 var userDto = new UserDTO
                 {
@@ -193,6 +196,69 @@ namespace backend.Hubs
             await SendMessageWithTypeToRoom(emojiCode, "emoji");
         }
 
+        // 用户主动离开聊天室
+        public async Task LeaveRoom(int roomId)
+        {
+            try
+            {
+                if (!_connections.TryGetValue(Context.ConnectionId, out var userConnection))
+                {
+                    await Clients.Caller.SendAsync("Error", "你还未加入聊天室");
+                    return;
+                }
+
+                if (userConnection.RoomId != roomId)
+                {
+                    await Clients.Caller.SendAsync("Error", "你不在该聊天室中");
+                    return;
+                }
+
+                _logger.LogInformation($"用户 {userConnection.Username}({userConnection.UserId}) 主动离开聊天室 {roomId}");
+
+                // 从SignalR组中移除
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Room_{roomId}");
+                _logger.LogInformation($"用户 {userConnection.Username}({userConnection.UserId}) 已从SignalR组 Room_{roomId} 移除");
+
+                // 从在线用户列表中移除用户
+                _chatService.RemoveUserFromRoom(roomId, userConnection.UserId);
+                _logger.LogInformation($"用户 {userConnection.Username}({userConnection.UserId}) 已从聊天室 {roomId} 的在线用户列表移除");
+
+                // 发送系统消息，通知其他用户已离开
+                var leaveMessage = new MessageDTO
+                {
+                    MessageId = 0,
+                    RoomId = roomId,
+                    SenderId = 0,
+                    SenderName = "系统",
+                    Content = $"{userConnection.Username} 离开了聊天室",
+                    SendTime = DateTime.Now,
+                    MessageType = "system",
+                    IsRead = true
+                };
+
+                await Clients.Group($"Room_{roomId}").SendAsync("ReceiveMessage", leaveMessage);
+                _logger.LogInformation($"已向聊天室 {roomId} 发送用户 {userConnection.Username}({userConnection.UserId}) 离开的系统消息");
+
+                // 更新在线用户列表
+                var onlineUsers = await _chatService.GetRoomOnlineUsersAsync(roomId);
+                await Clients.Group($"Room_{roomId}").SendAsync("UpdateOnlineUsers", onlineUsers);
+                _logger.LogInformation($"已向聊天室 {roomId} 发送更新后的在线用户列表，共有 {onlineUsers.Count} 人");
+
+                // 从连接字典中移除
+                _connections.TryRemove(Context.ConnectionId, out _);
+
+                // 设置用户为离线状态
+                _chatService.SetUserOnline(userConnection.UserId, false);
+                
+                _logger.LogInformation($"用户 {userConnection.Username}({userConnection.UserId}) 离开聊天室 {roomId} 的全部流程已完成");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"用户离开聊天室时发生错误: {ex.Message}");
+                await Clients.Caller.SendAsync("Error", "离开聊天室失败: " + ex.Message);
+            }
+        }
+
         // 断开连接处理
         public override async Task OnDisconnectedAsync(Exception exception)
         {
@@ -229,6 +295,12 @@ namespace backend.Hubs
                     var onlineUsers = await _chatService.GetRoomOnlineUsersAsync(userConnection.RoomId);
                     await Clients.Group($"Room_{userConnection.RoomId}").SendAsync("UpdateOnlineUsers", onlineUsers);
                     _logger.LogInformation($"已向聊天室 {userConnection.RoomId} 发送更新后的在线用户列表，共有 {onlineUsers.Count} 人");
+                    
+                    // 从连接字典中移除
+                    _connections.TryRemove(Context.ConnectionId, out _);
+
+                    // 设置用户为离线状态
+                    _chatService.SetUserOnline(userConnection.UserId, false);
                     
                     _logger.LogInformation($"用户 {userConnection.Username}({userConnection.UserId}) 离开聊天室 {userConnection.RoomId} 的全部流程已完成");
                 }

@@ -52,6 +52,7 @@ namespace backend.DTOs
     {
         public string TargetUsername { get; set; }
         public string RequesterUsername { get; set; }
+        public string Message { get; set; } = "我想加你为好友";
     }
 
     public class AcceptFriendDTO

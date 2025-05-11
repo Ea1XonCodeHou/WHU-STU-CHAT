@@ -98,5 +98,20 @@ namespace backend.Services
         /// <param name="message">消息对象</param>
         /// <returns>消息ID</returns>
         Task<int> SavePrivateMessageAsync(MessageDTO message);
+
+        /// <summary>
+        /// 获取用户在线状态
+        /// </summary>
+        bool IsUserOnline(int userId);
+
+        /// <summary>
+        /// 设置用户在线状态
+        /// </summary>
+        void SetUserOnline(int userId, bool isOnline);
+        
+        /// <summary>
+        /// 获取在线用户列表
+        /// </summary>
+        List<int> GetOnlineUsers();
     }
 } 

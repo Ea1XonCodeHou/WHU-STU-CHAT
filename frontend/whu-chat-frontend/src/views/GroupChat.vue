@@ -26,37 +26,67 @@
     <main class="chat-main">
       <!-- 群组列表侧边栏 -->
       <div class="sidebar">
-        <div class="sidebar-header">
-          <h2>我的群组</h2>
-          <div class="search-box">
-            <input 
-              type="text" 
-              v-model="groupSearch" 
-              placeholder="搜索群组..." 
-              @input="handleGroupSearch"
-            >
-          </div>
-        </div>
-        <div class="groups-list">
-          <div 
-            v-for="group in groups" 
-            :key="group.groupId" 
-            class="group-item"
-            :class="{ 'active': currentGroup && currentGroup.groupId === group.groupId }"
-            @click="selectGroup(group)"
-          >
-            <div class="group-avatar">
-              <span class="default-avatar">{{ group?.groupName?.charAt(0)?.toUpperCase() || '?' }}</span>
+        <div class="sidebar-content">
+          <!-- 群组列表部分 -->
+          <div class="sidebar-section groups-section">
+            <div class="sidebar-header">
+              <h2>我的群组</h2>
+              <div class="search-box">
+                <input 
+                  type="text" 
+                  v-model="groupSearch" 
+                  placeholder="搜索群组..." 
+                  @input="handleGroupSearch"
+                >
+              </div>
             </div>
-            <div class="group-details">
-              <div class="group-name">{{ group.groupName }}</div>
-              <div class="group-members">{{ group.memberCount }} 名成员</div>
+            <div class="groups-list">
+              <div 
+                v-for="group in groups" 
+                :key="group.groupId" 
+                class="group-item"
+                :class="{ 'active': currentGroup && currentGroup.groupId === group.groupId }"
+                @click="selectGroup(group)"
+              >
+                <div class="group-avatar">
+                  <span class="default-avatar">{{ group?.groupName?.charAt(0)?.toUpperCase() || '?' }}</span>
+                </div>
+                <div class="group-details">
+                  <div class="group-name">{{ group.groupName }}</div>
+                  <div class="group-members">{{ group.memberCount }} 名成员</div>
+                </div>
+              </div>
+              
+              <div v-if="groups.length === 0" class="empty-groups">
+                <i class="groups-icon"></i>
+                <p>暂无群组</p>
+              </div>
             </div>
           </div>
           
-          <div v-if="groups.length === 0" class="empty-groups">
-            <i class="groups-icon"></i>
-            <p>暂无群组</p>
+          <!-- AI总结部分 -->
+          <div class="sidebar-section summary-section" v-if="currentGroup">
+            <div class="sidebar-header">
+              <h2>AI实时总结</h2>
+              <div class="summary-status" :class="{ 'active': autoSummaryActive }">
+                {{ summarizing ? '正在总结...' : autoSummaryActive ? '自动总结已开启' : '自动总结已暂停' }}
+              </div>
+            </div>
+            <div class="summary-content-container">
+              <div v-if="summaryError" class="summary-error">
+                <p>{{ summaryError }}</p>
+              </div>
+              <div v-else-if="summarizing && !chatSummary" class="summary-loading">
+                <div class="loading-spinner"></div>
+                <p>AI正在分析聊天记录...</p>
+              </div>
+              <div v-else-if="!chatSummary" class="summary-empty">
+                <i class="summary-icon"></i>
+                <p>暂无总结内容</p>
+                <p class="summary-hint">将自动分析最近的聊天内容</p>
+              </div>
+              <div v-else class="auto-summary-content" v-html="formattedSummary"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -94,7 +124,7 @@
             <!-- 用户消息 -->
             <div v-else class="user-message" :class="{'self-message': message.senderId === userId}">
               <!-- 头像 -->
-              <div class="message-avatar" v-if="message.senderId !== userId">
+              <div class="message-avatar" v-if="message.senderId !== userId" @click.stop="showUserCard(message.senderId)">
                 <div class="avatar default-avatar">
                   {{ message?.senderName?.charAt(0)?.toUpperCase() || '?' }}
                 </div>
@@ -103,7 +133,7 @@
               <!-- 消息内容 -->
               <div class="message-content">
                 <div class="message-info">
-                  <span class="message-sender" v-if="message.senderId !== userId">{{ message.senderName }}</span>
+                  <span class="message-sender" v-if="message.senderId !== userId" @click.stop="showUserCard(message.senderId)">{{ message.senderName }}</span>
                   <span class="message-time">{{ formatTime(message.sendTime) }}</span>
                 </div>
                 
@@ -193,33 +223,21 @@
       </div>
     </div>
 
+    <!-- 用户名片弹窗 -->
+    <user-card 
+      v-if="showingUserCard" 
+      :visible="showingUserCard"
+      :user-id="selectedUserId"
+      :is-friend="isUserFriend(selectedUserId)"
+      @close="closeUserCard"
+      @friend-request-sent="handleFriendRequestSent"
+    />
+
     <!-- 提示信息 -->
     <div v-if="notification.show" class="notification" :class="notification.type">
       {{ notification.message }}
     </div>
     
-    <!-- 聊天总结弹窗 -->
-    <div v-if="showSummaryModal" class="summary-modal-overlay" @click="closeSummaryModal">
-      <div class="summary-modal-content" @click.stop>
-        <div class="summary-modal-header">
-          <h3>聊天总结</h3>
-          <button class="close-summary" @click.stop="closeSummaryModal">×</button>
-        </div>
-        <div class="summary-modal-body">
-          <div v-if="summarizing" class="summary-loading">
-            <div class="loading-spinner"></div>
-            <p>AI正在分析聊天记录，请稍候...</p>
-          </div>
-          <div v-else-if="summaryError" class="summary-error">
-            <p>{{ summaryError }}</p>
-          </div>
-          <div v-else class="summary-content">
-            <div v-html="formattedSummary"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- 创建群组模态框 -->
     <div class="modal" v-if="showCreateGroupModal">
       <div class="modal-content">
@@ -297,9 +315,13 @@ import { ref, onMounted, onBeforeUnmount, computed, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 import * as signalR from '@microsoft/signalr';
 import axios from 'axios';
+import UserCard from '@/components/UserCard.vue';
 
 export default {
   name: 'GroupChat',
+  components: {
+    UserCard
+  },
   setup() {
     const route = useRoute();
     const router = useRouter();
@@ -353,7 +375,14 @@ export default {
     const summarizing = ref(false);
     const chatSummary = ref('');
     const summaryError = ref('');
-    const showSummaryModal = ref(false);
+    
+    // 自动总结相关
+    const autoSummaryActive = ref(true);
+    const lastMessageTime = ref(Date.now());
+    const autoSummaryInterval = ref(null);
+    const summaryDebounceTimeout = ref(null);
+    const lastSummaryTime = ref(0);
+    const messageCountSinceLastSummary = ref(0);
 
     // 群组管理相关
     const showCreateGroupModal = ref(false);
@@ -365,6 +394,55 @@ export default {
     });
     const newMemberId = ref(null);
     const removeMemberId = ref(null);
+
+    // 用户名片相关
+    const showingUserCard = ref(false);
+    const selectedUserId = ref(null);
+    const friendsList = ref([]);
+
+    // 加载好友列表
+    const loadFriendsList = async () => {
+      try {
+        const response = await axios.get(`${window.apiBaseUrl}/api/group/user/${userId.value}/private`);
+        if (response.data && response.data.code === 200) {
+          friendsList.value = response.data.data.map(group => {
+            // 查找对方用户ID（好友ID）
+            const otherMember = group.members?.find(m => m.id !== userId.value);
+            return otherMember ? otherMember.id : null;
+          }).filter(id => id !== null);
+        }
+      } catch (error) {
+        console.error('获取好友列表失败:', error);
+      }
+    };
+    
+    // 判断用户是否是好友
+    const isUserFriend = (userId) => {
+      return friendsList.value.includes(userId);
+    };
+    
+    // 显示用户名片
+    const showUserCard = (userId) => {
+      // 不要显示自己的名片
+      if (userId === parseInt(localStorage.getItem('userId'))) {
+        return;
+      }
+      
+      selectedUserId.value = userId;
+      showingUserCard.value = true;
+    };
+    
+    // 关闭用户名片
+    const closeUserCard = () => {
+      showingUserCard.value = false;
+      selectedUserId.value = null;
+    };
+    
+    // 处理好友请求发送后的回调
+    const handleFriendRequestSent = () => {
+      closeUserCard();
+      showNotification('好友请求已发送', 'success');
+    };
 
     // 创建SignalR连接
     const createConnection = () => {
@@ -456,6 +534,9 @@ export default {
         if (message.senderId !== userId.value && message.messageType !== 'system') {
           showNotification(`${formattedMessage.senderName}: ${message.content}`, 'info');
         }
+        
+        // 记录消息活动，用于自动总结功能
+        recordMessageActivity();
       });
       
       connection.value.on('ReceiveHistoryMessages', async (historyMessages) => {
@@ -538,6 +619,9 @@ export default {
       currentGroup.value = group;
       messages.value = [];
       loadingHistory.value = true;
+      chatSummary.value = '';
+      summaryError.value = '';
+      messageCountSinceLastSummary.value = 0;
       
       try {
         // 加入群组
@@ -569,6 +653,13 @@ export default {
             };
           }).sort((a, b) => new Date(a.sendTime) - new Date(b.sendTime));
           nextTick(() => scrollToBottom());
+          
+          // 初始请求一次总结
+          if (messages.value.length >= 5) {
+            setTimeout(() => {
+              requestChatSummary(true);
+            }, 1000);
+          }
         } else {
           throw new Error(response.data?.msg || '获取历史消息失败');
         }
@@ -815,10 +906,27 @@ export default {
     
     // 退出聊天室
     const leaveRoom = () => {
-      if (connection.value) {
-        connection.value.stop();
+      if (connection.value && currentGroup.value) {
+        // 先通知服务器用户离开群组
+        try {
+          // 执行离开群组的逻辑
+          connection.value.invoke("LeaveGroup", currentGroup.value.groupId)
+            .catch(err => console.error("离开群组失败:", err))
+            .finally(() => {
+              // 停止连接
+              connection.value.stop();
+              
+              // 导航到主页
+              router.push('/home');
+            });
+        } catch (error) {
+          console.error("离开群组时出错:", error);
+          connection.value.stop();
+          router.push('/home');
+        }
+      } else {
+        router.push('/home');
       }
-      router.push('/home');
     };
     
     // 显示通知
@@ -901,16 +1009,27 @@ export default {
     };
     
     // 请求聊天总结
-    const requestChatSummary = async () => {
+    const requestChatSummary = async (silent = false) => {
       if (!isConnected.value || !currentGroup.value) {
-        showNotification('未连接到服务器或未选择群组', 'error');
+        if (!silent) {
+          showNotification('未连接到服务器或未选择群组', 'error');
+        }
+        return;
+      }
+      
+      // 检查自上次总结以来的时间
+      const now = Date.now();
+      if (now - lastSummaryTime.value < 10000 && silent) { // 10秒内不重复自动总结
+        return;
+      }
+      
+      // 如果是静默模式（自动总结）且消息计数器少于3条，则不总结
+      if (silent && messageCountSinceLastSummary.value < 3) {
         return;
       }
       
       summarizing.value = true;
       summaryError.value = '';
-      chatSummary.value = '';
-      showSummaryModal.value = true;
       
       try {
         const response = await axios.post(`${window.apiBaseUrl}/api/ai/summarize`, {
@@ -922,15 +1041,61 @@ export default {
         
         if (response.data && response.data.success) {
           chatSummary.value = response.data.message;
+          lastSummaryTime.value = now;
+          messageCountSinceLastSummary.value = 0;
         } else {
           summaryError.value = response.data?.error || '生成总结失败，请稍后重试';
+          if (!silent) {
+            showNotification('总结生成失败: ' + summaryError.value, 'error');
+          }
         }
       } catch (error) {
         console.error('获取聊天总结失败:', error);
         summaryError.value = '获取聊天总结失败: ' + (error.response?.data?.error || error.message);
+        if (!silent) {
+          showNotification('总结生成失败: ' + summaryError.value, 'error');
+        }
       } finally {
         summarizing.value = false;
       }
+    };
+    
+    // 自动执行聊天总结
+    const setupAutoSummary = () => {
+      // 每30秒检查是否需要更新总结
+      autoSummaryInterval.value = setInterval(() => {
+        if (!autoSummaryActive.value || !currentGroup.value) return;
+        
+        const inactiveThreshold = 60000; // 1分钟无活动则不自动总结
+        const now = Date.now();
+        
+        if (now - lastMessageTime.value > inactiveThreshold) {
+          // 聊天不活跃，不进行总结
+          console.log('聊天不活跃，跳过自动总结');
+          return;
+        }
+        
+        // 执行自动总结
+        requestChatSummary(true);
+      }, 30000); // 30秒
+    };
+    
+    // 在收到新消息时记录时间和计数
+    const recordMessageActivity = () => {
+      lastMessageTime.value = Date.now();
+      messageCountSinceLastSummary.value++;
+      
+      // 防抖处理，当快速收到多条消息时，等待一定时间后再总结
+      if (summaryDebounceTimeout.value) {
+        clearTimeout(summaryDebounceTimeout.value);
+      }
+      
+      summaryDebounceTimeout.value = setTimeout(() => {
+        // 如果收到至少5条新消息，自动触发总结
+        if (messageCountSinceLastSummary.value >= 5) {
+          requestChatSummary(true);
+        }
+      }, 5000); // 5秒后检查是否需要总结
     };
     
     // 关闭总结弹窗
@@ -942,13 +1107,42 @@ export default {
     const formattedSummary = computed(() => {
       if (!chatSummary.value) return '';
       
-      let formatted = chatSummary.value.replace(/\n/g, '<br>');
-      formatted = formatted.replace(/^#+\s+/gm, '');
-      formatted = formatted.replace(/\s*#+\s*/gm, '');
-      formatted = formatted.replace(/^聊天记录总结.*$/m, '<h2>聊天记录总结</h2>');
-      formatted = formatted.replace(/^(主要话题|重要观点和信息|提出的问题|达成的共识或结论|补充观察)$/gm, '<h3>$1</h3>');
-      formatted = formatted.replace(/^- (.*?)$/gm, '<li>$1</li>');
+      // 在处理其他格式之前先处理标题和小标题
+      let formatted = chatSummary.value;
       
+      // 移除可能出现的标记前缀
+      formatted = formatted.replace(/H3:/g, '');
+      formatted = formatted.replace(/LI:/g, '');
+      formatted = formatted.replace(/TITLE/g, '聊天记录总结');
+      
+      // 标识聊天记录总结标题
+      formatted = formatted.replace(/^聊天记录总结.*$/m, '###TITLE###');
+      
+      // 标识小标题（主要话题、重要观点和信息等）
+      formatted = formatted.replace(/^主要话题$/m, '###H3:主要话题###');
+      formatted = formatted.replace(/^重要观点和信息$/m, '###H3:重要观点和信息###');
+      formatted = formatted.replace(/^提出的问题$/m, '###H3:提出的问题###');
+      formatted = formatted.replace(/^达成的共识或结论$/m, '###H3:达成的共识或结论###');
+      formatted = formatted.replace(/^补充观察$/m, '###H3:补充观察###');
+      
+      // 标识列表项
+      formatted = formatted.replace(/^- (.*)$/gm, '###LI:$1###');
+      
+      // 现在将换行符转换为<br>
+      formatted = formatted.replace(/\n/g, '<br>');
+      
+      // 删除多余的标记符号如 #，###, #### 等（除了我们自己添加的###标记）
+      formatted = formatted.replace(/(?<!###)#+\s+/g, '');
+      formatted = formatted.replace(/\s*(?<!###)#+(?!###)/g, '');
+      
+      // 转换我们之前标记的内容
+      formatted = formatted.replace(/###TITLE###/, '<h2>聊天记录总结</h2>');
+      formatted = formatted.replace(/###H3:(.*?)###/g, '<h3>$1</h3>');
+      
+      // 将标记的列表项转换为HTML列表项
+      formatted = formatted.replace(/###LI:(.*?)###/g, '<li>$1</li>');
+      
+      // 包装列表项到无序列表中
       if (formatted.includes('<li>')) {
         let parts = formatted.split('<h3>');
         for (let i = 1; i < parts.length; i++) {
@@ -956,6 +1150,7 @@ export default {
           if (headingEnd !== -1) {
             const afterHeading = parts[i].substring(headingEnd + 5);
             if (afterHeading.includes('<li>')) {
+              // 使用非贪婪匹配确保正确地将所有列表项包装在ul标签中
               const withList = parts[i].substring(0, headingEnd + 5) + 
                               '<ul>' + 
                               afterHeading.replace(/(<li>.*?<\/li>)+/g, match => match) + 
@@ -967,9 +1162,12 @@ export default {
         formatted = parts.join('<h3>');
       }
       
+      // 将Markdown风格的粗体和斜体转换为HTML标签
       formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-      formatted = formatted.replace(/注：(.*?)$/gm, '<div class="summary-note"><strong>注：</strong>$1</div>');
+      
+      // 美化注释部分
+      formatted = formatted.replace(/注：(.*?)(?:<br>|$)/g, '<div class="summary-note"><strong>注：</strong>$1</div>');
       
       return formatted;
     });
@@ -1037,6 +1235,12 @@ export default {
           showEmojiPanel.value = false;
         }
       });
+      
+      // 设置自动总结
+      setupAutoSummary();
+      
+      // 加载好友列表
+      loadFriendsList();
     });
     
     // 组件卸载前
@@ -1053,6 +1257,15 @@ export default {
       
       if (notification.value.timeout) {
         clearTimeout(notification.value.timeout);
+      }
+      
+      // 清除自动总结相关的定时器
+      if (autoSummaryInterval.value) {
+        clearInterval(autoSummaryInterval.value);
+      }
+      
+      if (summaryDebounceTimeout.value) {
+        clearTimeout(summaryDebounceTimeout.value);
       }
     });
     
@@ -1105,8 +1318,7 @@ export default {
       summarizing,
       chatSummary,
       summaryError,
-      showSummaryModal,
-      formattedSummary,
+      autoSummaryActive,
       
       // 群组管理相关
       showCreateGroupModal,
@@ -1115,6 +1327,14 @@ export default {
       newGroup,
       newMemberId,
       removeMemberId,
+      
+      // 用户名片相关
+      showingUserCard,
+      selectedUserId,
+      showUserCard,
+      closeUserCard,
+      isUserFriend,
+      handleFriendRequestSent,
       
       // 方法
       selectGroup,
@@ -1137,8 +1357,8 @@ export default {
       getMessageClass,
       shouldShowDateSeparator,
       requestChatSummary,
-      closeSummaryModal,
-      handleGroupSearch
+      handleGroupSearch,
+      formattedSummary
     };
   }
 };
@@ -1253,29 +1473,70 @@ export default {
   border-right: 1px solid #eee;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: flex 0.3s ease;
+  position: relative;
+}
+
+.groups-section {
+  flex: 1;
+  min-height: 200px;
+  max-height: 50%;
+  border-bottom: 1px solid #eee;
+  overflow: hidden;
+}
+
+.summary-section {
+  flex: 1;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .sidebar-header {
   padding: 15px;
   border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-shrink: 0;
+  background-color: #fafafa;
+  z-index: 2;
 }
 
 .sidebar-header h2 {
   margin: 0 0 10px 0;
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 600;
   color: #333;
 }
 
 .search-box {
-  margin-top: 10px;
+  width: 100%;
+  margin-top: 8px;
 }
 
 .search-box input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 6px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
   transition: all 0.3s ease;
 }
 
@@ -1285,20 +1546,14 @@ export default {
   outline: none;
 }
 
-.groups-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 15px;
-}
-
 .group-item {
   display: flex;
   align-items: center;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 8px;
+  padding: 12px 15px;
+  margin: 0;
   cursor: pointer;
   transition: background-color 0.2s;
+  border-bottom: 1px solid #eee;
 }
 
 .group-item:hover {
@@ -1321,15 +1576,20 @@ export default {
   color: #4776E6;
   font-weight: bold;
   font-size: 16px;
+  flex-shrink: 0;
 }
 
 .group-details {
   flex: 1;
+  min-width: 0;
 }
 
 .group-name {
   font-weight: 500;
   margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .group-members {
@@ -1344,207 +1604,13 @@ export default {
   justify-content: center;
   height: 200px;
   color: #999;
+  padding: 20px 0;
 }
 
 .empty-groups i {
   font-size: 40px;
   margin-bottom: 10px;
-}
-
-/* 消息容器样式 */
-.messages-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  background-color: #f5f7fb;
-}
-
-.messages-wrapper {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  color: #999;
-}
-
-.empty-state i {
-  font-size: 40px;
-  margin-bottom: 10px;
-}
-
-/* 消息样式 */
-.message-item {
-  margin-bottom: 20px;
-}
-
-.date-separator {
-  text-align: center;
-  margin: 20px 0;
-  position: relative;
-}
-
-.date-separator span {
-  background-color: #f0f0f0;
-  padding: 5px 15px;
-  border-radius: 15px;
-  font-size: 12px;
-  color: #666;
-}
-
-.system-message {
-  text-align: center;
-  margin: 10px 0;
-}
-
-.system-message-content {
-  display: inline-flex;
-  align-items: center;
-  background-color: #f0f0f0;
-  padding: 8px 15px;
-  border-radius: 15px;
-  font-size: 13px;
-  color: #666;
-}
-
-.system-message-content i {
-  margin-right: 8px;
-  color: #8E54E9;
-}
-
-.user-message {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 15px;
-}
-
-.message-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 10px;
-  color: #4776E6;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.message-content {
-  flex: 1;
-  max-width: 70%;
-}
-
-.message-info {
-  display: flex;
-  align-items: center;
-  margin-bottom: 5px;
-}
-
-.message-sender {
-  font-weight: 500;
-  margin-right: 8px;
-}
-
-.message-time {
-  font-size: 12px;
-  color: #999;
-}
-
-.message-text {
-  background-color: white;
-  padding: 10px 15px;
-  border-radius: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  word-break: break-word;
-}
-
-.message-image {
-  background-color: white;
-  padding: 10px;
-  border-radius: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-.message-image img {
-  max-width: 100%;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.image-info {
-  font-size: 12px;
-  color: #666;
-  margin-top: 5px;
-}
-
-.message-file {
-  background-color: white;
-  padding: 10px 15px;
-  border-radius: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.file-icon {
-  width: 40px;
-  height: 40px;
-  background-color: #f0f0f0;
-  border-radius: 8px;
-  margin-right: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #4776E6;
-}
-
-.file-info {
-  flex: 1;
-}
-
-.file-name {
-  font-weight: 500;
-  margin-bottom: 2px;
-}
-
-.file-size {
-  font-size: 12px;
-  color: #666;
-}
-
-.download-icon {
-  color: #4776E6;
-  margin-left: 10px;
-}
-
-.message-emoji {
-  font-size: 24px;
-}
-
-.self-message {
-  flex-direction: row-reverse;
-}
-
-.self-message .message-content {
-  margin-right: 10px;
-}
-
-.self-message .message-text {
-  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
-  color: white;
-}
-
-.self-message .message-time {
-  text-align: right;
+  opacity: 0.5;
 }
 
 /* 底部输入区样式 */
@@ -1842,118 +1908,6 @@ export default {
   }
 }
 
-/* 总结弹窗样式 */
-.summary-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.summary-modal-content {
-  background-color: white;
-  border-radius: 10px;
-  width: 500px;
-  max-width: 90%;
-  max-height: 80vh;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.summary-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.summary-modal-header h3 {
-  font-size: 18px;
-  color: #333;
-}
-
-.close-summary {
-  background: none;
-  border: none;
-  color: #666;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.summary-modal-body {
-  padding: 20px;
-  max-height: calc(80vh - 70px);
-  overflow-y: auto;
-}
-
-.summary-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 40px 0;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #4776E6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 15px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.summary-error {
-  color: #FF3B30;
-  text-align: center;
-  padding: 20px;
-}
-
-.summary-content {
-  line-height: 1.6;
-}
-
-.summary-content h2 {
-  font-size: 20px;
-  color: #333;
-  margin-bottom: 15px;
-}
-
-.summary-content h3 {
-  font-size: 16px;
-  color: #4776E6;
-  margin: 15px 0 10px;
-}
-
-.summary-content ul {
-  margin: 10px 0;
-  padding-left: 20px;
-}
-
-.summary-content li {
-  margin-bottom: 5px;
-}
-
-.summary-note {
-  margin-top: 15px;
-  padding: 10px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
 /* 模态窗口样式 */
 .modal {
   position: fixed;
@@ -2124,5 +2078,224 @@ export default {
 
 .summary-icon {
   margin-right: 5px;
+}
+
+/* 群组相关样式 */
+.empty-groups i {
+  font-size: 40px;
+  margin-bottom: 10px;
+  opacity: 0.5;
+}
+
+/* 总结部分样式 */
+.summary-status {
+  font-size: 12px;
+  color: #999;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background-color: #f5f5f5;
+}
+
+.summary-status.active {
+  color: #52c41a;
+  background-color: #f6ffed;
+}
+
+.summary-section .sidebar-header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-section .sidebar-header h2 {
+  margin: 0;
+}
+
+.groups-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd #f5f5f5;
+}
+
+.groups-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.groups-list::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.groups-list::-webkit-scrollbar-thumb {
+  background-color: #ddd;
+  border-radius: 3px;
+}
+
+.summary-content-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd #f5f5f5;
+}
+
+.summary-content-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.summary-content-container::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.summary-content-container::-webkit-scrollbar-thumb {
+  background-color: #ddd;
+  border-radius: 3px;
+}
+
+.auto-summary-content {
+  color: #333;
+  line-height: 1.6;
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+.auto-summary-content h2 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #4776E6;
+  margin-bottom: 15px;
+  text-align: center;
+  font-weight: 600;
+  border-bottom: 2px solid #4776E6;
+  padding-bottom: 10px;
+  position: relative;
+}
+
+.auto-summary-content h3 {
+  font-size: 16px;
+  color: #fff;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(71, 118, 230, 0.2);
+  position: relative;
+  padding-left: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.auto-summary-content ul {
+  margin: 0 0 15px 0;
+  padding: 0;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border: 1px solid #eee;
+}
+
+.auto-summary-content li {
+  margin: 0;
+  padding: 8px 15px 8px 30px;
+  position: relative;
+  list-style-type: none;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+}
+
+.auto-summary-content li:last-child {
+  border-bottom: none;
+}
+
+.auto-summary-content li:hover {
+  background-color: #f0f7ff;
+}
+
+.auto-summary-content li::before {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: #4776E6;
+  left: 15px;
+  top: 14px;
+  border-radius: 50%;
+}
+
+.summary-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 100px;
+  padding: 20px 0;
+}
+
+.summary-loading .loading-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4776E6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.summary-loading p {
+  color: #999;
+  font-size: 14px;
+}
+
+.summary-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 150px;
+  color: #999;
+  padding: 20px 0;
+}
+
+.summary-empty i {
+  font-size: 40px;
+  margin-bottom: 15px;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23bbb'%3E%3Cpath d='M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-2 17H8v-2h4v2zm6-4H6v-2h12v2zm0-4H6v-2h12v2z'/%3E%3C/svg%3E");
+  width: 48px;
+  height: 48px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.summary-empty p {
+  margin: 5px 0;
+  text-align: center;
+}
+
+.summary-hint {
+  font-size: 12px;
+  color: #bbb;
+  margin-top: 5px;
+}
+
+.summary-error {
+  background-color: #fff5f5;
+  border-radius: 8px;
+  padding: 15px;
+  color: #cf1322;
+  font-size: 14px;
+  margin: 10px 0;
 }
 </style> 

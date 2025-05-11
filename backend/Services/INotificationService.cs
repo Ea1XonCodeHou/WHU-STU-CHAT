@@ -6,7 +6,7 @@ namespace backend.Services
 {
     public interface INotificationService
     {
-        Task CreateNotificationAsync(int userId, string content);
+        Task CreateNotificationAsync(int userId, string content, string type = "system");
         Task<List<NotificationDTO>> GetNotificationsByUserIdAsync(int userId);
         Task<NotificationDTO> GetNotificationByIdAsync(int notificationId);
         Task MarkAsHandled(int notificationId);

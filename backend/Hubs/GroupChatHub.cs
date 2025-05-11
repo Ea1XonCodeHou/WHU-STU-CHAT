@@ -49,6 +49,9 @@ namespace backend.Hubs
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"Group_{groupId}");
                 _logger.LogInformation($"用户 {username}({userId}) 已加入 SignalR 组 Group_{groupId}");
 
+                // 设置用户全局在线状态
+                _groupService.SetUserOnline(userId, true);
+
                 // 将用户添加到群组
                 var success = await _groupService.AddUserToGroupAsync(groupId, userId);
                 if (!success)
@@ -160,6 +163,9 @@ namespace backend.Hubs
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Group_{groupId}");
                 _logger.LogInformation($"用户 {userConnection.Username}({userConnection.UserId}) 已从 SignalR 组 Group_{groupId} 移除");
 
+                // 设置用户全局离线状态（检查是否还有其他连接）
+                _groupService.SetUserOnline(userConnection.UserId, false);
+
                 // 从群组中移除用户
                 await _groupService.RemoveUserFromGroupAsync(groupId, userConnection.UserId);
 
@@ -200,8 +206,11 @@ namespace backend.Hubs
                     await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Group_{userConnection.RoomId}");
                     _logger.LogInformation($"用户 {userConnection.Username}({userConnection.UserId}) 已从 SignalR 组 Group_{userConnection.RoomId} 移除");
 
+                    // 设置用户全局离线状态（检查是否还有其他连接）
+                    _groupService.SetUserOnline(userConnection.UserId, false);
+
                     // 从群组中移除用户
-                    //await _groupService.RemoveUserFromGroupAsync(userConnection.RoomId, userConnection.UserId);
+                    await _groupService.RemoveUserFromGroupAsync(userConnection.RoomId, userConnection.UserId);
 
                     // 通知群组其他成员用户已离开
                     var leaveMessage = new GroupMessageDTO

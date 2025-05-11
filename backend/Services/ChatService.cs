@@ -9,11 +9,12 @@ using System.Collections.Concurrent;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
+using System.Linq;
 
 namespace backend.Services
 {
     /// <summary>
-    /// �������ʵ��
+    /// 聊天服务实现
     /// </summary>
     public class ChatService : IChatService
     {
@@ -22,16 +23,18 @@ namespace backend.Services
         private readonly string _tempFileDirectory;
         private static readonly ConcurrentDictionary<int, ConcurrentDictionary<int, UserDTO>> _onlineUsers = 
             new ConcurrentDictionary<int, ConcurrentDictionary<int, UserDTO>>();
+        // 全局在线用户列表
+        private static readonly ConcurrentDictionary<int, bool> _globalOnlineUsers = new ConcurrentDictionary<int, bool>();
 
         public ChatService(IConfiguration configuration, ILogger<ChatService> logger)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
             _logger = logger;
             
-            // ������ʱ�ļ�Ŀ¼
+            // 临时文件目录
             _tempFileDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp", "uploads");
             
-            // ȷ��Ŀ¼����
+            // 确保目录存在
             if (!Directory.Exists(_tempFileDirectory))
             {
                 Directory.CreateDirectory(_tempFileDirectory);
@@ -39,7 +42,7 @@ namespace backend.Services
         }
 
         /// <summary>
-        /// ��ȡ����������
+        /// 获取房间名称
         /// </summary>
         public async Task<string> GetRoomNameAsync(int roomId)
         {
@@ -60,13 +63,13 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"��ȡ����������ʧ��: {ex.Message}");
+                _logger.LogError(ex, $"获取房间名称失败: {ex.Message}");
                 return null;
             }
         }
 
         /// <summary>
-        /// ��ȡ��������ʷ��Ϣ
+        /// 获取房间消息
         /// </summary>
         public async Task<List<MessageDTO>> GetRoomMessagesAsync(int roomId, int count)
         {
@@ -78,7 +81,7 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // ʹ���޸ĺ��SQL��ѯ������MessageType��FileUrl�ֶ�
+                    // 使用自定义的SQL查询，包括MessageType和FileUrl字段
                     var command = new MySqlCommand(
                         @"SELECT m.MessageId, m.SenderId, u.Username AS SenderName, m.Content, 
                           m.CreateTime, m.RoomId, m.MessageType, m.FileUrl
@@ -106,7 +109,7 @@ namespace backend.Services
                                 fileUrl = reader.GetString(reader.GetOrdinal("FileUrl"));
                             }
                             
-                            // �����ļ�������Ϣ������JSON���ݻ�ȡ�ļ����ʹ�С��Ϣ
+                            // 解析文件信息并提取文件名和文件大小信息
                             string fileName = null;
                             long? fileSize = null;
                             
@@ -123,15 +126,15 @@ namespace backend.Services
                                         if (fileInfo.TryGetValue("fileSize", out var size) && long.TryParse(size, out var sizeValue))
                                             fileSize = sizeValue;
                                             
-                                        // ������ļ����ͣ�������ʾ����
+                                        // 如果文件类型为文件，则显示文件名
                                         if (messageType == "file" && !string.IsNullOrEmpty(fileName))
-                                            content = $"�ļ�: {fileName}";
+                                            content = $"文件: {fileName}";
                                     }
                                 }
                                 catch (Exception ex)
                                 {
-                                    _logger.LogWarning(ex, "�����ļ���Ϣʧ��");
-                                    // ����ʧ��ʱ����ԭʼ����
+                                    _logger.LogWarning(ex, "解析文件信息失败");
+                                    // 如果解析失败，则保留原始内容
                                 }
                             }
                             
@@ -153,28 +156,28 @@ namespace backend.Services
                     }
                 }
                 
-                // ��ʱ�����򷵻���Ϣ
+                // 反转消息列表，使其按时间升序排列
                 messages.Reverse();
                 return messages;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"��ȡ��������ʷ��Ϣʧ��: {ex.Message}");
+                _logger.LogError(ex, $"获取房间消息失败: {ex.Message}");
                 return messages;
             }
         }
 
         /// <summary>
-        /// ������������Ϣ
+        /// 保存房间消息
         /// </summary>
         public async Task<int> SaveRoomMessageAsync(int roomId, int userId, string message)
         {
-            // ���ô����͵ķ�����Ĭ��Ϊtext����
+            // 默认消息类型为text
             return await SaveRoomMessageWithTypeAsync(roomId, userId, message, "text");
         }
         
         /// <summary>
-        /// ������������Ϣ������Ϣ���ͣ�
+        /// 保存房间消息，包括消息类型和文件信息
         /// </summary>
         public async Task<int> SaveRoomMessageWithTypeAsync(int roomId, int userId, string message, 
             string messageType, string fileUrl = null, string fileName = null, long? fileSize = null)
@@ -185,7 +188,7 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // �����ļ�������Ϣ�����ļ���Ϣ���л�ΪJSON�洢
+                    // 将消息内容和文件信息序列化为JSON存储
                     string content = message;
                     if ((messageType == "file" || messageType == "image") && !string.IsNullOrEmpty(fileName))
                     {
@@ -197,7 +200,7 @@ namespace backend.Services
                         content = JsonSerializer.Serialize(fileInfo);
                     }
 
-                    // ʹ���޸ĺ��SQL������䣬����MessageType��FileUrl�ֶ�
+                    // 使用自定义的SQL语句，包括MessageType和FileUrl字段
                     var command = new MySqlCommand(
                         @"INSERT INTO RoomMessages (RoomId, SenderId, Content, CreateTime, MessageType, FileUrl) 
                           VALUES (@RoomId, @SenderId, @Content, @CreateTime, @MessageType, @FileUrl);
@@ -220,13 +223,13 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"������������Ϣʧ��: {ex.Message}");
+                _logger.LogError(ex, $"保存房间消息失败: {ex.Message}");
                 return 0;
             }
         }
         
         /// <summary>
-        /// �ϴ��ļ�����ʱĿ¼
+        /// 上传临时文件到临时目录
         /// </summary>
         public async Task<(string FileUrl, string FileName, long FileSize)> UploadTempFileAsync(IFormFile file)
         {
@@ -234,39 +237,39 @@ namespace backend.Services
             {
                 if (file == null || file.Length == 0)
                 {
-                    throw new ArgumentException("û��ѡ���ļ����ļ�Ϊ��");
+                    throw new ArgumentException("未选择文件或文件为空");
                 }
 
-                // �����ļ���С����10MB��
+                // 检查文件大小是否超过10MB
                 if (file.Length > 10 * 1024 * 1024)
                 {
-                    throw new ArgumentException("�ļ���С��������");
+                    throw new ArgumentException("文件大小超过限制");
                 }
 
-                // ����Ψһ�ļ���
+                // 生成唯一文件名
                 string fileExtension = Path.GetExtension(file.FileName);
                 string uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
                 string filePath = Path.Combine(_tempFileDirectory, uniqueFileName);
                 
-                // �����ļ�
+                // 保存文件
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
                 
-                // ���ؿɷ��ʵ�URL���ļ���Ϣ
+                // 返回可访问的URL和文件信息
                 string fileUrl = $"/temp/uploads/{uniqueFileName}";
                 return (fileUrl, file.FileName, file.Length);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"�ϴ��ļ�ʧ��: {ex.Message}");
-                throw; // �����׳��쳣�Ա����������
+                _logger.LogError(ex, $"上传文件失败: {ex.Message}");
+                throw; // 抛出异常，由调用者处理
             }
         }
 
         /// <summary>
-        /// ��ȡ�����������û�
+        /// 获取房间在线用户
         /// </summary>
         public async Task<List<UserDTO>> GetRoomOnlineUsersAsync(int roomId)
         {
@@ -274,20 +277,20 @@ namespace backend.Services
             
             try
             {
-                // �ȴ��ڴ��л�ȡ�����û���Ϣ
+                // 等待从缓存中获取房间用户信息
                 if (_onlineUsers.TryGetValue(roomId, out var roomUsers))
                 {
                     users.AddRange(roomUsers.Values);
                 }
                 
-                // ���û�������û��������ݿ��ȡ�����Ծ�û�
+                // 如果房间没有用户，则从数据库中获取最近活跃的10个用户
                 if (users.Count == 0)
                 {
                     using (var connection = new MySqlConnection(_connectionString))
                     {
                         await connection.OpenAsync();
 
-                        // �޸�SQL��ѯ��ȷ��ORDER BY�а�����SELECT�б���
+                        // 自定义SQL查询，确保ORDER BY子句中包含SELECT子句
                         var command = new MySqlCommand(
                             @"SELECT DISTINCT u.UserId, u.Username, u.Avatar, MAX(m.CreateTime) as LastActivity
                               FROM Users u
@@ -322,13 +325,13 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"��ȡ�����������û�ʧ��: {ex.Message}");
+                _logger.LogError(ex, $"获取房间在线用户失败: {ex.Message}");
                 return users;
             }
         }
 
         /// <summary>
-        /// ��ȡ�򴴽�Ĭ��������
+        /// 获取或创建默认房间
         /// </summary>
         public async Task<int> GetOrCreateDefaultRoomAsync()
         {
@@ -338,9 +341,9 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // ����Ĭ��������
+                    // 查询默认房间
                     var selectCommand = new MySqlCommand(
-                        "SELECT RoomId FROM ChatRooms WHERE RoomName = 'WHU У԰����������' LIMIT 1",
+                        "SELECT RoomId FROM ChatRooms WHERE RoomName = 'WHU 院系交流群' LIMIT 1",
                         connection);
 
                     var roomId = await selectCommand.ExecuteScalarAsync();
@@ -350,10 +353,10 @@ namespace backend.Services
                         return Convert.ToInt32(roomId);
                     }
 
-                    // ����Ĭ��������
+                    // 创建默认房间
                     var insertCommand = new MySqlCommand(
                         @"INSERT INTO ChatRooms (RoomName, Description, CreateTime, UpdateTime) 
-                          VALUES ('WHU У԰����������', '��ӭ�����人��ѧУ԰���������ң������ǽ��������Ŀռ䣡', NOW(), NOW());
+                          VALUES ('WHU 院系交流群', '欢迎加入武汉大学院系交流群，这里是大家交流学习和生活的地方。', NOW(), NOW());
                           SELECT LAST_INSERT_ID();",
                         connection);
 
@@ -363,13 +366,13 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"��ȡ�򴴽�Ĭ��������ʧ��: {ex.Message}");
-                return 1; // Ĭ�Ϸ���1��ͨ���ǵ�һ��������
+                _logger.LogError(ex, $"获取或创建默认房间失败: {ex.Message}");
+                return 1; // 默认返回1，通常是第一个房间
             }
         }
 
         /// <summary>
-        /// �����û����������б�
+        /// 添加用户到房间
         /// </summary>
         public void AddUserToRoom(int roomId, UserDTO user)
         {
@@ -378,11 +381,20 @@ namespace backend.Services
         }
 
         /// <summary>
-        /// ���������б��Ƴ��û�
+        /// 从聊天室列表中移除用户
         /// </summary>
         public void RemoveUserFromRoom(int roomId, int userId)
         {
-            // 实现代码
+            if (_onlineUsers.TryGetValue(roomId, out var roomUsers))
+            {
+                roomUsers.TryRemove(userId, out _);
+                
+                // 如果房间没有用户了，可以选择移除整个房间记录
+                if (roomUsers.IsEmpty)
+                {
+                    _onlineUsers.TryRemove(roomId, out _);
+                }
+            }
         }
         
         /// <summary>
@@ -491,6 +503,37 @@ namespace backend.Services
                     return Convert.ToInt32(result);
                 }
             }
+        }
+
+        /// <summary>
+        /// 获取用户在线状态
+        /// </summary>
+        public bool IsUserOnline(int userId)
+        {
+            return _globalOnlineUsers.ContainsKey(userId) && _globalOnlineUsers[userId];
+        }
+
+        /// <summary>
+        /// 设置用户在线状态
+        /// </summary>
+        public void SetUserOnline(int userId, bool isOnline)
+        {
+            if (isOnline)
+            {
+                _globalOnlineUsers.AddOrUpdate(userId, true, (_, __) => true);
+            }
+            else
+            {
+                _globalOnlineUsers.TryRemove(userId, out _);
+            }
+        }
+        
+        /// <summary>
+        /// 获取在线用户列表
+        /// </summary>
+        public List<int> GetOnlineUsers()
+        {
+            return _globalOnlineUsers.Where(u => u.Value).Select(u => u.Key).ToList();
         }
     }
 } 

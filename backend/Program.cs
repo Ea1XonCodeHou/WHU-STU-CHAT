@@ -31,6 +31,7 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IDiscussionService, DiscussionService>(); // 添加讨论区服务
+builder.Services.AddScoped<IFriendshipService, FriendshipService>(); // 添加好友关系服务
 
 // 为AI服务添加HttpClient
 builder.Services.AddHttpClient<IAIService, AIService>(client =>

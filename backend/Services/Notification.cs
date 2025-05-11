@@ -16,16 +16,17 @@ namespace backend.Services
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-        public async Task CreateNotificationAsync(int userId, string content)
+        public async Task CreateNotificationAsync(int userId, string content, string type = "system")
         {
             using (var connection = new MySqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
                 var command = new MySqlCommand(
-                    "INSERT INTO Notifications (UserId, Content, Title, Type, IsRead, IsHandled, CreatedAt) VALUES (@UserId, @Content, '系统通知', 'system', 0, 0, @CreatedAt)",
+                    "INSERT INTO Notifications (UserId, Content, Title, Type, IsRead, IsHandled, CreatedAt) VALUES (@UserId, @Content, '系统通知', @Type, 0, 0, @CreatedAt)",
                     connection);
                 command.Parameters.AddWithValue("@UserId", userId);
                 command.Parameters.AddWithValue("@Content", content);
+                command.Parameters.AddWithValue("@Type", type);
                 command.Parameters.AddWithValue("@CreatedAt", DateTime.UtcNow);
                 await command.ExecuteNonQueryAsync();
             }

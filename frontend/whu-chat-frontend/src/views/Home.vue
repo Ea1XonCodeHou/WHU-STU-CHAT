@@ -435,12 +435,37 @@
           <button class="close-button" @click="showNotifications = false">×</button>
         </div>
         <div class="modal-body">
-          <ul>
-            <li v-for="n in notifications" :key="n.notificationId">
-              {{ n.content }}
-              <button v-if="n.content.includes('请求加你为好友')" @click="acceptFriend(n.notificationId)">同意</button>
+          <ul class="notification-list">
+            <li v-for="n in notifications" :key="n.notificationId" 
+                class="notification-item" 
+                :class="{'unread': !n.isRead, 'friend-request': n.type === 'friend_request'}">
+              <div class="notification-content">
+                <!-- 好友请求通知，特殊处理 -->
+                <template v-if="n.type === 'friend_request'">
+                  <div class="friend-request-header">
+                    {{ n.content.split('\n')[0] }}
+                  </div>
+                  <div class="friend-request-message" v-if="n.content.includes('验证消息')">
+                    {{ n.content.split('\n')[1] }}
+                  </div>
+                  <div class="friend-request-actions" v-if="!n.isHandled">
+                    <button class="accept-button" @click.stop="acceptFriend(n.notificationId)">同意</button>
+                    <button class="reject-button" @click.stop="rejectFriend(n.notificationId)">拒绝</button>
+                  </div>
+                  <div class="friend-request-status" v-else>
+                    <span>已处理</span>
+                  </div>
+                </template>
+                <!-- 其他类型通知 -->
+                <template v-else>
+                  {{ n.content }}
+                </template>
+              </div>
+              <div class="notification-time">
+                {{ formatNotificationTime(n.createdAt) }}
+              </div>
             </li>
-            <li v-if="notifications.length === 0">暂无通知</li>
+            <li v-if="notifications.length === 0" class="empty-notification">暂无通知</li>
           </ul>
         </div>
       </div>
@@ -465,7 +490,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import UserProfile from '@/components/UserProfile.vue';
@@ -632,26 +657,78 @@ export default {
     
     // 加载好友列表
     const fetchFriends = async () => {
-      const res = await axios.get(`/api/group/user/${userId.value}/private`);
-      if (res.data.code === 200) {
-        friends.value = [];
-        res.data.data.forEach(group => {
-          if (Array.isArray(group.members)) {
-            const other = group.members.find(m => String(m.id) !== String(userId.value));
-            if (other) {
-              friends.value.push({
-                id: other.id,
-                username: other.username,
-                status: other.status || 'offline',
-                avatar: getFullAvatarUrl(other.avatar) || null,
-                signature: other.signature || '',
-                groupId: group.groupId
-              });
+      try {
+        // 1. 获取私聊群组（保持现有逻辑兼容性）
+        const groupRes = await axios.get(`/api/group/user/${userId.value}/private`);
+        if (groupRes.data.code === 200) {
+          // 整理从群组中获取的好友信息
+          const groupFriends = [];
+          groupRes.data.data.forEach(group => {
+            if (Array.isArray(group.members)) {
+              const other = group.members.find(m => String(m.id) !== String(userId.value));
+              if (other) {
+                groupFriends.push({
+                  id: other.id,
+                  username: other.username,
+                  status: 'offline', // 初始设置为离线
+                  avatar: getFullAvatarUrl(other.avatar) || null,
+                  signature: other.signature || '',
+                  groupId: group.groupId
+                });
+              }
             }
+          });
+          
+          // 2. 获取好友关系表中的好友信息
+          const userRes = await axios.get(`/api/user/${userId.value}/friends`);
+          if (userRes.data && userRes.data.code === 200) {
+            const friendshipFriends = userRes.data.data.map(friend => ({
+              id: friend.id,
+              username: friend.username,
+              status: 'offline', // 初始设置为离线
+              avatar: getFullAvatarUrl(friend.avatar) || null,
+              signature: friend.signature || '',
+              // 查找是否有对应的群组ID
+              groupId: groupFriends.find(gf => gf.id === friend.id)?.groupId || null
+            }));
+            
+            // 合并两个来源的好友列表，确保没有重复
+            friends.value = friendshipFriends.filter(ff => 
+              !groupFriends.some(gf => gf.id === ff.id)
+            ).concat(groupFriends);
+          } else {
+            // 如果获取好友关系表失败，仍然使用群组信息
+            friends.value = groupFriends;
           }
-        });
+          
+          // 获取好友在线状态
+          await updateFriendsOnlineStatus();
+        }
+      } catch (error) {
+        console.error('获取好友列表失败:', error);
       }
     };
+    
+    // 更新好友在线状态
+    const updateFriendsOnlineStatus = async () => {
+      try {
+        // 获取所有在线用户
+        const response = await axios.get(`/api/user/online`);
+        if (response.data && response.data.code === 200) {
+          const onlineUserIds = response.data.data;
+          
+          // 更新每个好友的在线状态
+          friends.value.forEach(friend => {
+            friend.status = onlineUserIds.includes(friend.id) ? 'online' : 'offline';
+          });
+        }
+      } catch (error) {
+        console.error('获取在线用户状态失败:', error);
+      }
+    };
+    
+    // 定时更新在线状态
+    let statusUpdateInterval = null;
     
     const forumCategories = ref([
       {
@@ -970,6 +1047,16 @@ export default {
       }
     };
     
+    const rejectFriend = async (notificationId) => {
+      try {
+        await axios.post('/api/notification/reject-friend', { NotificationId: notificationId });
+        alert('已拒绝好友请求');
+        await fetchNotifications(); // 立即刷新通知
+      } catch (error) {
+        alert('操作失败: ' + (error.response?.data?.msg || error.message));
+      }
+    };
+    
     const confirmDeleteFriend = (friend) => {
       if (confirm('确定要删除这个好友吗？此操作不可恢复。')) {
         deleteFriend(friend);
@@ -1012,6 +1099,30 @@ export default {
       // 如果需要立即应用其他设置，可以在此处添加代码
     };
     
+    // 格式化通知时间
+    const formatNotificationTime = (dateString) => {
+      if (!dateString) return '';
+      
+      const date = new Date(dateString);
+      const now = new Date();
+      const diff = now.getTime() - date.getTime();
+      
+      // 如果小于24小时，显示x小时前
+      if (diff < 24 * 60 * 60 * 1000) {
+        const hours = Math.floor(diff / (60 * 60 * 1000));
+        return hours > 0 ? `${hours}小时前` : '刚刚';
+      }
+      
+      // 小于7天，显示x天前
+      if (diff < 7 * 24 * 60 * 60 * 1000) {
+        const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+        return `${days}天前`;
+      }
+      
+      // 其他情况显示具体日期
+      return date.toLocaleDateString('zh-CN');
+    };
+    
     // 页面加载时的初始化
     onMounted(() => {
       const token = localStorage.getItem('token');
@@ -1026,10 +1137,20 @@ export default {
       fetchFriends(); // 加载好友列表
       fetchGroups(); // 加载群组列表
       
+      // 设置定时更新状态
+      statusUpdateInterval = setInterval(updateFriendsOnlineStatus, 30000); // 每30秒更新一次
+      
       // 根据活动区域加载数据
       if (activeSection.value === 'chatrooms') {
         // chatRooms是静态数据，不需要加载
         // 如果将来需要从后端加载，可以在这里添加逻辑
+      }
+    });
+    
+    // 组件卸载时清除定时器
+    onBeforeUnmount(() => {
+      if (statusUpdateInterval) {
+        clearInterval(statusUpdateInterval);
       }
     });
     
@@ -1122,7 +1243,8 @@ export default {
       
       // 新增返回项
       handleProfileUpdated,
-      handleSettingsUpdated
+      handleSettingsUpdated,
+      formatNotificationTime
     };
   }
 };
@@ -2246,5 +2368,96 @@ export default {
   color: #4776E6;
   font-weight: bold;
   font-size: 12px;
+}
+
+/* 通知列表样式 */
+.notification-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-item {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+  background-color: #f5f5f5;
+}
+
+.notification-item.unread {
+  background-color: #f0f7ff;
+}
+
+.notification-content {
+  margin-bottom: 10px;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: #999;
+  text-align: right;
+}
+
+.empty-notification {
+  padding: 20px;
+  text-align: center;
+  color: #999;
+}
+
+/* 好友请求通知样式 */
+.friend-request-header {
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.friend-request-message {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-style: italic;
+  color: #666;
+}
+
+.friend-request-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.accept-button, .reject-button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  border: none;
+  transition: all 0.2s;
+}
+
+.accept-button {
+  background-color: #4776E6;
+  color: white;
+}
+
+.reject-button {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.accept-button:hover {
+  background-color: #3b5dc4;
+}
+
+.reject-button:hover {
+  background-color: #e9ecef;
+}
+
+.friend-request-status {
+  font-size: 12px;
+  color: #999;
+  margin-top: 5px;
 }
 </style> 

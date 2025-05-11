@@ -2,17 +2,17 @@
 C#大作业团队仓库——武汉大学学生互助交流平台
 
 ## 版本信息
-- **当前版本**: V-0.0.3T (测试版)
-- **更新时间**: 2025-5-15
+- **当前版本**: V-0.0.5T (测试版)
+- **最新更新时间**: 2025-5-11
 - **更新人**: Eaxon
 
 ## todo
-1. 私聊功能
-2. ~~好友功能~~
-3. 个人信息
+1. 私聊功能V2
+2. 好友界面设计
+3. 个人信息修改
 4. 群组高级功能
 
-## 更新内容（5-15）
+## 更新内容（5-11）
 1. 修复了用户在线/离线状态判断问题
    - 聊天室中的在线用户现在正确反映实际在聊天室内的用户
    - 用户退出聊天室后会立即从在线用户列表中移除
@@ -78,76 +78,3 @@ C#大作业团队仓库——武汉大学学生互助交流平台
 - **话题标签**：每条消息可以加上话题标签，方便后续分类和检索。
 
 ---
-
-
-
-
-1. 用户表
-
-| 字段名          | 数据类型         | 说明            |
-| ------------ | ------------ | ------------- |
-| UserId       | INT          | 主键，用户唯一标识     |
-| Username     | VARCHAR(50)  | 用户名           |
-| PasswordHash | VARCHAR(255) | 密码的哈希值        |
-| Email        | VARCHAR(100) | 邮箱            |
-| ProfilePic   | VARCHAR(255) | 头像 URL        |
-| Role         | VARCHAR(20)  | 用户角色（如用户、管理员） |
-| CreatedAt    | DATETIME     | 用户注册时间        |
-| LastLogin    | DATETIME     | 最后登录时间        |
-
-2. 聊天表（私聊、群聊和公域聊天）
-
-| 字段名         | 数据类型         | 说明                                 |
-| ----------- | ------------ | ---------------------------------- |
-| ChatId      | INT          | 主键，聊天唯一标识                          |
-| ChatName    | VARCHAR(100) | 聊天名称（用于群聊）                         |
-| ChatType    | VARCHAR(20)  | 聊天类型（如 "private"、"group"、"public"） |
-| CreatedBy   | INT          | 外键，创建者的 UserId                     |
-| CreatedAt   | DATETIME     | 创建时间                               |
-| Description | TEXT         | 群聊描述（群聊时使用）                        |
-
-3. 消息表
-
-| 字段名         | 数据类型        | 说明                            |
-| ----------- | ----------- | ----------------------------- |
-| MessageId   | INT         | 主键，消息唯一标识                     |
-| ChatId      | INT         | 外键，关联到聊天表                     |
-| SenderId    | INT         | 外键，发送者的 UserId                |
-| Message     | TEXT        | 消息内容                          |
-| MessageType | VARCHAR(20) | 消息类型（如 "text"、"image"、"file"） |
-| SentAt      | DATETIME    | 发送时间                          |
-
-
-4. 用户群聊关联表
-
-记录每个用户与不同聊天的关联，用于群聊和私聊的成员管理
-
-| 字段名      | 数据类型     | 说明             |
-| -------- | -------- | -------------- |
-| UserId   | INT      | 外键，用户的 UserId  |
-| ChatId   | INT      | 外键，聊天的 ChatId  |
-| JoinDate | DATETIME | 加入聊天的时间        |
-| IsAdmin  | BOOLEAN  | 是否是管理员（仅对群聊有效） |
-
-8. 文件表
-
-| 字段名        | 数据类型         | 说明                       |
-| ---------- | ------------ | ------------------------ |
-| FileId     | INT          | 主键，文件唯一标识                |
-| FileName   | VARCHAR(255) | 文件名                      |
-| FilePath   | VARCHAR(255) | 文件存储路径                   |
-| FileType   | VARCHAR(50)  | 文件类型（如 "image", "pdf" 等） |
-| Size       | INT          | 文件大小（字节数）                |
-| UploadedBy | INT          | 外键，上传者的 UserId           |
-| UploadedAt | DATETIME     | 上传时间                     |
-| ChatId     | INT          | 外键，关联到聊天表                |
-
-9. 通知表（记录用户接收到的系统通知，如新消息提醒等）
-
-|字段名|数据类型|说明|
-|---|---|---|
-|NotificationId|INT|主键，通知唯一标识|
-|UserId|INT|外键，接收通知的 UserId|
-|Content|TEXT|通知内容|
-|IsRead|BOOLEAN|是否已读|
-|CreatedAt|DATETIME|通知创建时间|

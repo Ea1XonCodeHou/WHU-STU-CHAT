@@ -15,6 +15,7 @@ namespace backend.Services
 {
     /// <summary>
     /// 聊天服务实现
+    /// 聊天服务实现
     /// </summary>
     public class ChatService : IChatService
     {
@@ -32,8 +33,10 @@ namespace backend.Services
             _logger = logger;
             
             // 临时文件目录
+            // 临时文件目录
             _tempFileDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp", "uploads");
             
+            // 确保目录存在
             // 确保目录存在
             if (!Directory.Exists(_tempFileDirectory))
             {
@@ -128,6 +131,7 @@ namespace backend.Services
                                             
                                         // 如果文件类型为文件，则显示文件名
                                         if (messageType == "file" && !string.IsNullOrEmpty(fileName))
+                                            content = $"文件: {fileName}";
                                             content = $"文件: {fileName}";
                                     }
                                 }
@@ -238,19 +242,23 @@ namespace backend.Services
                 if (file == null || file.Length == 0)
                 {
                     throw new ArgumentException("未选择文件或文件为空");
+                    throw new ArgumentException("未选择文件或文件为空");
                 }
 
                 // 检查文件大小是否超过10MB
                 if (file.Length > 10 * 1024 * 1024)
                 {
                     throw new ArgumentException("文件大小超过限制");
+                    throw new ArgumentException("文件大小超过限制");
                 }
 
+                // 生成唯一文件名
                 // 生成唯一文件名
                 string fileExtension = Path.GetExtension(file.FileName);
                 string uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
                 string filePath = Path.Combine(_tempFileDirectory, uniqueFileName);
                 
+                // 保存文件
                 // 保存文件
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
@@ -410,15 +418,15 @@ namespace backend.Services
                 
                 // 获取双向私聊记录
                 string sql = @"
-                    SELECT pm.id, pm.sender_id, pm.receiver_id, pm.content, pm.message_type, 
-                        pm.file_url, pm.file_name, pm.file_size, pm.send_time, pm.is_read,
+                    SELECT pm.MessageId, pm.SenderId, pm.ReceiverId, pm.Content, pm.MessageType, 
+                        pm.FileUrl, pm.FileName, pm.FileSize, pm.CreateTime as SendTime, pm.IsRead,
                         u1.Username as sender_name, u2.Username as receiver_name
-                    FROM private_messages pm
-                    JOIN Users u1 ON pm.sender_id = u1.UserId
-                    JOIN Users u2 ON pm.receiver_id = u2.UserId
-                    WHERE (pm.sender_id = @userId AND pm.receiver_id = @friendId)
-                       OR (pm.sender_id = @friendId AND pm.receiver_id = @userId)
-                    ORDER BY pm.send_time DESC
+                    FROM PrivateMessages pm
+                    JOIN Users u1 ON pm.SenderId = u1.UserId
+                    JOIN Users u2 ON pm.ReceiverId = u2.UserId
+                    WHERE (pm.SenderId = @userId AND pm.ReceiverId = @friendId)
+                       OR (pm.SenderId = @friendId AND pm.ReceiverId = @userId)
+                    ORDER BY pm.CreateTime DESC
                     LIMIT @count";
                 
                 using (var command = new MySqlCommand(sql, connection))
@@ -433,18 +441,18 @@ namespace backend.Services
                         {
                             messages.Add(new MessageDTO
                             {
-                                MessageId = reader.GetInt32(reader.GetOrdinal("id")),
-                                SenderId = reader.GetInt32(reader.GetOrdinal("sender_id")),
+                                MessageId = reader.GetInt32(reader.GetOrdinal("MessageId")),
+                                SenderId = reader.GetInt32(reader.GetOrdinal("SenderId")),
                                 SenderName = reader.GetString(reader.GetOrdinal("sender_name")),
-                                ReceiverId = reader.GetInt32(reader.GetOrdinal("receiver_id")),
+                                ReceiverId = reader.GetInt32(reader.GetOrdinal("ReceiverId")),
                                 ReceiverName = reader.GetString(reader.GetOrdinal("receiver_name")),
-                                Content = reader.GetString(reader.GetOrdinal("content")),
-                                MessageType = reader.GetString(reader.GetOrdinal("message_type")),
-                                FileUrl = !reader.IsDBNull(reader.GetOrdinal("file_url")) ? reader.GetString(reader.GetOrdinal("file_url")) : null,
-                                FileName = !reader.IsDBNull(reader.GetOrdinal("file_name")) ? reader.GetString(reader.GetOrdinal("file_name")) : null,
-                                FileSize = !reader.IsDBNull(reader.GetOrdinal("file_size")) ? reader.GetInt32(reader.GetOrdinal("file_size")) : 0,
-                                SendTime = reader.GetDateTime(reader.GetOrdinal("send_time")),
-                                IsRead = reader.GetBoolean(reader.GetOrdinal("is_read"))
+                                Content = reader.GetString(reader.GetOrdinal("Content")),
+                                MessageType = reader.GetString(reader.GetOrdinal("MessageType")),
+                                FileUrl = !reader.IsDBNull(reader.GetOrdinal("FileUrl")) ? reader.GetString(reader.GetOrdinal("FileUrl")) : null,
+                                FileName = !reader.IsDBNull(reader.GetOrdinal("FileName")) ? reader.GetString(reader.GetOrdinal("FileName")) : null,
+                                FileSize = !reader.IsDBNull(reader.GetOrdinal("FileSize")) ? reader.GetInt32(reader.GetOrdinal("FileSize")) : 0,
+                                SendTime = reader.GetDateTime(reader.GetOrdinal("SendTime")),
+                                IsRead = reader.GetBoolean(reader.GetOrdinal("IsRead"))
                             });
                         }
                     }
@@ -462,9 +470,9 @@ namespace backend.Services
         private async Task UpdateMessagesAsReadAsync(MySqlConnection connection, int userId, int friendId)
         {
             string sql = @"
-                UPDATE private_messages
-                SET is_read = TRUE
-                WHERE sender_id = @friendId AND receiver_id = @userId AND is_read = FALSE";
+                UPDATE PrivateMessages
+                SET IsRead = TRUE
+                WHERE SenderId = @friendId AND ReceiverId = @userId AND IsRead = FALSE";
             
             using (var command = new MySqlCommand(sql, connection))
             {

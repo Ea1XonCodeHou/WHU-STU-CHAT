@@ -54,7 +54,12 @@ namespace backend.Controllers
             var content = $"{dto.RequesterUsername} 请求加你为好友\n验证消息: {dto.Message}";
             await _notificationService.CreateNotificationAsync(targetUser.Id, content, "friend_request");
 
-            return Ok(new { msg = "好友请求已发送" });
+                return Ok(new { msg = "好友请求已发送" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { msg = $"发送好友请求失败: {ex.Message}" });
+            }
         }
 
         // 2. 获取用户所有通知
@@ -91,8 +96,7 @@ namespace backend.Controllers
                 MemberCount = 1, // 只包含创建者
                 Description = "私聊"
             };
-            var groupId = await _groupService.CreateGroupAsync(groupRegDto);
-            await _groupService.AddUserToGroupAsync(groupId, receiver.Id);
+            await _groupService.AddFriendAsync(requester.Id, receiver.Id);
 
             // 标记通知为已处理
             await _notificationService.MarkAsHandled(dto.NotificationId);

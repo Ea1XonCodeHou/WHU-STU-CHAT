@@ -61,6 +61,15 @@ namespace backend.Services
         Task<bool> AddUserToGroupAsync(int groupId, int userId);
 
         /// <summary>
+        /// 通过用户名添加用户到群组
+        /// </summary>
+        /// <param name="groupId">群组ID</param>
+        /// <param name="userName">用户名</param>
+        /// <returns>是否添加成功</returns>
+        Task<bool> AddUserToGroupByUserNameAsync(int groupId, string userName);
+
+
+        /// <summary>
         /// 从群组移除用户
         /// </summary>
         /// <param name="groupId">群组ID</param>
@@ -90,8 +99,42 @@ namespace backend.Services
         /// <param name="groupId">群组ID</param>
         /// <param name="count">消息数量</param>
         /// <returns>消息列表</returns>
+        /// 
         Task<List<GroupMessageDTO>> GetGroupMessagesAsync(int groupId, int count);
-        
+
+
+        /// <summary>
+        /// 添加好友
+        /// </summary>
+        /// <param name="user1Id">用户1的ID</param>
+        /// <param name="user2Id">用户2的ID</param>
+        /// <returns>是否添加成功</returns>
+        Task<bool> AddFriendAsync(int user1Id, int user2Id);
+
+        /// <summary>
+        /// 删除好友关系
+        /// </summary>
+        /// <param name="user1Id">用户1的ID</param>
+        /// <param name="user2Id">用户2的ID</param>
+        /// <returns>是否删除成功</returns>
+        Task<bool> DeleteFriendAsync(int user1Id, int user2Id);
+
+        /// <summary>
+        /// 获取用户的好友列表
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>好友列表</returns>
+        Task<List<FriendShipDTO>> GetFriendsAsync(int userId);
+
+        /// <summary>
+        /// 根据用户ID和好友ID获取好友信息
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="friendId">好友ID</param>
+        /// <returns>好友信息</returns>
+        Task<FriendShipDTO> GetFriendByIdAsync(int userId, int friendId);
+
+
         /// <summary>
         /// 获取两个用户之间的私聊群组
         /// </summary>

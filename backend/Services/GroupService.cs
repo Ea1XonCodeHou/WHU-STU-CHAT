@@ -715,38 +715,25 @@ namespace backend.Services
         /// <param name="userId1">用户1的ID</param>
         /// <param name="userId2">用户2的ID</param>
         /// <returns>私聊群组列表</returns>
-        /*public async Task<List<GroupDTO>> GetPrivateGroupBetweenUsersAsync(int userId1, int userId2)
+        public async Task<List<GroupDTO>> GetPrivateGroupBetweenUsersAsync(int userId1, int userId2)
         {
             var result = new List<GroupDTO>();
-             
+            
             using (var connection = new MySqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
-
-                // 查询两个用户都在其中且只有这两个用户的群组
-                // 使用子查询确保群组只有两个成员且包含这两个用户
-                var query = @"
-                    SELECT g.GroupId, g.GroupName, g.Description, g.CreatorId, g.MemberCount, g.CreateTime, g.UpdateTime 
-                     FROM ChatGroups g
-                WHERE g.MemberCount = 2
-                AND g.GroupId IN (
-                    SELECT gm1.GroupId 
-                    FROM GroupMembers gm1
-                    WHERE gm1.UserId = @UserId1
-                    AND EXISTS (
-                        SELECT 1 
-                        FROM GroupMembers gm2 
-                        WHERE gm2.GroupId = gm1.GroupId 
-                        AND gm2.UserId = @UserId2
-                    )
-                    AND (
-                        SELECT COUNT(*) 
-                        FROM GroupMembers gm3 
-                        WHERE gm3.GroupId = gm1.GroupId
-                    ) = 2
-                )";
                 
-                var command = new MySqlCommand(query, connection);
+                // 查询两个用户共同所在的群组
+                var command = new MySqlCommand(@"
+                    SELECT g.* 
+                    FROM Groups g
+                    INNER JOIN GroupMembers gm1 ON g.GroupId = gm1.GroupId
+                    INNER JOIN GroupMembers gm2 ON g.GroupId = gm2.GroupId
+                    WHERE gm1.UserId = @UserId1 
+                    AND gm2.UserId = @UserId2
+                    AND g.Description = '私聊'
+                    AND g.MemberCount = 2", connection);
+                
                 command.Parameters.AddWithValue("@UserId1", userId1);
                 command.Parameters.AddWithValue("@UserId2", userId2);
                 
@@ -771,7 +758,7 @@ namespace backend.Services
             }
             
             return result;
-        }*/
+        }
 
         /// <summary>
         /// 根据群组名称搜索群组

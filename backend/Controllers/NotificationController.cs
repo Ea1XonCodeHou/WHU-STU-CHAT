@@ -31,28 +31,30 @@ namespace backend.Controllers
         [HttpPost("friend-request")]
         public async Task<IActionResult> SendFriendRequest([FromBody] FriendRequestDTO dto)
         {
-            var targetUser = await _userService.GetUserByUsernameAsync(dto.TargetUsername);
-            if (targetUser == null)
-                return NotFound(new { msg = "用户不存在" });
-                
-            // 获取请求者信息
-            var requester = await _userService.GetUserByUsernameAsync(dto.RequesterUsername);
-            if (requester == null)
-                return NotFound(new { msg = "请求者不存在" });
-                
-            // 检查是否已经是好友
-            bool isFriend = await _friendshipService.CheckIsFriendAsync(requester.Id, targetUser.Id);
-            if (isFriend)
+            try
             {
-                return BadRequest(new { msg = "已经是好友关系，无需重复添加" });
-            }
+                var targetUser = await _userService.GetUserByUsernameAsync(dto.TargetUsername);
+                if (targetUser == null)
+                    return NotFound(new { msg = "用户不存在" });
+                    
+                // 获取请求者信息
+                var requester = await _userService.GetUserByUsernameAsync(dto.RequesterUsername);
+                if (requester == null)
+                    return NotFound(new { msg = "请求者不存在" });
+                    
+                // 检查是否已经是好友
+                bool isFriend = await _friendshipService.CheckIsFriendAsync(requester.Id, targetUser.Id);
+                if (isFriend)
+                {
+                    return BadRequest(new { msg = "已经是好友关系，无需重复添加" });
+                }
 
-            // 创建好友请求
-            await _friendshipService.CreateFriendRequestAsync(requester.Id, targetUser.Id);
+                // 创建好友请求
+                await _friendshipService.CreateFriendRequestAsync(requester.Id, targetUser.Id);
 
-            // 发送带验证消息的好友请求通知
-            var content = $"{dto.RequesterUsername} 请求加你为好友\n验证消息: {dto.Message}";
-            await _notificationService.CreateNotificationAsync(targetUser.Id, content, "friend_request");
+                // 发送带验证消息的好友请求通知
+                var content = $"{dto.RequesterUsername} 请求加你为好友\n验证消息: {dto.Message}";
+                await _notificationService.CreateNotificationAsync(targetUser.Id, content, "friend_request");
 
                 return Ok(new { msg = "好友请求已发送" });
             }

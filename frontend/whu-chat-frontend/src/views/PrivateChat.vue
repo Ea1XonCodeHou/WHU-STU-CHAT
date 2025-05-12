@@ -227,7 +227,7 @@ export default {
         await connection.value.invoke('RegisterConnection', userId.value);
         
         // 加入私聊
-        await connection.value.invoke('JoinPrivateChat', parseInt(friendId));
+          await connection.value.invoke('JoinPrivateChat', parseInt(friendId));
         
         // 获取历史消息
         await loadChatHistory();

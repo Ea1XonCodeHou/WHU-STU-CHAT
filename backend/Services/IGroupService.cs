@@ -124,7 +124,7 @@ namespace backend.Services
         /// </summary>
         /// <param name="userId">用户ID</param>
         /// <returns>好友列表</returns>
-        Task<List<FriendShipDTO>> GetFriendsAsync(int userId);
+        Task<List<FriendshipDTO>> GetFriendsAsync(int userId);
 
         /// <summary>
         /// 根据用户ID和好友ID获取好友信息
@@ -132,7 +132,7 @@ namespace backend.Services
         /// <param name="userId">用户ID</param>
         /// <param name="friendId">好友ID</param>
         /// <returns>好友信息</returns>
-        Task<FriendShipDTO> GetFriendByIdAsync(int userId, int friendId);
+        Task<FriendshipDTO> GetFriendByIdAsync(int userId, int friendId);
 
 
         /// <summary>

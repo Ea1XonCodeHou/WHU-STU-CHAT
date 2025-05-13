@@ -421,7 +421,7 @@ namespace backend.Services
                     SELECT pm.MessageId, pm.SenderId, pm.ReceiverId, pm.Content, pm.MessageType, 
                         pm.FileUrl, pm.FileName, pm.FileSize, pm.CreateTime as SendTime, pm.IsRead,
                         u1.Username as sender_name, u2.Username as receiver_name
-                    FROM PrivateMessages pm
+                    FROM privatemessages pm
                     JOIN Users u1 ON pm.SenderId = u1.UserId
                     JOIN Users u2 ON pm.ReceiverId = u2.UserId
                     WHERE (pm.SenderId = @userId AND pm.ReceiverId = @friendId)
@@ -470,7 +470,7 @@ namespace backend.Services
         private async Task UpdateMessagesAsReadAsync(MySqlConnection connection, int userId, int friendId)
         {
             string sql = @"
-                UPDATE PrivateMessages
+                UPDATE privatemessages
                 SET IsRead = TRUE
                 WHERE SenderId = @friendId AND ReceiverId = @userId AND IsRead = FALSE";
             
@@ -492,8 +492,8 @@ namespace backend.Services
                 await connection.OpenAsync();
                 
                 string sql = @"
-                    INSERT INTO private_messages (sender_id, receiver_id, content, message_type, file_url, file_name, file_size, send_time, is_read)
-                    VALUES (@senderId, @receiverId, @content, @messageType, @fileUrl, @fileName, @fileSize, @sendTime, FALSE);
+                    INSERT INTO privatemessages (SenderId, ReceiverId, Content, MessageType, FileUrl, FileName, FileSize, IsRead, CreateTime)
+                    VALUES (@senderId, @receiverId, @content, @messageType, @fileUrl, @fileName, @fileSize, FALSE, @createTime);
                     SELECT LAST_INSERT_ID();";
                 
                 using (var command = new MySqlCommand(sql, connection))
@@ -505,7 +505,7 @@ namespace backend.Services
                     command.Parameters.AddWithValue("@fileUrl", message.FileUrl as object ?? DBNull.Value);
                     command.Parameters.AddWithValue("@fileName", message.FileName as object ?? DBNull.Value);
                     command.Parameters.AddWithValue("@fileSize", message.FileSize as object ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@sendTime", message.SendTime != default ? message.SendTime : DateTime.Now);
+                    command.Parameters.AddWithValue("@createTime", DateTime.UtcNow);
                     
                     var result = await command.ExecuteScalarAsync();
                     return Convert.ToInt32(result);

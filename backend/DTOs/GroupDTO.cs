@@ -6,42 +6,33 @@ namespace backend.DTOs
     {
         public int GroupId { get; set; }
         public string GroupName { get; set; }
-        public DateTime UpdateTime { get; set; }
-        public int MemberCount { get; set; }
-        public int CreatorId { get; set; }
         public string Description { get; set; }
+        public int CreatorId { get; set; }
+        public int MemberCount { get; set; }
         public DateTime CreateTime { get; set; }
+        public DateTime UpdateTime { get; set; }
+    }
+
+    public class GroupDetailDTO : GroupDTO
+    {
+        public List<UserDTO> Members { get; set; }
     }
 
     public class GroupRegDTO
     {
-        public int GroupId { get; set; }
         public string GroupName { get; set; }
         public string Description { get; set; }
         public int CreatorId { get; set; }
         public int MemberCount { get; set; }
-        public DateTime CreateTime { get; set; }
-
     }
-    public class GroupDetailDTO
+
+    public class GroupMessageDTO
     {
+        public int MessageId { get; set; }
         public int GroupId { get; set; }
-        public string GroupName { get; set; }
-        public string Description { get; set; }
-        public int CreatorId { get; set; }
-        public int MemberCount { get; set; }
+        public int SenderId { get; set; }
+        public string SenderName { get; set; }
+        public string Content { get; set; }
         public DateTime CreateTime { get; set; }
-        public DateTime UpdateTime { get; set; }
-
     }
-
-    public class FriendShipDTO
-    {
-        public int FriendId { get; set; } // 好友的用户ID
-        public string Username { get; set; } // 好友的用户名
-
-        public int GroupId { get; set; } // 好友所在的群组ID
-        public DateTime FriendshipCreatedTime { get; set; } // 好友关系创建时间
-    }
-
 }

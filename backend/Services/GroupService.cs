@@ -1,5 +1,9 @@
 ﻿using backend.DTOs;
+using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Transactions;
 
@@ -492,7 +496,7 @@ namespace backend.Services
                     await connection.OpenAsync();
 
                     var checkFriendCommand = new MySqlCommand(
-                        "SELECT COUNT(1) FROM friendship WHERE (UserId1 = @UserId1 AND UserId2 = @UserId2) OR (UserId1 = @UserId2 AND UserId2 = @UserId1)",
+                        "SELECT COUNT(1) FROM friendships WHERE (UserId = @UserId1 AND FriendId = @UserId2) OR (UserId = @UserId2 AND FriendId = @UserId1)",
                         connection);
                     checkFriendCommand.Parameters.AddWithValue("@UserId1", user1Id);
                     checkFriendCommand.Parameters.AddWithValue("@UserId2", user2Id);
@@ -507,33 +511,34 @@ namespace backend.Services
                     {
                         try
                         {
-                            var createGroupCommand = new MySqlCommand(
-                                @"INSERT INTO ChatGroups (GroupName, Description, CreatorId, MemberCount, CreateTime, IsPrivate) 
-                                  VALUES (@GroupName, @Description, @CreatorId, @MemberCount, @CreateTime, @IsPrivate); 
-                                  SELECT LAST_INSERT_ID();",
+                            var now = DateTime.UtcNow;
+                            var addFriendCommand1 = new MySqlCommand(
+                                "INSERT INTO friendships (UserId, FriendId, Status, CreateTime, UpdateTime) VALUES (@UserId, @FriendId, 'accepted', @CreateTime, @UpdateTime)",
                                 connection, transaction);
+                            addFriendCommand1.Parameters.AddWithValue("@UserId", user1Id);
+                            addFriendCommand1.Parameters.AddWithValue("@FriendId", user2Id);
+                            addFriendCommand1.Parameters.AddWithValue("@CreateTime", now);
+                            addFriendCommand1.Parameters.AddWithValue("@UpdateTime", now);
+                            await addFriendCommand1.ExecuteNonQueryAsync();
 
-                            createGroupCommand.Parameters.AddWithValue("@GroupName", $"PrivateChat-{user1Id}-{user2Id}");
-                            createGroupCommand.Parameters.AddWithValue("@Description", "私聊群组");
-                            createGroupCommand.Parameters.AddWithValue("@CreatorId", user1Id);
-                            createGroupCommand.Parameters.AddWithValue("@MemberCount", 2);
-                            createGroupCommand.Parameters.AddWithValue("@CreateTime", DateTime.UtcNow);
-                            createGroupCommand.Parameters.AddWithValue("@IsPrivate", 1);
-
-                            var groupId = Convert.ToInt32(await createGroupCommand.ExecuteScalarAsync());
-
-                            var addFriendCommand = new MySqlCommand(
-                                "INSERT INTO friendship (UserId1, UserId2, CreateTime, GroupId) VALUES (@UserId1, @UserId2, @CreateTime, @GroupId)",
+                            var addFriendCommand2 = new MySqlCommand(
+                                "INSERT INTO friendships (UserId, FriendId, Status, CreateTime, UpdateTime) VALUES (@UserId, @FriendId, 'accepted', @CreateTime, @UpdateTime)",
                                 connection, transaction);
-                            addFriendCommand.Parameters.AddWithValue("@UserId1", user1Id);
-                            addFriendCommand.Parameters.AddWithValue("@UserId2", user2Id);
-                            addFriendCommand.Parameters.AddWithValue("@CreateTime", DateTime.UtcNow);
-                            addFriendCommand.Parameters.AddWithValue("@GroupId", groupId);
+                            addFriendCommand2.Parameters.AddWithValue("@UserId", user2Id);
+                            addFriendCommand2.Parameters.AddWithValue("@FriendId", user1Id);
+                            addFriendCommand2.Parameters.AddWithValue("@CreateTime", now);
+                            addFriendCommand2.Parameters.AddWithValue("@UpdateTime", now);
+                            await addFriendCommand2.ExecuteNonQueryAsync();
 
-                            await addFriendCommand.ExecuteNonQueryAsync();
+                            // 更新通知状态
+                            var updateNotificationCommand = new MySqlCommand(
+                                "UPDATE notifications SET Status = 'accepted' WHERE Type = 'friend_request' AND SenderId = @SenderId AND ReceiverId = @ReceiverId",
+                                connection, transaction);
+                            updateNotificationCommand.Parameters.AddWithValue("@SenderId", user1Id);
+                            updateNotificationCommand.Parameters.AddWithValue("@ReceiverId", user2Id);
+                            await updateNotificationCommand.ExecuteNonQueryAsync();
 
                             await transaction.CommitAsync();
-
                             return true;
                         }
                         catch
@@ -561,39 +566,16 @@ namespace backend.Services
                     // 使用事务确保数据一致性
                     using (var transaction = await connection.BeginTransactionAsync())
                     {
-                        // Step 1: 检查是否存在好友关系并获取 GroupId
-                        var checkFriendCommand = new MySqlCommand(
-                            "SELECT GroupId FROM friendship WHERE (UserId1 = @UserId1 AND UserId2 = @UserId2) OR (UserId1 = @UserId2 AND UserId2 = @UserId1)",
+                        // 删除双向好友关系
+                        var deleteFriendshipCommand = new MySqlCommand(
+                            "DELETE FROM friendships WHERE (UserId = @UserId1 AND FriendId = @UserId2) OR (UserId = @UserId2 AND FriendId = @UserId1)",
                             connection, transaction);
-                        checkFriendCommand.Parameters.AddWithValue("@UserId1", userId1);
-                        checkFriendCommand.Parameters.AddWithValue("@UserId2", userId2);
+                        deleteFriendshipCommand.Parameters.AddWithValue("@UserId1", userId1);
+                        deleteFriendshipCommand.Parameters.AddWithValue("@UserId2", userId2);
+                        await deleteFriendshipCommand.ExecuteNonQueryAsync();
 
-                        var groupId = Convert.ToInt32(await checkFriendCommand.ExecuteScalarAsync());
-                        if (groupId == 0)
-                        {
-                            throw new Exception("两用户之间不存在好友关系");
-                        }
-
-                        // Step 2: 删除 GroupMessages 表中引用该群组的记录
-                        var deleteMessagesCommand = new MySqlCommand(
-                            "DELETE FROM GroupMessages WHERE GroupId = @GroupId",
-                            connection, transaction);
-                        deleteMessagesCommand.Parameters.AddWithValue("@GroupId", groupId);
-                        await deleteMessagesCommand.ExecuteNonQueryAsync();
-
-                        
-
-                        // Step 4: 删除 ChatGroups 表中的记录
-                        var deleteGroupCommand = new MySqlCommand(
-                            "DELETE FROM ChatGroups WHERE GroupId = @GroupId",
-                            connection, transaction);
-                        deleteGroupCommand.Parameters.AddWithValue("@GroupId", groupId);
-                        var rowsAffected = await deleteGroupCommand.ExecuteNonQueryAsync();
-
-                        // 提交事务
                         await transaction.CommitAsync();
-
-                        return rowsAffected > 0;
+                        return true;
                     }
                 }
             }
@@ -603,7 +585,7 @@ namespace backend.Services
             }
         }
 
-        public async Task<List<FriendShipDTO>> GetFriendsAsync(int userId)
+        public async Task<List<FriendshipDTO>> GetFriendsAsync(int userId)
         {
             try
             {
@@ -613,34 +595,33 @@ namespace backend.Services
 
                     var command = new MySqlCommand(
                         @"SELECT 
-                            CASE 
-                                WHEN f.UserId1 = @UserId THEN f.UserId2 
-                                ELSE f.UserId1 
-                            END AS FriendId,
-                            u.Username,
-                            f.GroupId,
-                            f.CreateTime AS FriendshipCreatedTime
-                          FROM friendship f
-                          JOIN Users u ON u.UserId = 
-                              CASE 
-                                  WHEN f.UserId1 = @UserId THEN f.UserId2 
-                                  ELSE f.UserId1 
-                              END
-                          WHERE f.UserId1 = @UserId OR f.UserId2 = @UserId",
+                            f.FriendshipId,
+                            f.UserId,
+                            f.FriendId,
+                            f.Status,
+                            f.CreateTime,
+                            f.UpdateTime,
+                            u.Username
+                          FROM friendships f
+                          JOIN Users u ON u.UserId = f.FriendId
+                          WHERE f.UserId = @UserId AND f.Status = 'accepted'",
                         connection);
                     command.Parameters.AddWithValue("@UserId", userId);
 
-                    var friends = new List<FriendShipDTO>();
+                    var friends = new List<FriendshipDTO>();
                     using (var reader = await command.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
                         {
-                            friends.Add(new FriendShipDTO
+                            friends.Add(new FriendshipDTO
                             {
-                                FriendId = reader.GetInt32(reader.GetOrdinal("FriendId")),
-                                Username = reader.GetString(reader.GetOrdinal("Username")),
-                                GroupId = reader.GetInt32(reader.GetOrdinal("GroupId")),
-                                FriendshipCreatedTime = reader.GetDateTime(reader.GetOrdinal("FriendshipCreatedTime"))
+                                FriendshipId = reader.GetInt32(0),
+                                UserId = reader.GetInt32(1),
+                                FriendId = reader.GetInt32(2),
+                                Status = reader.GetString(3),
+                                CreateTime = reader.GetDateTime(4),
+                                UpdateTime = reader.GetDateTime(5),
+                                Username = reader.GetString(6)
                             });
                         }
                     }
@@ -654,7 +635,7 @@ namespace backend.Services
             }
         }
 
-        public async Task<FriendShipDTO> GetFriendByIdAsync(int userId, int friendId)
+        public async Task<FriendshipDTO> GetFriendByIdAsync(int userId, int friendId)
         {
             try
             {
@@ -664,21 +645,16 @@ namespace backend.Services
 
                     var command = new MySqlCommand(
                         @"SELECT 
-                            CASE 
-                                WHEN f.UserId1 = @UserId THEN f.UserId2 
-                                ELSE f.UserId1 
-                            END AS FriendId,
-                            u.Username,
-                            f.GroupId,
-                            f.CreateTime AS FriendshipCreatedTime
-                          FROM friendship f
-                          JOIN Users u ON u.UserId = 
-                              CASE 
-                                  WHEN f.UserId1 = @UserId THEN f.UserId2 
-                                  ELSE f.UserId1 
-                              END
-                          WHERE (f.UserId1 = @UserId AND f.UserId2 = @FriendId) 
-                             OR (f.UserId1 = @FriendId AND f.UserId2 = @UserId)",
+                            f.FriendshipId,
+                            f.UserId,
+                            f.FriendId,
+                            f.Status,
+                            f.CreateTime,
+                            f.UpdateTime,
+                            u.Username
+                          FROM friendships f
+                          JOIN Users u ON u.UserId = f.FriendId
+                          WHERE f.UserId = @UserId AND f.FriendId = @FriendId",
                         connection);
 
                     command.Parameters.AddWithValue("@UserId", userId);
@@ -688,12 +664,15 @@ namespace backend.Services
                     {
                         if (await reader.ReadAsync())
                         {
-                            return new FriendShipDTO
+                            return new FriendshipDTO
                             {
-                                FriendId = reader.GetInt32(reader.GetOrdinal("FriendId")),
-                                Username = reader.GetString(reader.GetOrdinal("Username")),
-                                GroupId = reader.GetInt32(reader.GetOrdinal("GroupId")),
-                                FriendshipCreatedTime = reader.GetDateTime(reader.GetOrdinal("FriendshipCreatedTime"))
+                                FriendshipId = reader.GetInt32(0),
+                                UserId = reader.GetInt32(1),
+                                FriendId = reader.GetInt32(2),
+                                Status = reader.GetString(3),
+                                CreateTime = reader.GetDateTime(4),
+                                UpdateTime = reader.GetDateTime(5),
+                                Username = reader.GetString(6)
                             };
                         }
                     }

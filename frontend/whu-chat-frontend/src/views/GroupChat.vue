@@ -63,31 +63,6 @@
               </div>
             </div>
           </div>
-          
-          <!-- AI总结部分 -->
-          <div class="sidebar-section summary-section" v-if="currentGroup">
-            <div class="sidebar-header">
-              <h2>AI实时总结</h2>
-              <div class="summary-status" :class="{ 'active': autoSummaryActive }">
-                {{ summarizing ? '正在总结...' : autoSummaryActive ? '自动总结已开启' : '自动总结已暂停' }}
-              </div>
-            </div>
-            <div class="summary-content-container">
-              <div v-if="summaryError" class="summary-error">
-                <p>{{ summaryError }}</p>
-              </div>
-              <div v-else-if="summarizing && !chatSummary" class="summary-loading">
-                <div class="loading-spinner"></div>
-                <p>AI正在分析聊天记录...</p>
-              </div>
-              <div v-else-if="!chatSummary" class="summary-empty">
-                <i class="summary-icon"></i>
-                <p>暂无总结内容</p>
-                <p class="summary-hint">将自动分析最近的聊天内容</p>
-              </div>
-              <div v-else class="auto-summary-content" v-html="formattedSummary"></div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -371,19 +346,6 @@ export default {
       timeout: null
     });
     
-    // 聊天总结相关
-    const summarizing = ref(false);
-    const chatSummary = ref('');
-    const summaryError = ref('');
-    
-    // 自动总结相关
-    const autoSummaryActive = ref(true);
-    const lastMessageTime = ref(Date.now());
-    const autoSummaryInterval = ref(null);
-    const summaryDebounceTimeout = ref(null);
-    const lastSummaryTime = ref(0);
-    const messageCountSinceLastSummary = ref(0);
-
     // 群组管理相关
     const showCreateGroupModal = ref(false);
     const showAddUserModal = ref(false);
@@ -534,9 +496,6 @@ export default {
         if (message.senderId !== userId.value && message.messageType !== 'system') {
           showNotification(`${formattedMessage.senderName}: ${message.content}`, 'info');
         }
-        
-        // 记录消息活动，用于自动总结功能
-        recordMessageActivity();
       });
       
       connection.value.on('ReceiveHistoryMessages', async (historyMessages) => {
@@ -619,9 +578,6 @@ export default {
       currentGroup.value = group;
       messages.value = [];
       loadingHistory.value = true;
-      chatSummary.value = '';
-      summaryError.value = '';
-      messageCountSinceLastSummary.value = 0;
       
       try {
         // 加入群组
@@ -653,13 +609,6 @@ export default {
             };
           }).sort((a, b) => new Date(a.sendTime) - new Date(b.sendTime));
           nextTick(() => scrollToBottom());
-          
-          // 初始请求一次总结
-          if (messages.value.length >= 5) {
-            setTimeout(() => {
-              requestChatSummary(true);
-            }, 1000);
-          }
         } else {
           throw new Error(response.data?.msg || '获取历史消息失败');
         }
@@ -1008,170 +957,6 @@ export default {
       return currentDate !== prevDate;
     };
     
-    // 请求聊天总结
-    const requestChatSummary = async (silent = false) => {
-      if (!isConnected.value || !currentGroup.value) {
-        if (!silent) {
-          showNotification('未连接到服务器或未选择群组', 'error');
-        }
-        return;
-      }
-      
-      // 检查自上次总结以来的时间
-      const now = Date.now();
-      if (now - lastSummaryTime.value < 10000 && silent) { // 10秒内不重复自动总结
-        return;
-      }
-      
-      // 如果是静默模式（自动总结）且消息计数器少于3条，则不总结
-      if (silent && messageCountSinceLastSummary.value < 3) {
-        return;
-      }
-      
-      summarizing.value = true;
-      summaryError.value = '';
-      
-      try {
-        const response = await axios.post(`${window.apiBaseUrl}/api/ai/summarize`, {
-          groupId: currentGroup.value.groupId,
-          userId: userId.value,
-          username: username.value,
-          messageCount: 100
-        });
-        
-        if (response.data && response.data.success) {
-          chatSummary.value = response.data.message;
-          lastSummaryTime.value = now;
-          messageCountSinceLastSummary.value = 0;
-        } else {
-          summaryError.value = response.data?.error || '生成总结失败，请稍后重试';
-          if (!silent) {
-            showNotification('总结生成失败: ' + summaryError.value, 'error');
-          }
-        }
-      } catch (error) {
-        console.error('获取聊天总结失败:', error);
-        summaryError.value = '获取聊天总结失败: ' + (error.response?.data?.error || error.message);
-        if (!silent) {
-          showNotification('总结生成失败: ' + summaryError.value, 'error');
-        }
-      } finally {
-        summarizing.value = false;
-      }
-    };
-    
-    // 自动执行聊天总结
-    const setupAutoSummary = () => {
-      // 每30秒检查是否需要更新总结
-      autoSummaryInterval.value = setInterval(() => {
-        if (!autoSummaryActive.value || !currentGroup.value) return;
-        
-        const inactiveThreshold = 60000; // 1分钟无活动则不自动总结
-        const now = Date.now();
-        
-        if (now - lastMessageTime.value > inactiveThreshold) {
-          // 聊天不活跃，不进行总结
-          console.log('聊天不活跃，跳过自动总结');
-          return;
-        }
-        
-        // 执行自动总结
-        requestChatSummary(true);
-      }, 30000); // 30秒
-    };
-    
-    // 在收到新消息时记录时间和计数
-    const recordMessageActivity = () => {
-      lastMessageTime.value = Date.now();
-      messageCountSinceLastSummary.value++;
-      
-      // 防抖处理，当快速收到多条消息时，等待一定时间后再总结
-      if (summaryDebounceTimeout.value) {
-        clearTimeout(summaryDebounceTimeout.value);
-      }
-      
-      summaryDebounceTimeout.value = setTimeout(() => {
-        // 如果收到至少5条新消息，自动触发总结
-        if (messageCountSinceLastSummary.value >= 5) {
-          requestChatSummary(true);
-        }
-      }, 5000); // 5秒后检查是否需要总结
-    };
-    
-    // 关闭总结弹窗
-    const closeSummaryModal = () => {
-      showSummaryModal.value = false;
-    };
-    
-    // 格式化总结内容
-    const formattedSummary = computed(() => {
-      if (!chatSummary.value) return '';
-      
-      // 在处理其他格式之前先处理标题和小标题
-      let formatted = chatSummary.value;
-      
-      // 移除可能出现的标记前缀
-      formatted = formatted.replace(/H3:/g, '');
-      formatted = formatted.replace(/LI:/g, '');
-      formatted = formatted.replace(/TITLE/g, '聊天记录总结');
-      
-      // 标识聊天记录总结标题
-      formatted = formatted.replace(/^聊天记录总结.*$/m, '###TITLE###');
-      
-      // 标识小标题（主要话题、重要观点和信息等）
-      formatted = formatted.replace(/^主要话题$/m, '###H3:主要话题###');
-      formatted = formatted.replace(/^重要观点和信息$/m, '###H3:重要观点和信息###');
-      formatted = formatted.replace(/^提出的问题$/m, '###H3:提出的问题###');
-      formatted = formatted.replace(/^达成的共识或结论$/m, '###H3:达成的共识或结论###');
-      formatted = formatted.replace(/^补充观察$/m, '###H3:补充观察###');
-      
-      // 标识列表项
-      formatted = formatted.replace(/^- (.*)$/gm, '###LI:$1###');
-      
-      // 现在将换行符转换为<br>
-      formatted = formatted.replace(/\n/g, '<br>');
-      
-      // 删除多余的标记符号如 #，###, #### 等（除了我们自己添加的###标记）
-      formatted = formatted.replace(/(?<!###)#+\s+/g, '');
-      formatted = formatted.replace(/\s*(?<!###)#+(?!###)/g, '');
-      
-      // 转换我们之前标记的内容
-      formatted = formatted.replace(/###TITLE###/, '<h2>聊天记录总结</h2>');
-      formatted = formatted.replace(/###H3:(.*?)###/g, '<h3>$1</h3>');
-      
-      // 将标记的列表项转换为HTML列表项
-      formatted = formatted.replace(/###LI:(.*?)###/g, '<li>$1</li>');
-      
-      // 包装列表项到无序列表中
-      if (formatted.includes('<li>')) {
-        let parts = formatted.split('<h3>');
-        for (let i = 1; i < parts.length; i++) {
-          const headingEnd = parts[i].indexOf('</h3>');
-          if (headingEnd !== -1) {
-            const afterHeading = parts[i].substring(headingEnd + 5);
-            if (afterHeading.includes('<li>')) {
-              // 使用非贪婪匹配确保正确地将所有列表项包装在ul标签中
-              const withList = parts[i].substring(0, headingEnd + 5) + 
-                              '<ul>' + 
-                              afterHeading.replace(/(<li>.*?<\/li>)+/g, match => match) + 
-                              '</ul>';
-              parts[i] = withList;
-            }
-          }
-        }
-        formatted = parts.join('<h3>');
-      }
-      
-      // 将Markdown风格的粗体和斜体转换为HTML标签
-      formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-      
-      // 美化注释部分
-      formatted = formatted.replace(/注：(.*?)(?:<br>|$)/g, '<div class="summary-note"><strong>注：</strong>$1</div>');
-      
-      return formatted;
-    });
-    
     // 处理群组搜索
     const handleGroupSearch = async () => {
       try {
@@ -1236,9 +1021,6 @@ export default {
         }
       });
       
-      // 设置自动总结
-      setupAutoSummary();
-      
       // 加载好友列表
       loadFriendsList();
     });
@@ -1257,15 +1039,6 @@ export default {
       
       if (notification.value.timeout) {
         clearTimeout(notification.value.timeout);
-      }
-      
-      // 清除自动总结相关的定时器
-      if (autoSummaryInterval.value) {
-        clearInterval(autoSummaryInterval.value);
-      }
-      
-      if (summaryDebounceTimeout.value) {
-        clearTimeout(summaryDebounceTimeout.value);
       }
     });
     
@@ -1314,12 +1087,6 @@ export default {
       // 通知
       notification,
       
-      // 聊天总结相关
-      summarizing,
-      chatSummary,
-      summaryError,
-      autoSummaryActive,
-      
       // 群组管理相关
       showCreateGroupModal,
       showAddUserModal,
@@ -1356,9 +1123,7 @@ export default {
       formatFileSize,
       getMessageClass,
       shouldShowDateSeparator,
-      requestChatSummary,
       handleGroupSearch,
-      formattedSummary
     };
   }
 };
@@ -1754,6 +1519,16 @@ export default {
   background-color: #e0e0e0;
 }
 
+.tool-button.emoji-button {
+  position: relative;
+}
+
+.tool-button.emoji-button::before {
+  content: "😊";
+  font-size: 20px;
+  line-height: 1;
+}
+
 .input-container {
   flex: 1;
   position: relative;
@@ -1813,6 +1588,7 @@ export default {
   grid-template-columns: repeat(8, 1fr);
   gap: 8px;
   margin-bottom: 10px;
+  z-index: 1000;
 }
 
 .emoji-item {
@@ -1824,10 +1600,12 @@ export default {
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.2s;
+  font-size: 20px;
 }
 
 .emoji-item:hover {
   background-color: #f5f7fb;
+  transform: scale(1.1);
 }
 
 .new-message-indicator {
@@ -1987,214 +1765,14 @@ export default {
   box-shadow: 0 5px 15px rgba(71, 118, 230, 0.3);
 }
 
-.summary-status {
-  font-size: 12px;
-  color: #999;
-  padding: 3px 8px;
-  border-radius: 10px;
-  background-color: #f5f5f5;
-}
-
-.summary-status.active {
-  color: #52c41a;
-  background-color: #f6ffed;
-}
-
-.summary-section .sidebar-header {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.summary-section .sidebar-header h2 {
-  margin: 0;
-}
-
-.groups-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0;
-  scrollbar-width: thin;
-  scrollbar-color: #ddd #f5f5f5;
-}
-
-.groups-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.groups-list::-webkit-scrollbar-track {
-  background: #f5f5f5;
-}
-
-.groups-list::-webkit-scrollbar-thumb {
-  background-color: #ddd;
-  border-radius: 3px;
-}
-
-.summary-content-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 15px;
-  position: relative;
-  scrollbar-width: thin;
-  scrollbar-color: #ddd #f5f5f5;
-}
-
-.summary-content-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.summary-content-container::-webkit-scrollbar-track {
-  background: #f5f5f5;
-}
-
-.summary-content-container::-webkit-scrollbar-thumb {
-  background-color: #ddd;
-  border-radius: 3px;
-}
-
-.auto-summary-content {
-  color: #333;
-  line-height: 1.6;
-  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-}
-
-.auto-summary-content h2 {
-  margin-top: 0;
-  font-size: 18px;
-  color: #4776E6;
-  margin-bottom: 15px;
-  text-align: center;
-  font-weight: 600;
-  border-bottom: 2px solid #4776E6;
-  padding-bottom: 10px;
-  position: relative;
-}
-
-.auto-summary-content h3 {
-  font-size: 16px;
-  color: #fff;
-  margin-top: 15px;
-  margin-bottom: 10px;
-  font-weight: 600;
-  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
-  padding: 8px 12px;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(71, 118, 230, 0.2);
-  position: relative;
-  padding-left: 15px;
-  display: flex;
-  align-items: center;
-}
-
-.auto-summary-content ul {
-  margin: 0 0 15px 0;
-  padding: 0;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  border: 1px solid #eee;
-}
-
-.auto-summary-content li {
-  margin: 0;
-  padding: 8px 15px 8px 30px;
-  position: relative;
-  list-style-type: none;
-  border-bottom: 1px solid #eee;
-  transition: background-color 0.2s ease;
-  font-size: 14px;
-}
-
-.auto-summary-content li:last-child {
-  border-bottom: none;
-}
-
-.auto-summary-content li:hover {
-  background-color: #f0f7ff;
-}
-
-.auto-summary-content li::before {
-  content: "";
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  background-color: #4776E6;
-  left: 15px;
-  top: 14px;
-  border-radius: 50%;
-}
-
-.summary-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 100px;
-  padding: 20px 0;
-}
-
-.summary-loading .loading-spinner {
-  width: 30px;
-  height: 30px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #4776E6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 15px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.summary-loading p {
-  color: #999;
-  font-size: 14px;
-}
-
-.summary-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 150px;
-  color: #999;
-  padding: 20px 0;
-}
-
-.summary-empty i {
-  font-size: 40px;
-  margin-bottom: 15px;
-  opacity: 0.5;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23bbb'%3E%3Cpath d='M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-2 17H8v-2h4v2zm6-4H6v-2h12v2zm0-4H6v-2h12v2z'/%3E%3C/svg%3E");
-  width: 48px;
-  height: 48px;
-  background-size: contain;
-  background-repeat: no-repeat;
-}
-
-.summary-empty p {
-  margin: 5px 0;
-  text-align: center;
-}
-
-.summary-hint {
-  font-size: 12px;
-  color: #bbb;
-  margin-top: 5px;
-}
-
+.summary-section,
+.summary-status,
+.summary-content-container,
+.auto-summary-content,
+.summary-loading,
+.summary-empty,
+.summary-hint,
 .summary-error {
-  background-color: #fff5f5;
-  border-radius: 8px;
-  padding: 15px;
-  color: #cf1322;
-  font-size: 14px;
-  margin: 10px 0;
+  display: none;
 }
 </style> 

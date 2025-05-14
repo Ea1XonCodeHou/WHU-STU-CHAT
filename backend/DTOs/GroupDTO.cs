@@ -13,9 +13,19 @@ namespace backend.DTOs
         public DateTime UpdateTime { get; set; }
     }
 
+    public class GroupMemberDTO
+    {
+        public int UserId { get; set; }
+        public string Username { get; set; }
+        public string Avatar { get; set; }
+        public DateTime LastActive { get; set; }
+        public DateTime JoinTime { get; set; } 
+        public string Role { get; set; } // 角色（管理员、成员等）
+    }
+
     public class GroupDetailDTO : GroupDTO
     {
-        public List<UserDTO> Members { get; set; }
+        public List<GroupMemberDTO> Members { get; set; }
     }
 
     public class GroupRegDTO

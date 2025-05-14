@@ -58,7 +58,7 @@ namespace backend.Services
         /// <param name="groupId">群组ID</param>
         /// <param name="userId">用户ID</param>
         /// <returns>是否添加成功</returns>
-        Task<bool> AddUserToGroupAsync(int groupId, int userId);
+        Task<bool> AddUserToGroupAsync(int groupId, int userId, int operatorUserId);
 
         /// <summary>
         /// 通过用户名添加用户到群组
@@ -66,7 +66,7 @@ namespace backend.Services
         /// <param name="groupId">群组ID</param>
         /// <param name="userName">用户名</param>
         /// <returns>是否添加成功</returns>
-        Task<bool> AddUserToGroupByUserNameAsync(int groupId, string userName);
+        Task<bool> AddUserToGroupByUserNameAsync(int groupId, string userName,int operatorUserId);
 
 
         /// <summary>
@@ -75,14 +75,22 @@ namespace backend.Services
         /// <param name="groupId">群组ID</param>
         /// <param name="userId">用户ID</param>
         /// <returns>是否移除成功</returns>
-        Task<bool> RemoveUserFromGroupAsync(int groupId, int userId);
+        Task<bool> RemoveUserFromGroupAsync(int groupId, int userId, int operatorUserId);
 
         /// <summary>
         /// 获取群组用户列表
         /// </summary>
         /// <param name="groupId">群组ID</param>
         /// <returns>用户列表</returns>
-        Task<List<UserDTO>> GetGroupUsersAsync(int groupId);
+        Task<List<GroupMemberDTO>> GetGroupUsersAsync(int groupId);
+
+        /// <summary>
+        /// 切换群成员的管理员角色（admin/member），如果为群主（creator）则返回“群主不能卸任”
+        /// </summary>
+        /// <param name="groupId">群组ID</param>
+        /// <param name="userId">用户ID</param>
+        /// <returns>切换结果消息，成功返回“已切换”，群主返回“群主不能卸任”，失败返回错误信息</returns>
+        Task<string> ToggleAdminRoleAsync(int groupId, int userId, int operatorUserId);
 
         /// <summary>
         /// 保存群组消息

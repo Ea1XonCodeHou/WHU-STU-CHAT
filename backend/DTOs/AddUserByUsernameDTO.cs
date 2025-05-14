@@ -12,5 +12,6 @@ namespace backend.DTOs
         /// </summary>
         [Required(ErrorMessage = "用户名不能为空")]
         public string UserName { get; set; }
+        public int OperatorUserId { get; set; } 
     }
 } 

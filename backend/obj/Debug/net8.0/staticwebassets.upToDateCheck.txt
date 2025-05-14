@@ -8,3 +8,4 @@ wwwroot\uploads\avatars\5_7fec05bd-bd5e-4c62-9e59-996c9173a6c1.png
 wwwroot\uploads\avatars\5_9ae60191-d46e-4603-842b-d48176a2079b.png
 wwwroot\uploads\avatars\5_afe86904-1072-4b78-b13c-78350426ea9b.png
 wwwroot\uploads\avatars\5_ea361a06-f462-4046-b696-43dcba5e8aba.png
+wwwroot\uploads\avatars\7_1abc6b9b-bf9c-4ab0-9928-13a720f0ca25.png

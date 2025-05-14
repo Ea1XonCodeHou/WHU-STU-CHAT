@@ -76,11 +76,11 @@ namespace backend.Controllers
         }
 
         [HttpPost("{groupId}/add-user/{userId}")]
-        public async Task<IActionResult> AddUserToGroup(int groupId, int userId)
+        public async Task<IActionResult> AddUserToGroup(int groupId, int userId, [FromQuery] int operatorUserId)
         {
             try
             {
-                var result = await _groupService.AddUserToGroupAsync(groupId, userId);
+                var result = await _groupService.AddUserToGroupAsync(groupId, userId, operatorUserId);
                 if (result)
                     return Ok(new { code = 200, msg = "添加用户到群组成功" });
                 return BadRequest(new { code = 400, msg = "添加用户到群组失败" });
@@ -101,7 +101,7 @@ namespace backend.Controllers
                     return BadRequest(new { code = 400, msg = "用户名不能为空" });
                 }
 
-                var result = await _groupService.AddUserToGroupByUserNameAsync(groupId, request.UserName);
+                var result = await _groupService.AddUserToGroupByUserNameAsync(groupId, request.UserName,request.OperatorUserId);
                 if (result)
                 {
                     return Ok(new { code = 200, msg = "用户已成功添加到群组" });
@@ -115,11 +115,11 @@ namespace backend.Controllers
         }
 
         [HttpDelete("{groupId}/remove-user/{userId}")]
-        public async Task<IActionResult> RemoveUserFromGroup(int groupId, int userId)
+        public async Task<IActionResult> RemoveUserFromGroup(int groupId, int userId, [FromQuery] int operatorUserId)
         {
             try
             {
-                var result = await _groupService.RemoveUserFromGroupAsync(groupId, userId);
+                var result = await _groupService.RemoveUserFromGroupAsync(groupId, userId, operatorUserId);
                 if (result)
                     return Ok(new { code = 200, msg = "从群组移除用户成功" });
                 return BadRequest(new { code = 400, msg = "从群组移除用户失败" });
@@ -129,6 +129,15 @@ namespace backend.Controllers
                 return BadRequest(new { code = 400, msg = ex.Message });
             }
         }
+        [HttpPost("{groupId}/toggle-admin/{userId}")]
+        public async Task<IActionResult> ToggleAdminRole(int groupId, int userId, [FromQuery] int operatorUserId)
+        {
+            var result = await _groupService.ToggleAdminRoleAsync(groupId, userId, operatorUserId);
+            if (result == "已切换")
+                return Ok(new { code = 200, msg = result });
+            return BadRequest(new { code = 400, msg = result });
+        }
+
 
         [HttpGet("{groupId}/users")]
         public async Task<IActionResult> GetGroupUsers(int groupId)

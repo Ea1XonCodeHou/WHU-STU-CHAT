@@ -54,7 +54,7 @@ namespace backend.Services
                             insertGroupCommand.Parameters.AddWithValue("@GroupName", groupRegDto.GroupName);
                             insertGroupCommand.Parameters.AddWithValue("@Description", groupRegDto.Description);
                             insertGroupCommand.Parameters.AddWithValue("@CreatorId", groupRegDto.CreatorId);
-                            insertGroupCommand.Parameters.AddWithValue("@MemberCount", groupRegDto.MemberCount);
+                            insertGroupCommand.Parameters.AddWithValue("@MemberCount", 1);
                             insertGroupCommand.Parameters.AddWithValue("@CreateTime", DateTime.UtcNow);
                             insertGroupCommand.Parameters.AddWithValue("@IsPrivate", 0); // 设置 IsPrivate 为 0
 
@@ -62,14 +62,15 @@ namespace backend.Services
 
                             // 用新 groupId 插入 GroupMembers
                             var insertMemberCommand = new MySqlCommand(
-                                @"INSERT INTO GroupMembers (MemberId, GroupId, UserId, JoinTime) 
-                                  VALUES (@MemberId, @GroupId, @UserId, @JoinTime)",
+                                @"INSERT INTO GroupMembers (MemberId, GroupId, UserId, JoinTime,Role) 
+                                  VALUES (@MemberId, @GroupId, @UserId, @JoinTime, @Role)",
                                 connection, transaction);
 
                             insertMemberCommand.Parameters.AddWithValue("@MemberId", groupId * 10000 + groupRegDto.CreatorId);
                             insertMemberCommand.Parameters.AddWithValue("@GroupId", groupId);
                             insertMemberCommand.Parameters.AddWithValue("@UserId", groupRegDto.CreatorId);
                             insertMemberCommand.Parameters.AddWithValue("@JoinTime", DateTime.UtcNow);
+                            insertMemberCommand.Parameters.AddWithValue("@Role","master");
 
                             await insertMemberCommand.ExecuteNonQueryAsync();
 
@@ -110,6 +111,12 @@ namespace backend.Services
                         connection);
                     deleteGroupMembersCommand.Parameters.AddWithValue("@GroupId", groupId);
                     await deleteGroupMembersCommand.ExecuteNonQueryAsync();
+
+                    var deleteGroupMessageCommand = new MySqlCommand(
+                        "DELETE FROM GroupMessages WHERE GroupId = @GroupId",
+                        connection);
+                    deleteGroupMessageCommand.Parameters.AddWithValue("@GroupId", groupId);
+                    await deleteGroupMessageCommand.ExecuteNonQueryAsync();
 
                     // 删除 ChatGroups 表中 GroupId 为指定 groupId 的记录
                     var deleteGroupCommand = new MySqlCommand(
@@ -185,8 +192,39 @@ namespace backend.Services
             }
         }
 
-        
+
         public async Task<GroupDetailDTO> GetGroupDetailsAsync(int groupId)
+        {
+            try
+            {
+                // 获取群组基本信息
+                var group = await GetGroupAsync(groupId);
+                if (group == null)
+                    return null;
+
+                // 获取群成员列表
+                var members = await GetGroupUsersAsync(groupId);
+
+                // 组装 GroupDetailDTO
+                var detail = new GroupDetailDTO
+                {
+                    GroupId = group.GroupId,
+                    GroupName = group.GroupName,
+                    Description = group.Description,
+                    CreatorId = group.CreatorId,
+                    MemberCount = group.MemberCount,
+                    Members = members
+                };
+                return detail;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"获取群组详情失败: {ex.Message}");
+            }
+        }
+
+
+        public async Task<GroupDTO> GetGroupAsync(int groupId)
         {
             try
             {
@@ -201,7 +239,7 @@ namespace backend.Services
                     {
                         if (await reader.ReadAsync())
                         {
-                            return new GroupDetailDTO
+                            return new GroupDTO
                             {
                                 GroupId = reader.GetInt32(0),
                                 GroupName = reader.GetString(1),
@@ -217,39 +255,6 @@ namespace backend.Services
             }
             catch (Exception ex)
             {
-                throw new Exception($"获取群组详情失败: {ex.Message}");
-            }
-            return null;
-        }
-
-        
-        public async Task<GroupDTO> GetGroupAsync(int groupId)
-        {
-            try
-            {
-                using (var connection = new MySqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-                    var command = new MySqlCommand(
-                        "SELECT GroupId, GroupName, UpdateTime FROM ChatGroups WHERE GroupId = @GroupId AND IsPrivate = 0",
-                        connection);
-                    command.Parameters.AddWithValue("@GroupId", groupId);
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        if (await reader.ReadAsync())
-                        {
-                            return new GroupDTO
-                            {
-                                GroupId = reader.GetInt32(0),
-                                GroupName = reader.GetString(1),
-                                UpdateTime = reader.GetDateTime(2)
-                            };
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
                 throw new Exception($"获取群组失败: {ex.Message}");
             }
             return null;
@@ -257,15 +262,19 @@ namespace backend.Services
 
 
 
-        public async Task<bool> AddUserToGroupAsync(int groupId, int userId)
+        public async Task<bool> AddUserToGroupAsync(int groupId, int userId, int operatorUserId)
         {
+            // 权限校验
+            if (!await IsUserAdminAsync(groupId, operatorUserId))
+                throw new Exception("无权限，只有管理员或群主可以添加成员");
+
             try
             {
                 using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
 
-                    // Step 1: 检查用户是否已经在群组中
+                    // 检查用户是否已经在群组中
                     var checkMemberCommand = new MySqlCommand(
                         "SELECT COUNT(1) FROM GroupMembers WHERE GroupId = @GroupId AND UserId = @UserId",
                         connection);
@@ -278,7 +287,7 @@ namespace backend.Services
                         throw new Exception("用户已在群组中");
                     }
 
-                    // Step 2: 插入新成员到 GroupMembers 表
+                    // 插入新成员
                     var addMemberCommand = new MySqlCommand(
                         "INSERT INTO GroupMembers (MemberId, GroupId, UserId, JoinTime) VALUES (@MemberId, @GroupId, @UserId, @JoinTime)",
                         connection);
@@ -290,7 +299,7 @@ namespace backend.Services
 
                     if (rowsAffected > 0)
                     {
-                        // Step 3: 更新 ChatGroups 表中的 MemberCount
+                        // 更新群成员数
                         var updateMemberCountCommand = new MySqlCommand(
                             "UPDATE ChatGroups SET MemberCount = MemberCount + 1 WHERE GroupId = @GroupId",
                             connection);
@@ -309,15 +318,19 @@ namespace backend.Services
             }
         }
 
-        public async Task<bool> AddUserToGroupByUserNameAsync(int groupId, string userName)
+        public async Task<bool> AddUserToGroupByUserNameAsync(int groupId, string userName, int operatorUserId)
         {
+            // 权限校验
+            if (!await IsUserAdminAsync(groupId, operatorUserId))
+                throw new Exception("无权限，只有管理员或群主可以添加成员");
+
             try
             {
                 using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
 
-                    // Step 1: 根据 userName 查询 userId
+                    // 查询 userId
                     var getUserIdCommand = new MySqlCommand(
                         "SELECT UserId FROM Users WHERE Username = @UserName",
                         connection);
@@ -329,8 +342,8 @@ namespace backend.Services
                         throw new Exception($"用户名 {userName} 不存在");
                     }
 
-                    // Step 2: 调用现有的 AddUserToGroupAsync 方法
-                    return await AddUserToGroupAsync(groupId, userId);
+                    // 传递 operatorUserId
+                    return await AddUserToGroupAsync(groupId, userId, operatorUserId);
                 }
             }
             catch (Exception ex)
@@ -340,14 +353,17 @@ namespace backend.Services
         }
 
 
-        public async Task<bool> RemoveUserFromGroupAsync(int groupId, int userId)
+        public async Task<bool> RemoveUserFromGroupAsync(int groupId, int userId, int operatorUserId)
         {
+            // 权限校验
+            if (!await IsUserAdminAsync(groupId, operatorUserId))
+                throw new Exception("无权限，只有管理员或群主可以移除成员");
+
             try
             {
                 using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
-                    // Step 1: 从 GroupMembers 表中删除成员
                     var removeMemberCommand = new MySqlCommand(
                         "DELETE FROM GroupMembers WHERE GroupId = @GroupId AND UserId = @UserId",
                         connection);
@@ -356,7 +372,6 @@ namespace backend.Services
                     var rowsAffected = await removeMemberCommand.ExecuteNonQueryAsync();
                     if (rowsAffected > 0)
                     {
-                        // Step 2: 更新 ChatGroups 表中的 MemberCount
                         var updateMemberCountCommand = new MySqlCommand(
                             "UPDATE ChatGroups SET MemberCount = MemberCount - 1 WHERE GroupId = @GroupId",
                             connection);
@@ -372,8 +387,8 @@ namespace backend.Services
                 throw new Exception($"从群组移除用户失败: {ex.Message}");
             }
         }
-        
-        public async Task<List<UserDTO>> GetGroupUsersAsync(int groupId)
+
+        public async Task<List<GroupMemberDTO>> GetGroupUsersAsync(int groupId)
         {
             try
             {
@@ -381,22 +396,25 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
                     var command = new MySqlCommand(
-                        @"SELECT u.UserId, u.Username, u.LastLoginTime
-                          FROM GroupMembers gm
-                          JOIN Users u ON gm.UserId = u.UserId
-                          WHERE gm.GroupId = @GroupId",
+                        @"SELECT u.UserId, u.Username, u.Avatar, u.LastLoginTime, gm.Role, gm.JoinTime
+                  FROM GroupMembers gm
+                  JOIN Users u ON gm.UserId = u.UserId
+                  WHERE gm.GroupId = @GroupId",
                         connection);
                     command.Parameters.AddWithValue("@GroupId", groupId);
-                    var users = new List<UserDTO>();
+                    var users = new List<GroupMemberDTO>();
                     using (var reader = await command.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
                         {
-                            users.Add(new UserDTO
+                            users.Add(new GroupMemberDTO
                             {
-                                Id = reader.GetInt32(0),
-                                Username = reader.GetString(1),
-                                LastActive = reader.GetDateTime(2)
+                                UserId = reader.GetInt32(0),
+                                Username = reader.IsDBNull(1) ? null : reader.GetString(1),
+                                Avatar = reader.IsDBNull(2) ? null : reader.GetString(2),
+                                LastActive = reader.IsDBNull(3) ? DateTime.MinValue : reader.GetDateTime(3),
+                                Role = reader.IsDBNull(4) ? null : reader.GetString(4),
+                                JoinTime = reader.IsDBNull(5) ? DateTime.MinValue : reader.GetDateTime(5),
                             });
                         }
                     }
@@ -409,8 +427,8 @@ namespace backend.Services
             }
         }
 
-        
-        public async Task<int> SaveGroupMessageAsync(int groupId, int userId, string message)//这一个是ai推荐的，并未使用sigallr，晚点可能删除
+
+        public async Task<int> SaveGroupMessageAsync(int groupId, int userId, string message)
         {
             try
             {
@@ -418,12 +436,13 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
                     var command = new MySqlCommand(
-                        "INSERT INTO GroupMessages (GroupId, SenderId, Content, CreateTime) VALUES (@GroupId, @SenderId, @Content, @CreateTIme); SELECT LAST_INSERT_ID();",
+                        "INSERT INTO GroupMessages (GroupId, SenderId, Content, CreateTime,MessageType) VALUES (@GroupId, @SenderId, @Content, @CreateTIme,@MessageType); SELECT LAST_INSERT_ID();",
                         connection);
                     command.Parameters.AddWithValue("@GroupId", groupId);
                     command.Parameters.AddWithValue("@SenderId", userId);
                     command.Parameters.AddWithValue("@Content", message);
                     command.Parameters.AddWithValue("@CreateTime", DateTime.UtcNow);
+                    command.Parameters.AddWithValue("@MessageType","text");
                     var messageId = Convert.ToInt32(await command.ExecuteScalarAsync());
                     return messageId;
                 }
@@ -486,6 +505,139 @@ namespace backend.Services
                 return count > 0;
             }
         }
+
+        public async Task<bool> IsUserAdminAsync(int groupId, int userId)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    // 查询 GroupMembers 表中的 Role 列
+                    var command = new MySqlCommand(
+                        "SELECT Role FROM GroupMembers WHERE GroupId = @GroupId AND UserId = @UserId",
+                        connection);
+                    command.Parameters.AddWithValue("@GroupId", groupId);
+                    command.Parameters.AddWithValue("@UserId", userId);
+
+                    var role = await command.ExecuteScalarAsync() as string;
+
+                    // 如果角色是 "master" 或 "admin"，返回 true
+                    return role == "master" || role == "admin";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"验证用户管理员权限失败: {ex.Message}");
+            }
+        }
+        public async Task<string> ToggleAdminRoleAsync(int groupId, int userId, int operatorUserId)
+        {
+            // 权限校验
+            if (!await IsUserAdminAsync(groupId, operatorUserId))
+                return "无权限，只有管理员或群主可以切换角色";
+
+            try
+            {
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    var getRoleCommand = new MySqlCommand(
+                        "SELECT Role FROM GroupMembers WHERE GroupId = @GroupId AND UserId = @UserId",
+                        connection);
+                    getRoleCommand.Parameters.AddWithValue("@GroupId", groupId);
+                    getRoleCommand.Parameters.AddWithValue("@UserId", userId);
+
+                    var role = await getRoleCommand.ExecuteScalarAsync() as string;
+
+                    if (role == "creator")
+                    {
+                        return "群主不能卸任";
+                    }
+
+                    string newRole = role == "admin" ? "member" : "admin";
+
+                    var updateRoleCommand = new MySqlCommand(
+                        "UPDATE GroupMembers SET Role = @NewRole WHERE GroupId = @GroupId AND UserId = @UserId",
+                        connection);
+                    updateRoleCommand.Parameters.AddWithValue("@NewRole", newRole);
+                    updateRoleCommand.Parameters.AddWithValue("@GroupId", groupId);
+                    updateRoleCommand.Parameters.AddWithValue("@UserId", userId);
+
+                    var rowsAffected = await updateRoleCommand.ExecuteNonQueryAsync();
+
+                    return rowsAffected > 0 ? "已切换" : "切换失败";
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"切换管理员角色失败: {ex.Message}";
+            }
+        }
+
+
+
+
+        /// <summary>
+        /// 根据群组名称搜索群组
+        /// </summary>
+        /// <param name="groupName">群组名称</param>
+        /// <param name="userId">用户ID</param>
+        /// <returns>匹配的群组列表</returns>
+        public async Task<List<GroupDTO>> SearchGroupsByNameAsync(string groupName, int userId)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    // 查询用户所在的群组，并根据群组名称模糊匹配，且 IsPrivate = 0
+                    var sql = @"
+                        SELECT g.GroupId, g.GroupName, g.Description, g.UpdateTime, g.MemberCount 
+                        FROM ChatGroups g
+                        JOIN GroupMembers m ON g.GroupId = m.GroupId
+                        WHERE m.UserId = @UserId AND g.GroupName LIKE @SearchPattern AND g.IsPrivate = 0
+                        ORDER BY g.UpdateTime DESC";
+
+                    using (var command = new MySqlCommand(sql, connection))
+                    {
+                        command.Parameters.AddWithValue("@UserId", userId);
+                        command.Parameters.AddWithValue("@SearchPattern", $"%{groupName}%");
+
+                        var groups = new List<GroupDTO>();
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                groups.Add(new GroupDTO
+                                {
+                                    GroupId = reader.GetInt32(0),
+                                    GroupName = reader.GetString(1),
+                                    Description = reader.GetString(2),
+                                    UpdateTime = reader.GetDateTime(3),
+                                    MemberCount = reader.GetInt32(4)
+                                });
+                            }
+                        }
+                        return groups;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"搜索群组失败: {ex.Message}");
+            }
+        }
+
+
+        //以下的代码是曾经的好友系统使用的，在确定前展示不删除
+
+
+
+
 
         public async Task<bool> AddFriendAsync(int user1Id, int user2Id)
         {
@@ -739,57 +891,6 @@ namespace backend.Services
             return result;
         }
 
-        /// <summary>
-        /// 根据群组名称搜索群组
-        /// </summary>
-        /// <param name="groupName">群组名称</param>
-        /// <param name="userId">用户ID</param>
-        /// <returns>匹配的群组列表</returns>
-        public async Task<List<GroupDTO>> SearchGroupsByNameAsync(string groupName, int userId)
-        {
-            try
-            {
-                using (var connection = new MySqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-
-                    // 查询用户所在的群组，并根据群组名称模糊匹配，且 IsPrivate = 0
-                    var sql = @"
-                        SELECT g.GroupId, g.GroupName, g.Description, g.UpdateTime, g.MemberCount 
-                        FROM ChatGroups g
-                        JOIN GroupMembers m ON g.GroupId = m.GroupId
-                        WHERE m.UserId = @UserId AND g.GroupName LIKE @SearchPattern AND g.IsPrivate = 0
-                        ORDER BY g.UpdateTime DESC";
-
-                    using (var command = new MySqlCommand(sql, connection))
-                    {
-                        command.Parameters.AddWithValue("@UserId", userId);
-                        command.Parameters.AddWithValue("@SearchPattern", $"%{groupName}%");
-
-                        var groups = new List<GroupDTO>();
-                        using (var reader = await command.ExecuteReaderAsync())
-                        {
-                            while (await reader.ReadAsync())
-                            {
-                                groups.Add(new GroupDTO
-                                {
-                                    GroupId = reader.GetInt32(0),
-                                    GroupName = reader.GetString(1),
-                                    Description = reader.GetString(2),
-                                    UpdateTime = reader.GetDateTime(3),
-                                    MemberCount = reader.GetInt32(4)
-                                });
-                            }
-                        }
-                        return groups;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"搜索群组失败: {ex.Message}");
-            }
-        }
 
         public bool IsUserOnline(int userId)
         {

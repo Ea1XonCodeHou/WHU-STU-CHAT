@@ -465,6 +465,11 @@
         "Name": "groupId",
         "Type": "System.Int32",
         "IsRequired": true
+      },
+      {
+        "Name": "operatorUserId",
+        "Type": "System.Int32",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []

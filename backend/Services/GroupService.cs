@@ -96,9 +96,13 @@ namespace backend.Services
             }
         }
 
-        
-        public async Task<bool> DeleteGroupAsync(int groupId)
+
+        public async Task<bool> DeleteGroupAsync(int groupId, int operatorUserId)
         {
+            // 权限校验
+            if (!await IsUserAdminAsync(groupId, operatorUserId))
+                throw new Exception("无权限，只有管理员或群主可以删除群组");
+
             try
             {
                 using (var connection = new MySqlConnection(_connectionString))
@@ -133,7 +137,7 @@ namespace backend.Services
                 throw new Exception($"删除群组失败: {ex.Message}");
             }
         }
-        
+
         public async Task<List<GroupDTO>> GetAllGroupsAsync(int userId)
         {
             try

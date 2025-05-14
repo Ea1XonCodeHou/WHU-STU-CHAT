@@ -30,11 +30,11 @@ namespace backend.Controllers
         }
 
         [HttpDelete("{groupId}")]
-        public async Task<IActionResult> DeleteGroup(int groupId)
+        public async Task<IActionResult> DeleteGroup(int groupId, [FromQuery] int operatorUserId)
         {
             try
             {
-                var result = await _groupService.DeleteGroupAsync(groupId);
+                var result = await _groupService.DeleteGroupAsync(groupId, operatorUserId);
                 if (result)
                     return Ok(new { code = 200, msg = "群组删除成功" });
                 return NotFound(new { code = 404, msg = "群组不存在" });

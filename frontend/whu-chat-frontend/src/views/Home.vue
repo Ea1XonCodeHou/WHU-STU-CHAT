@@ -416,15 +416,31 @@
           <div class="create-group-form">
             <div class="form-group">
               <label for="groupName">群组名称</label>
-              <input type="text" id="groupName" v-model="groupName" placeholder="输入群组名称...">
+              <input 
+                type="text" 
+                id="groupName" 
+                v-model="groupName" 
+                placeholder="输入群组名称..."
+                class="form-input"
+              >
             </div>
             <div class="form-group">
               <label for="groupDescription">群组描述</label>
-              <textarea id="groupDescription" v-model="groupDescription" placeholder="输入群组描述..."></textarea>
+              <textarea 
+                id="groupDescription" 
+                v-model="groupDescription" 
+                placeholder="输入群组描述..."
+                class="form-textarea"
+              ></textarea>
             </div>
-            <button class="submit-button" @click="createGroup">
-              <i class="fa-solid fa-plus"></i> 创建
-            </button>
+            <div class="form-actions">
+              <button class="action-button cancel" @click="showCreateGroupModal = false">
+                <i class="fa-solid fa-times"></i> 取消
+              </button>
+              <button class="action-button submit" @click="createGroup">
+                <i class="fa-solid fa-plus"></i> 创建
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -965,7 +981,11 @@ export default {
       if (!selectedGroup.value) return;
       
       try {
-        const response = await axios.delete(`/api/group/${selectedGroup.value.groupId}`);
+        const response = await axios.delete(`/api/group/${selectedGroup.value.groupId}`, {
+          params: {
+            operatorUserId: parseInt(userId.value)
+          }
+        });
         if (response.data.code === 200) {
           selectedGroup.value = null;
           await fetchGroups();
@@ -2656,5 +2676,286 @@ export default {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 20px;
+  padding: 5px;
+  transition: all 0.2s;
+}
+
+.close-button:hover {
+  color: #333;
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.create-group-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-input,
+.form-textarea {
+  padding: 10px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  border-color: #4776E6;
+  box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.1);
+  outline: none;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.action-button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.action-button.cancel {
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  color: #333;
+}
+
+.action-button.submit {
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  border: none;
+  color: white;
+}
+
+.action-button.cancel:hover {
+  background-color: #e0e0e0;
+}
+
+.action-button.submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(71, 118, 230, 0.3);
+}
+
+.action-button i {
+  font-size: 14px;
+}
+
+.add-member-section {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  width: 400px;
+  max-width: 90%;
+  z-index: 1000;
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.add-member-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.add-member-section .section-header h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+}
+
+.add-member-section .close-button {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.add-member-section .close-button:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.add-member-form {
+  padding: 20px;
+}
+
+.add-member-form .form-group {
+  margin-bottom: 20px;
+}
+
+.add-member-form label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.add-member-form input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #eee;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.add-member-form input:focus {
+  border-color: #4776E6;
+  box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.1);
+  outline: none;
+}
+
+.add-member-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.add-member-form .action-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.add-member-form .action-button.cancel {
+  background: #f5f5f5;
+  border: none;
+  color: #666;
+}
+
+.add-member-form .action-button.cancel:hover {
+  background: #eee;
+  color: #333;
+}
+
+.add-member-form .action-button.submit {
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  border: none;
+  color: white;
+}
+
+.add-member-form .action-button.submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(71, 118, 230, 0.2);
+}
+
+.add-member-form .action-button i {
+  font-size: 14px;
 }
 </style> 

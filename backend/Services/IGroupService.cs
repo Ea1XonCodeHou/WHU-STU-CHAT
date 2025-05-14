@@ -22,7 +22,7 @@ namespace backend.Services
         /// </summary>
         /// <param name="groupId">群组ID</param>
         /// <returns>是否删除成功</returns>
-        Task<bool> DeleteGroupAsync(int groupId);
+        Task<bool> DeleteGroupAsync(int groupId, int operatorUserId);
 
         /// <summary>
         /// 获取所有群组

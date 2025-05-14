@@ -202,7 +202,7 @@ namespace backend.Controllers
         
         // 4. 删除好友（同时删除私聊群组）
         [HttpDelete("friend/{userId}/{friendId}")]
-        public async Task<IActionResult> DeleteFriend(int userId, int friendId)
+        public async Task<IActionResult> DeleteFriend(int userId, int friendId)//   这个需要修改！！！！！！！！！！
         {
             try
             {
@@ -222,7 +222,7 @@ namespace backend.Controllers
                 {
                     foreach (var group in privateGroups)
                     {
-                        await _groupService.DeleteGroupAsync(group.GroupId);
+                        //await _groupService.DeleteGroupAsync(group.GroupId);
                     }
                 }
                 

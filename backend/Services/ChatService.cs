@@ -51,16 +51,47 @@ namespace backend.Services
         {
             try
             {
+                _logger.LogInformation($"尝试获取聊天室 {roomId} 的名称");
+                
                 using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
+                    _logger.LogInformation($"数据库连接已打开，准备查询聊天室 {roomId}");
 
                     var command = new MySqlCommand(
-                        "SELECT RoomName FROM ChatRooms WHERE RoomId = @RoomId",
+                        "SELECT RoomName FROM chatrooms WHERE RoomId = @RoomId",
                         connection);
                     command.Parameters.AddWithValue("@RoomId", roomId);
 
                     var result = await command.ExecuteScalarAsync();
+                    
+                    if (result == null || result == DBNull.Value)
+                    {
+                        _logger.LogWarning($"未找到ID为 {roomId} 的聊天室");
+                        
+                        // 检查数据库中是否有任何聊天室
+                        var checkCommand = new MySqlCommand("SELECT COUNT(*) FROM chatrooms", connection);
+                        var count = Convert.ToInt32(await checkCommand.ExecuteScalarAsync());
+                        _logger.LogInformation($"数据库中共有 {count} 个聊天室");
+                        
+                        // 如果没有聊天室，自动创建一个
+                        if (count == 0)
+                        {
+                            _logger.LogInformation("尝试创建默认聊天室");
+                            var defaultRoomId = await GetOrCreateDefaultRoomAsync();
+                            _logger.LogInformation($"已创建默认聊天室，ID: {defaultRoomId}");
+                            
+                            // 如果创建的默认聊天室ID与请求的ID相同，返回默认名称
+                            if (defaultRoomId == roomId)
+                            {
+                                return "WHU 校园公共聊天室";
+                            }
+                        }
+                        
+                        return null;
+                    }
+                    
+                    _logger.LogInformation($"成功找到聊天室 {roomId}，名称: {result}");
                     return result?.ToString();
                 }
             }
@@ -88,7 +119,7 @@ namespace backend.Services
                     var command = new MySqlCommand(
                         @"SELECT m.MessageId, m.SenderId, u.Username AS SenderName, m.Content, 
                           m.CreateTime, m.RoomId, m.MessageType, m.FileUrl
-                          FROM RoomMessages m
+                          FROM roommessages m
                           JOIN Users u ON m.SenderId = u.UserId
                           WHERE m.RoomId = @RoomId
                           ORDER BY m.CreateTime DESC
@@ -131,7 +162,6 @@ namespace backend.Services
                                             
                                         // 如果文件类型为文件，则显示文件名
                                         if (messageType == "file" && !string.IsNullOrEmpty(fileName))
-                                            content = $"文件: {fileName}";
                                             content = $"文件: {fileName}";
                                     }
                                 }
@@ -206,7 +236,7 @@ namespace backend.Services
 
                     // 使用自定义的SQL语句，包括MessageType和FileUrl字段
                     var command = new MySqlCommand(
-                        @"INSERT INTO RoomMessages (RoomId, SenderId, Content, CreateTime, MessageType, FileUrl) 
+                        @"INSERT INTO roommessages (RoomId, SenderId, Content, CreateTime, MessageType, FileUrl) 
                           VALUES (@RoomId, @SenderId, @Content, @CreateTime, @MessageType, @FileUrl);
                           SELECT LAST_INSERT_ID();",
                         connection);
@@ -242,23 +272,19 @@ namespace backend.Services
                 if (file == null || file.Length == 0)
                 {
                     throw new ArgumentException("未选择文件或文件为空");
-                    throw new ArgumentException("未选择文件或文件为空");
                 }
 
                 // 检查文件大小是否超过10MB
                 if (file.Length > 10 * 1024 * 1024)
                 {
                     throw new ArgumentException("文件大小超过限制");
-                    throw new ArgumentException("文件大小超过限制");
                 }
 
-                // 生成唯一文件名
                 // 生成唯一文件名
                 string fileExtension = Path.GetExtension(file.FileName);
                 string uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
                 string filePath = Path.Combine(_tempFileDirectory, uniqueFileName);
                 
-                // 保存文件
                 // 保存文件
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
@@ -302,7 +328,7 @@ namespace backend.Services
                         var command = new MySqlCommand(
                             @"SELECT DISTINCT u.UserId, u.Username, u.Avatar, MAX(m.CreateTime) as LastActivity
                               FROM Users u
-                              JOIN RoomMessages m ON u.UserId = m.SenderId
+                              JOIN roommessages m ON u.UserId = m.SenderId
                               WHERE m.RoomId = @RoomId
                               GROUP BY u.UserId, u.Username, u.Avatar
                               ORDER BY LastActivity DESC
@@ -349,33 +375,32 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // 查询默认房间
-                    var selectCommand = new MySqlCommand(
-                        "SELECT RoomId FROM ChatRooms WHERE RoomName = 'WHU 院系交流群' LIMIT 1",
+                    // 检查默认房间是否存在
+                    var checkCommand = new MySqlCommand(
+                        "SELECT RoomId FROM chatrooms WHERE RoomName = 'WHU 院系交流群' LIMIT 1",
                         connection);
 
-                    var roomId = await selectCommand.ExecuteScalarAsync();
-                    
-                    if (roomId != null && roomId != DBNull.Value)
+                    var existingRoomId = await checkCommand.ExecuteScalarAsync();
+                    if (existingRoomId != null && Convert.ToInt32(existingRoomId) > 0)
                     {
-                        return Convert.ToInt32(roomId);
+                        return Convert.ToInt32(existingRoomId);
                     }
 
                     // 创建默认房间
-                    var insertCommand = new MySqlCommand(
-                        @"INSERT INTO ChatRooms (RoomName, Description, CreateTime, UpdateTime) 
-                          VALUES ('WHU 院系交流群', '欢迎加入武汉大学院系交流群，这里是大家交流学习和生活的地方。', NOW(), NOW());
+                    var createCommand = new MySqlCommand(
+                        @"INSERT INTO chatrooms (RoomName, Description, CreateTime, UpdateTime)
+                          VALUES ('WHU 院系交流群', '欢迎来到武汉大学院系交流群！', NOW(), NOW());
                           SELECT LAST_INSERT_ID();",
                         connection);
 
-                    var newRoomId = await insertCommand.ExecuteScalarAsync();
-                    return Convert.ToInt32(newRoomId);
+                    var newRoomId = Convert.ToInt32(await createCommand.ExecuteScalarAsync());
+                    return newRoomId;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"获取或创建默认房间失败: {ex.Message}");
-                return 1; // 默认返回1，通常是第一个房间
+                return 0;
             }
         }
 

@@ -508,17 +508,7 @@ export default {
     // 用户信息
     const userId = ref(localStorage.getItem('userId') || '');
     const username = ref(localStorage.getItem('username') || '');
-    
-    // 获取完整的头像URL
-    const getFullAvatarUrl = (avatarPath) => {
-      if (!avatarPath) return null;
-      if (avatarPath.startsWith('http')) return avatarPath;
-      
-      const origin = window.location.origin;
-      return avatarPath.startsWith('/') ? `${origin}${avatarPath}` : `${origin}/${avatarPath}`;
-    };
-
-    const userAvatar = ref(getFullAvatarUrl(localStorage.getItem('userAvatar')));
+    const userAvatar = ref(localStorage.getItem('userAvatar') || '');
     const userSignature = ref(localStorage.getItem('userSignature') || '');
     
     // UI 状态
@@ -530,6 +520,8 @@ export default {
     const showAddFriendModal = ref(false);
     const showCreateGroupModal = ref(false);
     const showOnlineFriends = ref(true);
+    const showAddUserModal = ref(false);
+    const showDeleteConfirm = ref(false); // 添加删除确认对话框状态
     
     // 表单数据
     const friendUsername = ref('');
@@ -553,27 +545,43 @@ export default {
     const chatRooms = ref([
       {
         id: 1,
-        name: '校园交流',
-        description: '讨论校园生活、学习和各种活动',
+        name: '校园公共聊天室',
+        description: '欢迎来到武汉大学校园公共聊天室，这里是交流分享的空间！',
         icon: 'fa-solid fa-school',
-        onlineCount: 42,
-        messageCount: 152
+        onlineCount: 15,
+        messageCount: 1024
       },
       {
         id: 2,
-        name: '技术讨论',
-        description: '分享IT技术、编程经验',
-        icon: 'fa-solid fa-code',
-        onlineCount: 28,
-        messageCount: 98
+        name: '交友聊天室',
+        description: '在这里找到志同道合的朋友，扩展你的社交圈',
+        icon: 'fa-solid fa-user-group',
+        onlineCount: 8,
+        messageCount: 536
       },
       {
         id: 3,
-        name: '考研交流',
-        description: '交流考研经验、资料分享',
+        name: '学术交流厅',
+        description: '讨论学术问题，分享研究心得和学习资源',
         icon: 'fa-solid fa-graduation-cap',
-        onlineCount: 35,
-        messageCount: 120
+        onlineCount: 12,
+        messageCount: 789
+      },
+      {
+        id: 4,
+        name: '游戏玩家俱乐部',
+        description: '讨论热门游戏，组队开黑，分享游戏攻略',
+        icon: 'fa-solid fa-gamepad',
+        onlineCount: 20,
+        messageCount: 1256
+      },
+      {
+        id: 5,
+        name: '求职交流区',
+        description: '分享求职经验，讨论职业规划，互通招聘信息',
+        icon: 'fa-solid fa-briefcase',
+        onlineCount: 10,
+        messageCount: 678
       }
     ]);
     
@@ -587,7 +595,6 @@ export default {
     const selectedGroup = ref(null);
     const groupMembers = ref([]);
     const memberSearch = ref('');
-    const showAddUserModal = ref(false);
     const newUserName = ref('');
     
     // 系统通知相关
@@ -1203,6 +1210,8 @@ export default {
       showAddFriendModal,
       showCreateGroupModal,
       showOnlineFriends,
+      showAddUserModal,
+      showDeleteConfirm,
       
       // 表单数据
       friendUsername,
@@ -1231,7 +1240,6 @@ export default {
       selectedGroup,
       groupMembers,
       memberSearch,
-      showAddUserModal,
       newUserName,
       filteredMembers,
       

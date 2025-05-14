@@ -132,25 +132,31 @@ export default {
         const response = await axios.get(`/api/user/${userId.value}`);
         console.log('获取用户信息响应:', response);
         
-        // 直接从response.data中获取数据，不假设嵌套的data属性
-        const userData = response.data;
-        userProfile.value = {
-          username: userData.username || '',
-          email: userData.email || '',
-          phone: userData.phone || '',
-          signature: userData.signature || ''
-        };
+        // 从响应中提取数据，先检查data.data，然后尝试data
+        const userData = response.data && response.data.data ? response.data.data : response.data;
         
-        // 更新头像URL
-        if (userData.avatar) {
-          avatarUrl.value = userData.avatar;
-          localStorage.setItem('userAvatar', userData.avatar);
+        if (userData) {
+          userProfile.value = {
+            username: userData.username || '',
+            email: userData.email || '',
+            phone: userData.phone || '',
+            signature: userData.signature || ''
+          };
+          
+          // 更新头像URL
+          if (userData.avatar) {
+            avatarUrl.value = userData.avatar;
+            localStorage.setItem('userAvatar', userData.avatar);
+          }
+          
+          // 更新localStorage
+          localStorage.setItem('username', userData.username || '');
+          localStorage.setItem('userEmail', userData.email || '');
+          localStorage.setItem('userPhone', userData.phone || '');
+          localStorage.setItem('userSignature', userData.signature || '');
+        } else {
+          console.error('用户数据格式无效:', response);
         }
-        
-        // 更新localStorage
-        localStorage.setItem('userEmail', userData.email || '');
-        localStorage.setItem('userPhone', userData.phone || '');
-        localStorage.setItem('userSignature', userData.signature || '');
       } catch (error) {
         console.error('获取用户信息失败:', error);
       }
@@ -175,10 +181,10 @@ export default {
         console.log('正在更新用户信息:', userData);
         
         try {
-          // 确保使用正确的userId，并以JSON格式发送请求
+          // 修改接口调用URL，使用正确的API端点
           const response = await axios({
             method: 'put',
-            url: `/api/user/${userId.value}`,
+            url: `/api/user/profile`,
             data: userData,
             headers: {
               'Content-Type': 'application/json'
@@ -284,14 +290,20 @@ export default {
         
         console.log('上传头像响应:', response);
         
-        // 检查响应数据
+        // 检查响应数据 - 修正响应处理逻辑
         if (response.data) {
-          // 确保获取到完整的URL路径
-          let avatarPath = response.data;
+          // 先尝试从response.data.url获取URL
+          let avatarPath = response.data.url || response.data.data || '';
+          
+          // 如果直接返回字符串，使用该字符串
+          if (typeof response.data === 'string') {
+            avatarPath = response.data;
+          }
+          
           console.log('原始头像路径:', avatarPath);
           
           // 如果是相对路径，添加基础URL
-          if (avatarPath && avatarPath.startsWith('/')) {
+          if (avatarPath && typeof avatarPath === 'string' && avatarPath.startsWith('/')) {
             const origin = window.location.origin;
             avatarPath = `${origin}${avatarPath}`;
           }
@@ -299,19 +311,23 @@ export default {
           console.log('最终头像路径:', avatarPath);
           
           // 确保图片缓存更新
-          avatarPath = avatarPath + '?t=' + new Date().getTime();
-          
-          // 更新头像URL
-          avatarUrl.value = avatarPath;
-          localStorage.setItem('userAvatar', avatarPath);
-          
-          // 通知父组件
-          emit('profile-updated', {
-            ...userProfile.value,
-            avatar: avatarPath
-          });
-          
-          alert('头像上传成功');
+          if (avatarPath && typeof avatarPath === 'string') {
+            avatarPath = avatarPath + '?t=' + new Date().getTime();
+            
+            // 更新头像URL
+            avatarUrl.value = avatarPath;
+            localStorage.setItem('userAvatar', avatarPath);
+            
+            // 通知父组件
+            emit('profile-updated', {
+              ...userProfile.value,
+              avatar: avatarPath
+            });
+            
+            alert('头像上传成功');
+          } else {
+            alert('上传成功但未返回有效的头像URL');
+          }
         } else {
           alert('上传头像失败: ' + (response.data?.message || '未知错误'));
         }

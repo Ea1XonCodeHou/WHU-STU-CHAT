@@ -1,0 +1,136 @@
+/* 深色主题样式 */
+:root.dark-mode {
+  --bg-color: #1a1a1a;
+  --text-color: #f0f0f0;
+  --text-secondary: #a0a0a0;
+  --border-color: #333;
+  --primary-color: #6b8afd;
+  --hover-color: #4066e0;
+  --active-color: #3a5ed7;
+  --sidebar-bg: #262626;
+  --card-bg: #2a2a2a;
+  --input-bg: #333;
+  --modal-bg: #262626;
+  --btn-bg: #4c67cc;
+  --btn-hover: #3955b3;
+  --item-hover: #333;
+  --item-active: #444;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --notification-bg: #333;
+  --notification-success: #28a745;
+  --notification-error: #dc3545;
+  --scrollbar-track: #2a2a2a;
+  --scrollbar-thumb: #555;
+  --message-own-bg: #3a4e8c;
+  --message-other-bg: #383838;
+}
+
+/* 深色模式下的聊天界面样式 */
+.dark-mode .chat-container {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.dark-mode .sidebar {
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+}
+
+.dark-mode .chat-list-item {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dark-mode .chat-list-item:hover {
+  background-color: var(--item-hover);
+}
+
+.dark-mode .chat-list-item.active {
+  background-color: var(--item-active);
+}
+
+.dark-mode .chat-header {
+  background-color: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dark-mode .chat-messages {
+  background-color: var(--bg-color);
+}
+
+.dark-mode .message-input {
+  background-color: var(--sidebar-bg);
+  border-top: 1px solid var(--border-color);
+}
+
+.dark-mode .message-bubble {
+  background-color: var(--message-other-bg);
+  color: var(--text-color);
+}
+
+.dark-mode .message-bubble.own {
+  background-color: var(--message-own-bg);
+}
+
+.dark-mode input, 
+.dark-mode textarea, 
+.dark-mode select {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.dark-mode button {
+  background-color: var(--btn-bg);
+}
+
+.dark-mode button:hover {
+  background-color: var(--btn-hover);
+}
+
+.dark-mode .modal-content {
+  background-color: var(--modal-bg);
+  color: var(--text-color);
+}
+
+.dark-mode .tab {
+  color: var(--text-secondary);
+}
+
+.dark-mode .tab.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+}
+
+/* 深色模式下的组件样式 */
+.dark-mode .setting-item,
+.dark-mode .profile-form .form-group {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dark-mode .setting-label {
+  color: var(--text-color);
+}
+
+.dark-mode .section-title {
+  color: var(--primary-color);
+}
+
+.dark-mode .slider {
+  background-color: var(--border-color);
+}
+
+.dark-mode .slider:before {
+  background-color: var(--text-color);
+}
+
+.dark-mode input:checked + .slider {
+  background-color: var(--primary-color);
+} 

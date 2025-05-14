@@ -61,6 +61,62 @@ namespace backend.Controllers
         }
         
         /// <summary>
+        /// 获取AI聊天历史记录
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>聊天历史记录</returns>
+        [HttpGet("history/{userId}")]
+        public async Task<IActionResult> GetChatHistory(int userId)
+        {
+            try
+            {
+                _logger.LogInformation($"获取用户 {userId} 的AI聊天历史记录");
+                var history = await _aiService.GetChatHistoryAsync(userId);
+                
+                return Ok(new { 
+                    success = true, 
+                    history = history 
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"获取用户 {userId} 的AI聊天历史记录失败");
+                return StatusCode(500, new { 
+                    success = false, 
+                    error = $"获取历史记录失败: {ex.Message}" 
+                });
+            }
+        }
+        
+        /// <summary>
+        /// 清空AI聊天历史记录
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>操作结果</returns>
+        [HttpDelete("history/{userId}")]
+        public async Task<IActionResult> ClearChatHistory(int userId)
+        {
+            try
+            {
+                _logger.LogInformation($"清空用户 {userId} 的AI聊天历史记录");
+                var result = await _aiService.ClearChatHistoryAsync(userId);
+                
+                return Ok(new { 
+                    success = result, 
+                    message = result ? "历史记录已清空" : "清空历史记录失败" 
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"清空用户 {userId} 的AI聊天历史记录失败");
+                return StatusCode(500, new { 
+                    success = false, 
+                    error = $"清空历史记录失败: {ex.Message}" 
+                });
+            }
+        }
+        
+        /// <summary>
         /// 总结聊天记录
         /// </summary>
         /// <param name="request">聊天总结请求</param>

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using backend.DTOs;
 
 namespace backend.Services
@@ -14,6 +15,20 @@ namespace backend.Services
         /// <param name="request">AI聊天请求</param>
         /// <returns>AI回复内容</returns>
         Task<AIChatResponseDTO> SendMessageAsync(AIChatRequestDTO request);
+        
+        /// <summary>
+        /// 获取AI聊天历史记录
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>历史消息列表</returns>
+        Task<List<AIMessageDTO>> GetChatHistoryAsync(int userId);
+        
+        /// <summary>
+        /// 清空AI聊天历史记录
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>操作结果</returns>
+        Task<bool> ClearChatHistoryAsync(int userId);
         
         /// <summary>
         /// 总结聊天记录

@@ -68,18 +68,18 @@
     </div>
     
     <div class="chat-input">
-      <textarea 
-        class="input-field" 
-        v-model="messageText" 
-        placeholder="输入你的问题..." 
-        :disabled="loading"
-        @keydown.enter.exact.prevent="sendMessage"
-        @keydown.ctrl.enter="addNewLine"
-        ref="inputField"></textarea>
-      <div class="input-actions">
+      <div class="chat-body">
+        <textarea 
+          v-model="messageText" 
+          placeholder="输入问题..."
+          rows="3"
+          ref="inputField"
+          @keydown.ctrl.enter.prevent="addNewLine"
+          @keydown.enter.prevent="sendMessage"
+        ></textarea>
         <button class="send-button" @click="sendMessage" :disabled="loading || !messageText.trim()">
-          <i class="send-icon"></i>
-          发送
+          <i class="send-icon" :class="{'loading': loading}"></i>
+          {{ loading ? '发送中...' : '发送' }}
         </button>
       </div>
     </div>
@@ -153,9 +153,12 @@ export default {
         if (response.data && response.data.success) {
           const history = response.data.history;
           if (history && history.length > 0) {
+            // 确保每条消息都有timestamp属性
             messages.value = history.map(msg => ({
-              ...msg,
-              timestamp: new Date(msg.timestamp)
+              role: msg.role,
+              content: msg.content,
+              id: msg.id,
+              timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
             }));
             await nextTick();
             scrollToBottom();
@@ -703,8 +706,14 @@ export default {
   flex-direction: column;
 }
 
-.input-field {
-  width: 100%;
+.chat-body {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+
+textarea {
+  flex: 1;
   min-height: 60px;
   max-height: 150px;
   border: 1px solid #ddd;
@@ -714,16 +723,11 @@ export default {
   resize: none;
   outline: none;
   transition: border-color 0.3s ease;
-  margin-bottom: 10px;
+  margin-right: 10px;
 }
 
-.input-field:focus {
+textarea:focus {
   border-color: #6366f1;
-}
-
-.input-actions {
-  display: flex;
-  justify-content: flex-end;
 }
 
 .send-button {
@@ -739,6 +743,7 @@ export default {
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  height: 44px;
 }
 
 .send-button:hover {

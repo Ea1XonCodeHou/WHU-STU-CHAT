@@ -76,6 +76,7 @@ CREATE TABLE `chatgroups`  (
   `MemberCount` int NULL DEFAULT 1,
   `CreateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `UpdateTime` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `IsPrivate` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`GroupId`) USING BTREE,
   INDEX `CreatorId`(`CreatorId` ASC) USING BTREE,
   CONSTRAINT `chatgroups_ibfk_1` FOREIGN KEY (`CreatorId`) REFERENCES `users` (`UserId`) ON DELETE RESTRICT ON UPDATE RESTRICT
@@ -84,8 +85,8 @@ CREATE TABLE `chatgroups`  (
 -- ----------------------------
 -- Records of chatgroups
 -- ----------------------------
-INSERT INTO `chatgroups` VALUES (1, 'Mike和Eaxon的私聊', '私聊', NULL, 2, 2, '2025-05-08 03:56:05', '2025-05-08 11:56:04');
-INSERT INTO `chatgroups` VALUES (2, 'Eaxon和shiro的私聊', '私聊', NULL, 3, 1, '2025-05-11 09:00:11', '2025-05-11 17:00:11');
+INSERT INTO `chatgroups` VALUES (1, 'Mike和Eaxon的私聊', '私聊', NULL, 2, 2, '2025-05-08 03:56:05', '2025-05-08 11:56:04', 0);
+INSERT INTO `chatgroups` VALUES (2, 'Eaxon和shiro的私聊', '私聊', NULL, 3, 1, '2025-05-11 09:00:11', '2025-05-11 17:00:11', 0);
 
 -- ----------------------------
 -- Table structure for chatrooms
@@ -102,12 +103,16 @@ CREATE TABLE `chatrooms`  (
   PRIMARY KEY (`RoomId`) USING BTREE,
   INDEX `CreatorId`(`CreatorId` ASC) USING BTREE,
   CONSTRAINT `chatrooms_ibfk_1` FOREIGN KEY (`CreatorId`) REFERENCES `users` (`UserId`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of chatrooms
 -- ----------------------------
 INSERT INTO `chatrooms` VALUES (1, 'WHU 校园公共聊天室', '欢迎来到武汉大学校园公共聊天室，这里是交流分享的空间！', 1, 0, '2025-05-08 10:55:01', '2025-05-08 10:55:01');
+INSERT INTO `chatrooms` VALUES (2, '交友聊天室', '在这里找到志同道合的朋友，扩展你的社交圈', 1, 0, '2025-05-08 10:55:01', '2025-05-08 10:55:01');
+INSERT INTO `chatrooms` VALUES (3, '学术交流厅', '讨论学术问题，分享研究心得和学习资源', 1, 0, '2025-05-08 10:55:01', '2025-05-08 10:55:01');
+INSERT INTO `chatrooms` VALUES (4, '游戏玩家俱乐部', '讨论热门游戏，组队开黑，分享游戏攻略', 1, 0, '2025-05-08 10:55:01', '2025-05-08 10:55:01');
+INSERT INTO `chatrooms` VALUES (5, '求职交流区', '分享求职经验，讨论职业规划，互通招聘信息', 1, 0, '2025-05-08 10:55:01', '2025-05-08 10:55:01');
 
 -- ----------------------------
 -- Table structure for comment
@@ -128,7 +133,7 @@ CREATE TABLE `comment`  (
   INDEX `idx_user_id`(`UserId` ASC) USING BTREE,
   INDEX `idx_parent_id`(`ParentId` ASC) USING BTREE,
   INDEX `idx_create_time`(`CreateTime` ASC) USING BTREE,
-  CONSTRAINT `comment_ibfk_1` FOREIGN KEY (`PostId`) REFERENCES `post` (`PostId`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `comment_ibfk_1` FOREIGN KEY (`PostId`) REFERENCES `posts` (`PostId`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `comment_ibfk_2` FOREIGN KEY (`UserId`) REFERENCES `users` (`UserId`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
@@ -494,3 +499,185 @@ INSERT INTO `usersettings` VALUES (2, 1, 'setting_messageSound', 'true', '2025-0
 INSERT INTO `usersettings` VALUES (3, 1, 'setting_showMyOnlineStatus', 'true', '2025-05-08 10:55:01', '2025-05-08 10:55:01');
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- -----------------------------------------------------
+-- 修复数据库结构和数据一致性问题
+-- -----------------------------------------------------
+
+-- 1. 添加 IsPrivate 字段到 ChatGroups 表（如果不存在）
+ALTER TABLE chatgroups
+ADD COLUMN IF NOT EXISTS IsPrivate TINYINT(1) NOT NULL DEFAULT 0;
+
+-- 2. 修复 comment 表中的外键引用
+-- 先删除现有的外键约束
+ALTER TABLE comment
+DROP FOREIGN KEY comment_ibfk_1;
+
+-- 重新添加外键约束，使其指向正确的 posts 表
+ALTER TABLE comment 
+ADD CONSTRAINT comment_ibfk_1 FOREIGN KEY (PostId) REFERENCES posts (PostId) ON DELETE CASCADE ON UPDATE RESTRICT;
+
+-- 3. 创建 posts 表（如果不存在）并确保数据一致性
+CREATE TABLE IF NOT EXISTS posts (
+  `PostId` int NOT NULL AUTO_INCREMENT,
+  `DiscussionId` int NOT NULL,
+  `Title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `AuthorId` int NOT NULL,
+  `LikeCount` int NOT NULL DEFAULT 0,
+  `CommentCount` int NOT NULL DEFAULT 0,
+  `PostType` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'normal',
+  `IsAnonymous` tinyint(1) NOT NULL DEFAULT 0,
+  `CreateTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdateTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`PostId`) USING BTREE,
+  INDEX `idx_discussion_id`(`DiscussionId` ASC) USING BTREE,
+  INDEX `idx_author_id`(`AuthorId` ASC) USING BTREE,
+  INDEX `idx_post_type`(`PostType` ASC) USING BTREE,
+  INDEX `idx_update_time`(`UpdateTime` ASC) USING BTREE,
+  CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`DiscussionId`) REFERENCES `discussions` (`DiscussionId`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `posts_ibfk_2` FOREIGN KEY (`AuthorId`) REFERENCES `users` (`UserId`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- 将 post 表数据迁移到 posts 表（如果存在）
+INSERT IGNORE INTO posts (PostId, DiscussionId, Title, Content, AuthorId, LikeCount, CommentCount, PostType, IsAnonymous, CreateTime, UpdateTime)
+SELECT p.PostId, p.DiscussionId, p.Title, p.Content, p.AuthorId, p.LikeCount, p.CommentCount, p.PostType, p.IsAnonymous, p.CreateTime, p.UpdateTime
+FROM post p
+WHERE EXISTS (SELECT 1 FROM post);
+
+-- 4. 创建 discussions 表（如果不存在）并确保数据一致性
+CREATE TABLE IF NOT EXISTS discussions (
+  `DiscussionId` int NOT NULL AUTO_INCREMENT,
+  `Title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Description` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `CreatorId` int NOT NULL,
+  `IsHot` tinyint(1) NOT NULL DEFAULT 0,
+  `CreateTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `UpdateTime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`DiscussionId`) USING BTREE,
+  INDEX `idx_creator`(`CreatorId` ASC) USING BTREE,
+  INDEX `idx_update_time`(`UpdateTime` ASC) USING BTREE,
+  CONSTRAINT `discussions_ibfk_1` FOREIGN KEY (`CreatorId`) REFERENCES `users` (`UserId`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- 将 discussion 表数据迁移到 discussions 表（如果存在）
+INSERT IGNORE INTO discussions (DiscussionId, Title, Description, CreatorId, IsHot, CreateTime, UpdateTime)
+SELECT d.DiscussionId, d.Title, d.Description, d.CreatorId, d.IsHot, d.CreateTime, d.UpdateTime
+FROM discussion d
+WHERE EXISTS (SELECT 1 FROM discussion);
+
+-- 5. 修复 postlike 表中的外键引用
+-- 先删除现有的外键约束
+ALTER TABLE postlike
+DROP FOREIGN KEY postlike_ibfk_1;
+
+-- 重新添加外键约束，使其指向正确的 posts 表
+ALTER TABLE postlike 
+ADD CONSTRAINT postlike_ibfk_1 FOREIGN KEY (PostId) REFERENCES posts (PostId) ON DELETE CASCADE ON UPDATE RESTRICT;
+
+-- 6. 删除冗余表
+DROP TABLE IF EXISTS post;
+DROP TABLE IF EXISTS discussion;
+
+-- 7. 修复外键约束问题
+-- 确保 posts 表的外键正确指向 discussions 表
+ALTER TABLE posts
+DROP FOREIGN KEY posts_ibfk_1;
+
+ALTER TABLE posts
+ADD CONSTRAINT posts_ibfk_1 FOREIGN KEY (DiscussionId) REFERENCES discussions (DiscussionId) ON DELETE CASCADE ON UPDATE RESTRICT;
+
+-- 8. 确保 discussions 表的 CreatorId 外键约束正确
+-- 先删除约束（如果存在）
+ALTER TABLE discussions
+DROP FOREIGN KEY discussions_ibfk_1;
+
+-- 重新添加外键约束
+ALTER TABLE discussions
+ADD CONSTRAINT discussions_ibfk_1 FOREIGN KEY (CreatorId) REFERENCES users (UserId) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+-- 9. 添加日期格式修复（转换 2025 年为正确的 2023/2024 年）
+-- 注：如果日期有问题，可以使用以下命令来修复，但目前是注释掉的
+-- UPDATE users SET CreateTime = DATE_SUB(CreateTime, INTERVAL 2 YEAR), UpdateTime = DATE_SUB(UpdateTime, INTERVAL 2 YEAR);
+-- UPDATE posts SET CreateTime = DATE_SUB(CreateTime, INTERVAL 2 YEAR), UpdateTime = DATE_SUB(UpdateTime, INTERVAL 2 YEAR);
+-- UPDATE discussions SET CreateTime = DATE_SUB(CreateTime, INTERVAL 2 YEAR), UpdateTime = DATE_SUB(UpdateTime, INTERVAL 2 YEAR);
+-- 更多表的日期修复命令可以类似添加
+
+-- 10. 确保 UserController 中的 PUT 端点能够正常工作（HTTP 405 错误问题）
+-- 这需要在应用程序代码中检查，但不能在 SQL 中修复
+
+-- 11. 更新用户表以支持资料修改
+ALTER TABLE users 
+MODIFY COLUMN Email varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+MODIFY COLUMN Phone varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+MODIFY COLUMN Avatar varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+MODIFY COLUMN Signature varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL;
+
+-- 12. 修复 HTTP 405 错误问题（个人资料修改）
+-- 这个问题可能与后端代码有关，需要检查 UserController 中是否正确配置了 PUT 端点
+
+-- 结束修复脚本
+
+-- 说明：在执行完本 SQL 脚本后，您需要检查和修复以下代码问题：
+
+-- 1. 前端个人资料更新接口 URL 错误
+--    文件路径：frontend/whu-chat-frontend/src/components/UserProfile.vue
+--    错误：前端请求使用了错误的URL `/api/user/${userId.value}`
+--    修复：将URL修改为 `/api/user/profile`
+
+-- 2. 后端表名大小写不一致问题
+--    文件路径：backend/Services/DiscussionService.cs
+--    错误：使用表名 'discussion' 而不是 'discussions'
+--    修复：将所有 SQL 查询中的 'discussion' 改为 'discussions'
+
+--    文件路径：backend/Services/ChatService.cs  
+--    错误：使用表名 'ChatRooms' 和 'RoomMessages' 
+--    修复：将所有 SQL 查询中的表名改为小写 'chatrooms' 和 'roommessages'
+
+-- 3. 后端需要迁移数据
+--    在前两个问题修复后，执行本 SQL 脚本的修复部分（末尾的 ALTER TABLE 和 CREATE TABLE 语句）
+
+-- 关键提示：执行本脚本后，需要检查以上三个问题是否都已解决，才能确保系统正常运行
+
+-- -----------------------------------------------------
+-- 部署说明和表结构说明
+-- -----------------------------------------------------
+
+/*
+WHU-STU-CHAT 数据库部署指南
+=========================
+
+1. 部署顺序和依赖关系
+---------------------
+该数据库包含多个相互依赖的表，请按照以下顺序部署：
+- 先创建users表（用户表，其他表的基础）
+- 然后创建discussions/chatrooms/chatgroups等基础表
+- 最后创建依赖于上述表的关系表和消息记录表
+
+2. 主要表功能说明
+----------------
+- users: 用户信息表，存储用户基本信息和登录凭证
+- chatrooms: 公共聊天室表，存储系统预设的公共聊天区域
+- aichathistory: AI聊天历史记录表，存储用户与AI助手的交流记录
+- chatgroups: 聊天群组表，用于群聊功能
+- friendships: 好友关系表，维护用户间的好友关系
+- notifications: 通知表，用于系统通知和好友请求通知
+- discussions/posts/comment: 论坛讨论区相关表
+
+3. 重要配置
+----------
+- 默认提供了多个测试用户账号，初始密码在users表中
+- 默认创建了5个公共聊天室，可以直接使用
+- AI聊天功能需要在AIService.cs中配置API密钥
+
+4. 数据恢复
+----------
+如果遇到外键冲突问题，可以使用本脚本末尾的修复代码部分解决
+posts和discussions表之间的依赖关系已在修复脚本中处理
+
+5. 注意事项
+----------
+- 请确保MySQL版本为8.0或以上
+- 确保客户端和服务器的字符集均为utf8mb4
+- 建议先删除已有同名数据库，再执行完整脚本创建新库
+*/

@@ -23,6 +23,7 @@ namespace backend.Services
         private readonly string _apiKey = "sk-525a19b6464b42ca8e4599933e2cf149"; // DeepSeek API Key
         private readonly string _apiEndpoint = "https://api.deepseek.com/v1/chat/completions";
         private readonly IConfiguration _configuration;
+        private readonly string _connectionString;
 
         /// <summary>
         /// 构造函数
@@ -32,6 +33,7 @@ namespace backend.Services
             _logger = logger;
             _httpClient = httpClient;
             _configuration = configuration;
+            _connectionString = _configuration.GetConnectionString("DefaultConnection");
             
             // 配置HTTP客户端
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
@@ -110,6 +112,9 @@ namespace backend.Services
                         var aiMessage = messageContent.GetString();
                         _logger.LogInformation($"AI回复: {aiMessage}");
 
+                        // 保存到历史记录
+                        await SaveChatHistoryAsync(request.UserId, request.Message, aiMessage);
+
                         return new AIChatResponseDTO
                         {
                             Message = aiMessage,
@@ -137,6 +142,147 @@ namespace backend.Services
                     Error = $"AI服务异常: {ex.Message}",
                     Timestamp = DateTime.Now
                 };
+            }
+        }
+        
+        /// <summary>
+        /// 获取AI聊天历史记录
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>历史消息列表</returns>
+        public async Task<List<AIMessageDTO>> GetChatHistoryAsync(int userId)
+        {
+            try
+            {
+                _logger.LogInformation($"获取用户 {userId} 的AI聊天历史记录");
+                var result = new List<AIMessageDTO>();
+                
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    
+                    string sql = @"SELECT ChatId, UserMessage, AIResponse, CreateTime
+                                 FROM AIChatHistory
+                                 WHERE UserId = @UserId
+                                 ORDER BY CreateTime ASC";
+                                 
+                    using (var command = new MySqlCommand(sql, connection))
+                    {
+                        command.Parameters.AddWithValue("@UserId", userId);
+                        
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var userMessage = reader.GetString(reader.GetOrdinal("UserMessage"));
+                                var aiResponse = reader.GetString(reader.GetOrdinal("AIResponse"));
+                                var createTime = reader.GetDateTime(reader.GetOrdinal("CreateTime"));
+                                var chatId = reader.GetInt32(reader.GetOrdinal("ChatId"));
+                                
+                                // 添加用户消息
+                                result.Add(new AIMessageDTO
+                                {
+                                    Role = "user",
+                                    Content = userMessage,
+                                    Id = $"u_{chatId}",
+                                    Timestamp = createTime
+                                });
+                                
+                                // 添加AI回复
+                                result.Add(new AIMessageDTO
+                                {
+                                    Role = "assistant",
+                                    Content = aiResponse,
+                                    Id = $"a_{chatId}",
+                                    Timestamp = createTime
+                                });
+                            }
+                        }
+                    }
+                }
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"获取用户 {userId} 的AI聊天历史记录失败");
+                throw;
+            }
+        }
+        
+        /// <summary>
+        /// 清空AI聊天历史记录
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>操作结果</returns>
+        public async Task<bool> ClearChatHistoryAsync(int userId)
+        {
+            try
+            {
+                _logger.LogInformation($"清空用户 {userId} 的AI聊天历史记录");
+                
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    
+                    string sql = "DELETE FROM AIChatHistory WHERE UserId = @UserId";
+                    
+                    using (var command = new MySqlCommand(sql, connection))
+                    {
+                        command.Parameters.AddWithValue("@UserId", userId);
+                        
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+                        _logger.LogInformation($"已删除 {rowsAffected} 条AI聊天历史记录");
+                        
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"清空用户 {userId} 的AI聊天历史记录失败");
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// 保存AI聊天历史记录
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="userMessage">用户消息</param>
+        /// <param name="aiResponse">AI回复</param>
+        /// <returns>操作结果</returns>
+        private async Task<bool> SaveChatHistoryAsync(int userId, string userMessage, string aiResponse)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    
+                    string sql = @"INSERT INTO AIChatHistory (UserId, SessionId, UserMessage, AIResponse, CreateTime)
+                                VALUES (@UserId, @SessionId, @UserMessage, @AIResponse, @CreateTime)";
+                    
+                    using (var command = new MySqlCommand(sql, connection))
+                    {
+                        string sessionId = $"session_{userId}_{DateTime.Now:yyyyMMdd}";
+                        DateTime currentTime = DateTime.Now;
+                        
+                        command.Parameters.AddWithValue("@UserId", userId);
+                        command.Parameters.AddWithValue("@SessionId", sessionId);
+                        command.Parameters.AddWithValue("@UserMessage", userMessage);
+                        command.Parameters.AddWithValue("@AIResponse", aiResponse);
+                        command.Parameters.AddWithValue("@CreateTime", currentTime);
+                        
+                        await command.ExecuteNonQueryAsync();
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"保存用户 {userId} 的AI聊天历史记录失败");
+                return false;
             }
         }
         
@@ -316,9 +462,7 @@ namespace backend.Services
             
             try
             {
-                string connectionString = _configuration.GetConnectionString("DefaultConnection");
-                
-                using (var connection = new MySqlConnection(connectionString))
+                using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
                     

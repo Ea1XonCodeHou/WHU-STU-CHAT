@@ -66,7 +66,7 @@ namespace backend.Services
                                   VALUES (@MemberId, @GroupId, @UserId, @JoinTime)",
                                 connection, transaction);
 
-                            insertMemberCommand.Parameters.AddWithValue("@MemberId", $"{groupId}+{groupRegDto.CreatorId}");
+                            insertMemberCommand.Parameters.AddWithValue("@MemberId", groupId * 10000 + groupRegDto.CreatorId);
                             insertMemberCommand.Parameters.AddWithValue("@GroupId", groupId);
                             insertMemberCommand.Parameters.AddWithValue("@UserId", groupRegDto.CreatorId);
                             insertMemberCommand.Parameters.AddWithValue("@JoinTime", DateTime.UtcNow);
@@ -280,9 +280,9 @@ namespace backend.Services
 
                     // Step 2: 插入新成员到 GroupMembers 表
                     var addMemberCommand = new MySqlCommand(
-                        "INSERT INTO GroupMembers (MemberId,GroupId, UserId, JoinTime) VALUES (@MemberId, @GroupId, @UserId, @JoinTime)",
+                        "INSERT INTO GroupMembers (MemberId, GroupId, UserId, JoinTime) VALUES (@MemberId, @GroupId, @UserId, @JoinTime)",
                         connection);
-                    addMemberCommand.Parameters.AddWithValue("@MemberId", groupId+"+"+userId);
+                    addMemberCommand.Parameters.AddWithValue("@MemberId", groupId * 10000 + userId);
                     addMemberCommand.Parameters.AddWithValue("@GroupId", groupId);
                     addMemberCommand.Parameters.AddWithValue("@UserId", userId);
                     addMemberCommand.Parameters.AddWithValue("@JoinTime", DateTime.UtcNow);

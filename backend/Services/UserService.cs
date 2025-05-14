@@ -788,48 +788,52 @@ namespace backend.Services
         /// <summary>
         /// 更新用户在线状态
         /// </summary>
-        /// <param name="statusDto">状态信息</param>
+        /// <param name="statusDto">状态DTO</param>
         /// <returns>更新结果</returns>
         public async Task<Result<bool>> UpdateUserStatusAsync(UserStatusDTO statusDto)
         {
+            if (statusDto == null)
+            {
+                return Result<bool>.Error("状态数据不能为空");
+            }
+            
             try
             {
-                if (statusDto == null)
-                {
-                    return Result<bool>.Error("状态信息不能为空");
-                }
-
-                // 检查用户是否存在
-                var userExists = await CheckUserExistsAsync(statusDto.UserId);
-                if (!userExists)
-                {
-                    return Result<bool>.Error("用户不存在", 404);
-                }
-
                 using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
                     
-                    var command = new MySqlCommand(
-                        "UPDATE Users SET Status = @Status, IsStatusVisible = @IsVisible, UpdateTime = @UpdateTime WHERE UserId = @UserId",
-                        connection);
-                    command.Parameters.AddWithValue("@UserId", statusDto.UserId);
-                    command.Parameters.AddWithValue("@Status", statusDto.IsOnline ? "online" : "offline");
-                    command.Parameters.AddWithValue("@IsVisible", statusDto.IsVisible);
-                    command.Parameters.AddWithValue("@UpdateTime", DateTime.Now);
-
-                    var rowsAffected = await command.ExecuteNonQueryAsync();
-                    if (rowsAffected <= 0)
+                    // 更新用户状态
+                    string sql = @"UPDATE users SET 
+                                Status = @Status, 
+                                IsStatusVisible = @IsVisible,
+                                UpdateTime = @UpdateTime
+                                WHERE UserId = @UserId";
+                    
+                    using (var command = new MySqlCommand(sql, connection))
                     {
-                        return Result<bool>.Error("更新状态失败");
+                        command.Parameters.AddWithValue("@UserId", statusDto.UserId);
+                        command.Parameters.AddWithValue("@Status", statusDto.IsOnline ? "online" : "offline");
+                        command.Parameters.AddWithValue("@IsVisible", statusDto.IsVisible);
+                        command.Parameters.AddWithValue("@UpdateTime", DateTime.Now);
+                        
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+                        
+                        if (rowsAffected > 0)
+                        {
+                            return Result<bool>.Success(true);
+                        }
+                        else
+                        {
+                            return Result<bool>.Error("用户状态更新失败");
+                        }
                     }
                 }
-
-                return Result<bool>.SuccessResult(true, "状态更新成功");
             }
             catch (Exception ex)
             {
-                return Result<bool>.Error($"更新状态失败：{ex.Message}");
+                Console.WriteLine($"更新用户状态时出错: {ex.Message}");
+                return Result<bool>.Error($"更新用户状态时出错: {ex.Message}");
             }
         }
     }

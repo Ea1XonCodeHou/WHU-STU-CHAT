@@ -3,6 +3,7 @@ using backend.DTOs;
 using backend.Services;
 using backend.Utils;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace backend.Controllers
 {
@@ -122,6 +123,146 @@ namespace backend.Controllers
             catch (Exception ex)
             {
                 return Result<List<UserDTO>>.Error($"获取好友列表失败: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// 更新用户资料
+        /// </summary>
+        /// <param name="updateDto">用户资料更新数据</param>
+        /// <returns>更新结果</returns>
+        [HttpPut("profile")]
+        public async Task<Result<UserVO>> UpdateUserProfile([FromBody] UpdateUserDTO updateDto)
+        {
+            try
+            {
+                return await _userService.UpdateUserInfoAsync(updateDto);
+            }
+            catch (Exception ex)
+            {
+                return Result<UserVO>.Error($"更新用户资料失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 更新用户在线状态
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="statusData">状态数据</param>
+        /// <returns>更新结果</returns>
+        [HttpPost("{userId}/status")]
+        public async Task<IActionResult> UpdateUserStatus([FromRoute] int userId, [FromBody] UserStatusDTO statusData)
+        {
+            try
+            {
+                // 确保状态数据有效
+                if (statusData == null)
+                {
+                    return BadRequest(new { message = "状态数据不能为空" });
+                }
+                
+                // 设置用户ID
+                statusData.UserId = userId;
+                
+                // 更新状态
+                var result = await _userService.UpdateUserStatusAsync(statusData);
+                if (result.Code != 200)
+                {
+                    return BadRequest(new { message = result.Msg });
+                }
+                
+                return Ok(new { message = "用户状态已更新" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"更新用户状态失败: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 保存用户设置
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="settingData">设置数据</param>
+        /// <returns>保存结果</returns>
+        [HttpPost("{userId}/settings")]
+        public async Task<IActionResult> SaveUserSetting([FromRoute] int userId, [FromBody] UserSettingsDTO settingData)
+        {
+            try
+            {
+                // 设置用户ID
+                settingData.UserId = userId;
+                
+                var result = await _userService.SaveUserSettingAsync(settingData);
+                if (result.Code != 200)
+                {
+                    return BadRequest(new { message = result.Msg });
+                }
+                
+                return Ok(new { message = "设置已保存" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"保存设置失败: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 获取用户设置
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <returns>用户设置</returns>
+        [HttpGet("{userId}/settings")]
+        public async Task<IActionResult> GetUserSettings([FromRoute] int userId)
+        {
+            try
+            {
+                var result = await _userService.GetAllUserSettingsAsync(userId);
+                if (result.Code != 200)
+                {
+                    return BadRequest(new { message = result.Msg });
+                }
+                
+                return Ok(result.Data);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"获取设置失败: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// 上传用户头像
+        /// </summary>
+        /// <param name="userId">用户ID</param>
+        /// <param name="file">头像文件</param>
+        /// <returns>上传结果</returns>
+        [HttpPost("{userId}/avatar")]
+        public async Task<IActionResult> UpdateUserAvatar([FromRoute] int userId, IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest(new { message = "请选择有效的图片文件" });
+                }
+                
+                // 调用服务上传头像
+                var result = await _userService.UpdateUserAvatarAsync(userId, file);
+                if (result.Code != 200)
+                {
+                    return BadRequest(new { message = result.Msg });
+                }
+                
+                // 返回头像URL
+                return Ok(new { 
+                    url = result.Data,
+                    message = "头像上传成功" 
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"上传头像失败: {ex.Message}" });
             }
         }
     }

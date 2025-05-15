@@ -32,7 +32,19 @@ namespace backend.Hubs
                 // 保存连接信息
                 _userConnections[userId] = Context.ConnectionId;
                 
-                _logger.LogInformation($"用户 {userId} 已注册私聊连接");
+                // 设置用户在线状态
+                _chatService.SetUserOnline(userId, true);
+                
+                // 更新用户状态到数据库
+                var statusDto = new UserStatusDTO
+                {
+                    UserId = userId,
+                    IsOnline = true,
+                    IsVisible = true
+                };
+                await _userService.UpdateUserStatusAsync(statusDto);
+                
+                _logger.LogInformation($"用户 {userId} 已注册私聊连接并设置为在线状态");
             }
             catch (Exception ex)
             {
@@ -64,7 +76,25 @@ namespace backend.Hubs
                 // 将用户加入到私聊组
                 await Groups.AddToGroupAsync(Context.ConnectionId, chatGroupName);
                 
-                _logger.LogInformation($"用户 {userId} 已加入私聊组 {chatGroupName}");
+                // 设置用户在线状态
+                _chatService.SetUserOnline(userId, true);
+                
+                // 更新用户状态到数据库
+                var statusDto = new UserStatusDTO
+                {
+                    UserId = userId,
+                    IsOnline = true,
+                    IsVisible = true
+                };
+                await _userService.UpdateUserStatusAsync(statusDto);
+                
+                // 通知对方用户状态更新
+                if (_userConnections.TryGetValue(friendId, out var friendConnectionId))
+                {
+                    await Clients.Client(friendConnectionId).SendAsync("UserStatusChanged", userId, "online");
+                }
+                
+                _logger.LogInformation($"用户 {userId} 已加入私聊组 {chatGroupName} 并设置为在线状态");
             }
             catch (Exception ex)
             {
@@ -153,18 +183,103 @@ namespace backend.Hubs
             }
         }
         
+        // 发送文件消息
+        public async Task SendFileToPrivate(int receiverId, string fileUrl, string fileName, long fileSize)
+        {
+            try
+            {
+                // 从request中获取用户ID
+                if (!Context.GetHttpContext().Request.Query.TryGetValue("userId", out var userIdValue) ||
+                    !int.TryParse(userIdValue, out int senderId))
+                {
+                    await Clients.Caller.SendAsync("Error", "无法识别用户ID");
+                    return;
+                }
+                
+                _logger.LogInformation($"用户 {senderId} 正在发送文件给用户 {receiverId}: {fileName}");
+                
+                // 创建消息对象
+                var message = new MessageDTO
+                {
+                    SenderId = senderId,
+                    ReceiverId = receiverId,
+                    Content = fileName,
+                    MessageType = "file",
+                    FileUrl = fileUrl,
+                    FileName = fileName,
+                    FileSize = fileSize,
+                    SendTime = DateTime.Now
+                };
+                
+                // 创建私聊组名称
+                string chatGroupName = senderId < receiverId 
+                    ? $"private_{senderId}_{receiverId}" 
+                    : $"private_{receiverId}_{senderId}";
+                
+                // 保存消息到数据库
+                int messageId = await _chatService.SavePrivateMessageAsync(message);
+                if (messageId <= 0)
+                {
+                    await Clients.Caller.SendAsync("Error", "保存文件消息失败");
+                    return;
+                }
+                
+                // 补充消息信息
+                message.MessageId = messageId;
+                var senderInfo = await _userService.GetUserByIdAsync(senderId);
+                message.SenderName = senderInfo?.Username ?? "未知用户";
+                
+                // 发送消息到私聊组
+                await Clients.Group(chatGroupName).SendAsync("ReceivePrivateMessage", message);
+                
+                _logger.LogInformation($"文件消息已发送到组 {chatGroupName}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"发送文件消息时出错: {ex.Message}");
+                await Clients.Caller.SendAsync("Error", "发送文件消息失败: " + ex.Message);
+            }
+        }
+        
         // 断开连接处理
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            // 查找并移除断开连接的用户
-            foreach (var kvp in _userConnections)
+            try
             {
-                if (kvp.Value == Context.ConnectionId)
+                // 查找并移除断开连接的用户
+                foreach (var kvp in _userConnections)
                 {
-                    _userConnections.TryRemove(kvp.Key, out _);
-                    _logger.LogInformation($"用户 {kvp.Key} 断开私聊连接");
-                    break;
+                    if (kvp.Value == Context.ConnectionId)
+                    {
+                        int userId = kvp.Key;
+                        _userConnections.TryRemove(userId, out _);
+                        
+                        // 设置用户离线状态
+                        _chatService.SetUserOnline(userId, false);
+                        
+                        // 更新用户状态到数据库
+                        var statusDto = new UserStatusDTO
+                        {
+                            UserId = userId,
+                            IsOnline = false,
+                            IsVisible = true
+                        };
+                        await _userService.UpdateUserStatusAsync(statusDto);
+                        
+                        // 通知所有在线用户该用户已离线
+                        foreach (var connection in _userConnections)
+                        {
+                            await Clients.Client(connection.Value).SendAsync("UserStatusChanged", userId, "offline");
+                        }
+                        
+                        _logger.LogInformation($"用户 {userId} 断开私聊连接并设置为离线状态");
+                        break;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"断开连接处理时出错: {ex.Message}");
             }
             
             await base.OnDisconnectedAsync(exception);

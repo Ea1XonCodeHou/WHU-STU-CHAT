@@ -89,9 +89,18 @@
         <div class="tool-button emoji-button" @click="toggleEmojiPanel">
           <i class="fas fa-smile"></i>
         </div>
+        <div class="tool-button file-button">
+          <input
+            type="file"
+            ref="fileInput"
+            @change="handleFileUpload"
+            style="display: none"
+          />
+          <i class="fas fa-paperclip" @click="triggerFileInput"></i>
+        </div>
       </div>
       
-      <div v-if="showEmojiPanel" class="emoji-panel">
+      <div v-show="showEmojiPanel" class="emoji-panel">
         <div v-for="emoji in emojis" 
              :key="emoji" 
              class="emoji-item" 
@@ -144,7 +153,30 @@ export default {
     
     const showEmojiPanel = ref(false);
     const emojis = ref(['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '🥲', '☺️', '😊', '😇', 
-                      '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '��', '��']);
+                      '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛',
+                      '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞',
+                      '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭',
+                      '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥',
+                      '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯',
+                      '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢',
+                      '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '💩', '👻', '👽', '👾', '🤖',
+                      '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🙈', '🙉', '🙊',
+                      '👶', '👧', '🧒', '👦', '👩', '🧑', '👨', '👵', '🧓', '👴', '👮', '🕵️',
+                      '👷', '👸', '🤴', '👳', '👲', '🧕', '🤵', '👰', '🤰', '🤱', '👼', '🎅',
+                      '🤶', '🦸', '🦹', '🧙', '🧚', '🧛', '🧜', '🧝', '🧞', '🧟', '🧌', '💆',
+                      '💇', '🚶', '🧍', '🧎', '🏃', '💃', '🕺', '🕴️', '👯', '🧖', '🧗', '🤺',
+                      '🏇', '⛷️', '🏂', '🏌️', '🏄', '🚣', '🏊', '⛹️', '🏋️', '🚴', '🚵', '🤸',
+                      '🤼', '🤽', '🤾', '🤹', '🧘', '🛀', '🛌', '👭', '👫', '👬', '💏', '💑',
+                      '🗣️', '👤', '👥', '👣', '🦰', '🦱', '🦳', '🦲', '🧠', '🫀', '🫁', '🦷',
+                      '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸', '🩹', '🩺', '💊', '💉', '🦠',
+                      '🧬', '🦡', '🦫', '🦦', '🦨', '🦘', '🦥', '🦙', '🦒', '🦣', '🦏', '🦛',
+                      '🦍', '🦧', '🐶', '🐕', '🦮', '🐩', '🐺', '🦊', '🦝', '🐱', '🐈', '🐈‍⬛',
+                      '🐆', '🐅', '🐃', '🐂', '🐄', '🦬', '🐪', '🐫', '🦙', '🦒', '🐘', '🦣',
+                      '🦏', '🦛', '🦍', '🦧', '🐒', '🦍', '🦧', '🐶', '🐕', '🦮', '🐩', '🐺',
+                      '🦊', '🦝', '🐱', '🐈', '🐈‍⬛', '🐆', '🐅', '🐃', '🐂', '🐄', '🦬', '🐪',
+                      '🐫', '🦙', '🦒', '🐘', '🦣', '🦏', '🦛', '🦍', '🦧', '🐒', '🦍', '🦧']);
+    
+    const fileInput = ref(null);
     
     const loadChatHistory = async () => {
       try {
@@ -176,13 +208,16 @@ export default {
           }
         );
         
-        if (response.data) {
+        if (response.data && response.data.code === 200 && response.data.data) {
           friendInfo.value = {
-            username: response.data.username,
-            avatar: response.data.avatar,
-            status: response.data.status || 'offline',
-            signature: response.data.signature
+            username: response.data.data.username,
+            avatar: response.data.data.avatar,
+            status: response.data.data.status || 'offline',
+            signature: response.data.data.signature
           };
+        } else {
+          console.error('获取好友信息失败:', response.data?.msg || '未知错误');
+          showNotification('获取好友信息失败', 'error');
         }
       } catch (error) {
         console.error('加载好友信息失败:', error);
@@ -214,6 +249,14 @@ export default {
           }
         });
         
+        // 监听用户状态变化
+        connection.value.on('UserStatusChanged', (changedUserId, status) => {
+          console.log('用户状态变化:', changedUserId, status);
+          if (changedUserId === parseInt(friendId)) {
+            friendInfo.value.status = status;
+          }
+        });
+        
         // 错误处理
         connection.value.on('Error', (error) => {
           console.error('SignalR错误:', error);
@@ -227,7 +270,7 @@ export default {
         await connection.value.invoke('RegisterConnection', userId.value);
         
         // 加入私聊
-          await connection.value.invoke('JoinPrivateChat', parseInt(friendId));
+        await connection.value.invoke('JoinPrivateChat', parseInt(friendId));
         
         // 获取历史消息
         await loadChatHistory();
@@ -235,30 +278,6 @@ export default {
       } catch (error) {
         console.error('SignalR连接失败:', error);
         showNotification('连接失败，请刷新页面重试', 'error');
-      }
-    };
-    
-    const sendMessage = async () => {
-      if (!newMessage.value.trim() || !isConnected.value) return;
-      
-      try {
-        const message = {
-          senderId: userId.value,
-          senderName: username.value,
-          receiverId: parseInt(friendId),
-          content: newMessage.value.trim(),
-          messageType: 'text',
-          sendTime: new Date().toISOString()
-        };
-        
-        await connection.value.invoke('SendPrivateMessage', message);
-        
-        newMessage.value = '';
-        
-        messageInput.value?.focus();
-      } catch (error) {
-        console.error('发送消息失败:', error);
-        showNotification('发送消息失败，请重试', 'error');
       }
     };
     
@@ -270,6 +289,28 @@ export default {
     
     const toggleEmojiPanel = () => {
       showEmojiPanel.value = !showEmojiPanel.value;
+      if (showEmojiPanel.value) {
+        // 确保表情面板显示在正确的位置
+        nextTick(() => {
+          const emojiPanel = document.querySelector('.emoji-panel');
+          if (emojiPanel) {
+            const inputRect = document.querySelector('.chat-input').getBoundingClientRect();
+            emojiPanel.style.bottom = `${inputRect.height}px`;
+          }
+        });
+      }
+    };
+    
+    // 点击其他地方时关闭表情面板
+    const handleClickOutside = (event) => {
+      const emojiButton = document.querySelector('.emoji-button');
+      const emojiPanel = document.querySelector('.emoji-panel');
+      
+      if (emojiPanel && 
+          !emojiPanel.contains(event.target) && 
+          !emojiButton.contains(event.target)) {
+        showEmojiPanel.value = false;
+      }
     };
     
     const addNewLine = () => {
@@ -334,9 +375,98 @@ export default {
       router.push('/home');
     };
     
+    const triggerFileInput = () => {
+      fileInput.value.click();
+    };
+    
+    const handleFileUpload = async (event) => {
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
+      
+      const file = event.target.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      try {
+        showNotification('文件上传中...', 'info');
+        
+        const response = await axios.post(`${window.apiBaseUrl}/api/file/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
+        await connection.value.invoke(
+          'SendFileToPrivate', 
+          parseInt(friendId),
+          response.data.url, 
+          response.data.fileName, 
+          response.data.fileSize
+        );
+        
+        fileInput.value.value = '';
+        showNotification('文件发送成功', 'success');
+      } catch (error) {
+        console.error('文件上传失败:', error);
+        showNotification('文件上传失败: ' + (error.response?.data || error.message), 'error');
+        fileInput.value.value = '';
+      }
+    };
+    
+    const downloadFile = async (fileUrl, fileName) => {
+      try {
+        const response = await axios.get(fileUrl, {
+          responseType: 'blob'
+        });
+        
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('文件下载失败:', error);
+        showNotification('文件下载失败', 'error');
+      }
+    };
+    
+    const sendMessage = async () => {
+      if (!newMessage.value.trim() || !isConnected.value) return;
+      
+      try {
+        const message = {
+          senderId: userId.value,
+          senderName: username.value,
+          receiverId: parseInt(friendId),
+          content: newMessage.value.trim(),
+          messageType: 'text',
+          sendTime: new Date().toISOString()
+        };
+        
+        // 检查是否是表情消息
+        if (emojis.value.includes(newMessage.value.trim())) {
+          message.messageType = 'emoji';
+        }
+        
+        await connection.value.invoke('SendPrivateMessage', message);
+        
+        newMessage.value = '';
+        
+        messageInput.value?.focus();
+      } catch (error) {
+        console.error('发送消息失败:', error);
+        showNotification('发送消息失败，请重试', 'error');
+      }
+    };
+    
     onMounted(async () => {
       await loadFriendInfo();
       await setupSignalR();
+      document.addEventListener('click', handleClickOutside);
     });
     
     onUnmounted(async () => {
@@ -348,6 +478,7 @@ export default {
           console.error('断开SignalR连接失败:', err);
         }
       }
+      document.removeEventListener('click', handleClickOutside);
     });
     
     return {
@@ -369,7 +500,11 @@ export default {
       formatTime,
       formatFileSize,
       shouldShowDateSeparator,
-      goBack
+      goBack,
+      fileInput,
+      triggerFileInput,
+      handleFileUpload,
+      downloadFile
     };
   }
 };
@@ -512,6 +647,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
 }
 
 .message-item {
@@ -567,7 +703,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .message-sender {
@@ -579,6 +715,14 @@ export default {
 .message-time {
   font-size: 11px;
   color: #999;
+}
+
+.self-message .message-info {
+  align-items: flex-end;
+}
+
+.other-message .message-info {
+  align-items: flex-start;
 }
 
 .message-text {
@@ -610,12 +754,17 @@ export default {
   margin: 16px 0;
   color: #999;
   font-size: 12px;
+  width: 100%;
+  position: relative;
 }
 
 .date-separator span {
   padding: 4px 12px;
   background-color: rgba(0, 0, 0, 0.05);
   border-radius: 12px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .chat-input {
@@ -641,6 +790,7 @@ export default {
   cursor: pointer;
   color: #666;
   transition: all 0.2s;
+  position: relative;
 }
 
 .tool-button:hover {
@@ -648,9 +798,12 @@ export default {
   color: #4776E6;
 }
 
+.file-button {
+  margin-left: 8px;
+}
+
 .emoji-panel {
   position: absolute;
-  bottom: 100%;
   left: 12px;
   background-color: white;
   border-radius: 8px;
@@ -659,7 +812,10 @@ export default {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 4px;
-  margin-bottom: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  width: 320px;
 }
 
 .emoji-item {
@@ -671,10 +827,12 @@ export default {
   cursor: pointer;
   border-radius: 4px;
   transition: all 0.2s;
+  font-size: 20px;
 }
 
 .emoji-item:hover {
   background-color: #f5f5f5;
+  transform: scale(1.1);
 }
 
 .chat-input textarea {

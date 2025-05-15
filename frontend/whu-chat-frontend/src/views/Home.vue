@@ -382,9 +382,9 @@
 
     <!-- 模态窗口：添加好友 -->
     <div class="modal-overlay" v-if="showAddFriendModal" @click="showAddFriendModal = false">
-      <div class="modal-content" @click.stop>
+      <div class="modal-content add-friend-modal" @click.stop>
         <div class="modal-header">
-          <h3>添加好友</h3>
+          <h3><i class="fa-solid fa-user-plus"></i> 添加好友</h3>
           <button class="close-button" @click="showAddFriendModal = false">
             <i class="fa-solid fa-times"></i>
           </button>
@@ -392,12 +392,30 @@
         <div class="modal-body">
           <div class="add-friend-form">
             <div class="form-group">
-              <label for="friendUsername">用户名</label>
-              <input type="text" id="friendUsername" v-model="friendUsername" placeholder="输入用户名...">
+              <div class="search-input-wrapper">
+                <i class="fa-solid fa-user search-icon"></i>
+                <input 
+                  type="text" 
+                  id="friendUsername" 
+                  v-model="friendUsername" 
+                  placeholder="输入用户名搜索..."
+                  class="search-input"
+                >
+                <div class="input-focus-border"></div>
+              </div>
+              <p class="input-hint">
+                <i class="fa-solid fa-lightbulb"></i>
+                输入对方的用户名，系统将自动搜索
+              </p>
             </div>
-            <button class="submit-button" @click="addFriend">
-              <i class="fa-solid fa-user-plus"></i> 添加
-            </button>
+            <div class="form-actions">
+              <button class="action-button cancel" @click="showAddFriendModal = false">
+                <i class="fa-solid fa-times"></i> 取消
+              </button>
+              <button class="action-button submit" @click="addFriend">
+                <i class="fa-solid fa-user-plus"></i> 添加好友
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -507,6 +525,20 @@
       @close="showSettingsModal = false"
       @settings-updated="handleSettingsUpdated"
     />
+    
+    <!-- 通知提示 -->
+    <transition name="notification-fade">
+      <div v-if="notification.show" 
+           class="notification-toast" 
+           :class="notification.type">
+        <i :class="{
+          'fa-solid fa-check-circle': notification.type === 'success',
+          'fa-solid fa-exclamation-circle': notification.type === 'error',
+          'fa-solid fa-info-circle': notification.type === 'info'
+        }"></i>
+        <span>{{ notification.message }}</span>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -622,6 +654,17 @@ export default {
     const notifications = ref([]);
     const showNotifications = ref(false);
     const unreadNotifications = ref(0);
+    
+    // 在 setup() 函数中添加更新未读通知数量的函数
+    const updateUnreadNotifications = async () => {
+      try {
+        const res = await axios.get(`/api/notification/user/${userId.value}`);
+        // 只计算未处理的通知数量
+        unreadNotifications.value = res.data.filter(n => !n.isHandled).length;
+      } catch (error) {
+        console.error('获取未读通知数量失败:', error);
+      }
+    };
     
     // 获取群组列表
     const fetchGroups = async () => {
@@ -837,7 +880,7 @@ export default {
     
     const addFriend = async () => {
       if (!friendUsername.value) {
-        alert('请输入用户名');
+        showNotification('请输入用户名', 'error');
         return;
       }
       
@@ -848,7 +891,7 @@ export default {
         });
         
         if (response.data && response.data.msg) {
-          alert(response.data.msg);
+          showNotification(response.data.msg, 'success');
           friendUsername.value = '';
           showAddFriendModal.value = false;
         }
@@ -856,13 +899,13 @@ export default {
         console.error('添加好友失败:', error);
         if (error.response) {
           // 服务器返回了错误响应
-          alert('添加好友失败: ' + (error.response.data?.msg || '服务器错误'));
+          showNotification('添加好友失败: ' + (error.response.data?.msg || '服务器错误'), 'error');
         } else if (error.request) {
           // 请求发送失败
-          alert('添加好友失败: 无法连接到服务器');
+          showNotification('添加好友失败: 无法连接到服务器', 'error');
         } else {
           // 其他错误
-          alert('添加好友失败: ' + error.message);
+          showNotification('添加好友失败: ' + error.message, 'error');
         }
       }
     };
@@ -1104,6 +1147,7 @@ export default {
       }
     };
     
+    // 修改 fetchNotifications 函数
     const fetchNotifications = async () => {
       try {
         const res = await axios.get(`/api/notification/user/${userId.value}`);
@@ -1112,28 +1156,43 @@ export default {
         unreadNotifications.value = notifications.value.length;
         showNotifications.value = true;
       } catch (error) {
-        alert('获取通知失败: ' + (error.response?.data?.msg || error.message));
+        showNotification('获取通知失败: ' + (error.response?.data?.msg || error.message), 'error');
       }
     };
-    
+
+    // 修改 acceptFriend 函数
     const acceptFriend = async (notificationId) => {
       try {
         await axios.post('/api/notification/accept-friend', { NotificationId: notificationId });
-        alert('已同意好友请求，已创建私聊');
+        showNotification('已同意好友请求，已创建私聊', 'success');
         await fetchNotifications(); // 立即刷新通知
         await fetchFriends(); // 立即刷新好友列表
+        await updateUnreadNotifications(); // 更新未读通知数量
       } catch (error) {
-        alert('操作失败: ' + (error.response?.data?.msg || error.message));
+        showNotification('操作失败: ' + (error.response?.data?.msg || error.message), 'error');
       }
     };
-    
+
+    // 修改 rejectFriend 函数
     const rejectFriend = async (notificationId) => {
       try {
-        await axios.post('/api/notification/reject-friend', { NotificationId: notificationId });
-        alert('已拒绝好友请求');
-        await fetchNotifications(); // 立即刷新通知
+        console.log('拒绝好友请求，通知ID:', notificationId);
+        const response = await axios.post('/api/notification/reject-friend', { 
+          notificationId: notificationId 
+        });
+        
+        if (response.data && response.data.msg) {
+          showNotification(response.data.msg, 'success');
+        } else {
+          showNotification('已拒绝好友请求', 'success');
+        }
+        
+        // 立即刷新通知列表和未读数量
+        await fetchNotifications();
+        await updateUnreadNotifications();
       } catch (error) {
-        alert('操作失败: ' + (error.response?.data?.msg || error.message));
+        console.error('拒绝好友请求失败:', error);
+        showNotification('操作失败: ' + (error.response?.data?.msg || error.message), 'error');
       }
     };
     
@@ -1216,22 +1275,23 @@ export default {
       // 自动加载数据
       fetchFriends(); // 加载好友列表
       fetchGroups(); // 加载群组列表
+      updateUnreadNotifications(); // 初始加载未读通知数量
       
       // 设置定时更新状态
       statusUpdateInterval = setInterval(updateFriendsOnlineStatus, 30000); // 每30秒更新一次
       
-      // 根据活动区域加载数据
-      if (activeSection.value === 'chatrooms') {
-        // chatRooms是静态数据，不需要加载
-        // 如果将来需要从后端加载，可以在这里添加逻辑
-      }
-    });
-    
-    // 组件卸载时清除定时器
-    onBeforeUnmount(() => {
-      if (statusUpdateInterval) {
-        clearInterval(statusUpdateInterval);
-      }
+      // 设置定时更新未读通知数量
+      const notificationInterval = setInterval(updateUnreadNotifications, 30000); // 每30秒更新一次
+      
+      // 在组件卸载时清除定时器
+      onBeforeUnmount(() => {
+        if (statusUpdateInterval) {
+          clearInterval(statusUpdateInterval);
+        }
+        if (notificationInterval) {
+          clearInterval(notificationInterval);
+        }
+      });
     });
     
     // 监听 activeSection 变化
@@ -1325,6 +1385,32 @@ export default {
       }
     };
     
+    // 添加通知状态
+    const notification = ref({
+      show: false,
+      message: '',
+      type: 'info',
+      timer: null
+    });
+    
+    // 显示通知
+    const showNotification = (message, type = 'info') => {
+      // 清除之前的定时器
+      if (notification.value.timer) {
+        clearTimeout(notification.value.timer);
+      }
+      
+      // 设置新的通知
+      notification.value = {
+        show: true,
+        message,
+        type,
+        timer: setTimeout(() => {
+          notification.value.show = false;
+        }, 3000)
+      };
+    };
+    
     return {
       // 用户信息
       userId,
@@ -1406,6 +1492,12 @@ export default {
       formatNotificationTime,
       isCurrentUserAdmin,
       toggleAdminRole,
+      
+      // 通知状态
+      notification,
+      showNotification,
+      rejectFriend,
+      updateUnreadNotifications,
     };
   }
 };
@@ -2957,5 +3049,331 @@ export default {
 
 .add-member-form .action-button i {
   font-size: 14px;
+}
+
+/* 通知提示样式 */
+.notification-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2000;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.notification-toast.success {
+  background-color: #f0fdf4;
+  border-left: 4px solid #22c55e;
+  color: #166534;
+}
+
+.notification-toast.error {
+  background-color: #fef2f2;
+  border-left: 4px solid #ef4444;
+  color: #991b1b;
+}
+
+.notification-toast.info {
+  background-color: #f0f9ff;
+  border-left: 4px solid #3b82f6;
+  color: #1e40af;
+}
+
+.notification-toast i {
+  font-size: 18px;
+}
+
+.notification-fade-enter-active,
+.notification-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.notification-fade-enter-from,
+.notification-fade-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* 添加好友表单样式 */
+.add-friend-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.add-friend-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.add-friend-form label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.add-friend-form label i {
+  color: #4776E6;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+}
+
+.search-input:focus {
+  border-color: #4776E6;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.1);
+  outline: none;
+}
+
+.search-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.input-hint {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.add-friend-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.add-friend-form .action-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.add-friend-form .action-button.cancel {
+  background: #f5f5f5;
+  border: none;
+  color: #666;
+}
+
+.add-friend-form .action-button.cancel:hover {
+  background: #eee;
+  color: #333;
+}
+
+.add-friend-form .action-button.submit {
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  border: none;
+  color: white;
+}
+
+.add-friend-form .action-button.submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(71, 118, 230, 0.2);
+}
+
+.add-friend-form .action-button i {
+  font-size: 14px;
+}
+
+/* 添加好友模态框样式 */
+.add-friend-modal {
+  background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease;
+}
+
+.add-friend-modal .modal-header {
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  padding: 20px;
+  color: white;
+}
+
+.add-friend-modal .modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  margin: 0;
+}
+
+.add-friend-modal .modal-header h3 i {
+  font-size: 18px;
+}
+
+.add-friend-modal .close-button {
+  color: white;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.add-friend-modal .close-button:hover {
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+.add-friend-modal .modal-body {
+  padding: 30px;
+}
+
+.add-friend-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 15px 45px 15px 45px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background-color: white;
+  color: #333;
+}
+
+.search-input:focus {
+  border-color: #4776E6;
+  box-shadow: 0 0 0 4px rgba(71, 118, 230, 0.1);
+  outline: none;
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #4776E6;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.input-focus-border {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  transition: width 0.3s ease;
+}
+
+.search-input:focus + .input-focus-border {
+  width: 100%;
+}
+
+.input-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+  margin-top: 8px;
+  padding-left: 5px;
+}
+
+.input-hint i {
+  color: #4776E6;
+  font-size: 14px;
+}
+
+.add-friend-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.add-friend-form .action-button {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.add-friend-form .action-button.cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.add-friend-form .action-button.cancel:hover {
+  background: #eee;
+  color: #333;
+  transform: translateY(-2px);
+}
+
+.add-friend-form .action-button.submit {
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(71, 118, 230, 0.2);
+}
+
+.add-friend-form .action-button.submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(71, 118, 230, 0.3);
+}
+
+.add-friend-form .action-button i {
+  font-size: 14px;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style> 

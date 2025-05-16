@@ -5,6 +5,8 @@ import router from "./router";
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
 import './style.css';
+import './assets/css/dark-theme.css'; // 导入深色主题样式
+import { initNotifications, playMessageSound, sendNotification } from './utils/notification'; // 导入通知工具
 
 // 配置axios默认设置
 axios.defaults.baseURL = 'http://localhost:5067'; // 使用原始的后端端口5067
@@ -105,18 +107,34 @@ window.allowNotifications = true; // 默认启用桌面通知
 
 // 添加通知音效
 const messageSound = new Audio('/notify.mp3');
-window.playMessageSound = () => {
-  if (window.allowMessageSound && messageSound) {
+window.playMessageSound = (type = 'private') => {
+  // 检查全局设置
+  if (!window.allowMessageSound) return;
+  
+  // 检查特定类型的免打扰设置
+  if (type === 'private' && window.privateChatMute) return;
+  if (type === 'group' && window.groupChatMute) return;
+  if (type === 'system' && window.systemNotificationMute) return;
+  
+  if (messageSound) {
     messageSound.currentTime = 0;
     messageSound.play().catch(err => console.log('无法播放通知音效:', err));
   }
 };
 
 // 添加浏览器通知
-window.showNotification = (title, body) => {
-  if (window.allowNotifications && Notification && Notification.permission === 'granted') {
+window.showNotification = (title, body, type = 'private') => {
+  // 检查全局设置
+  if (!window.allowNotifications) return;
+  
+  // 检查特定类型的免打扰设置
+  if (type === 'private' && window.privateChatMute) return;
+  if (type === 'group' && window.groupChatMute) return;
+  if (type === 'system' && window.systemNotificationMute) return;
+  
+  if (Notification && Notification.permission === 'granted') {
     new Notification(title, { body });
-  } else if (window.allowNotifications && Notification && Notification.permission !== 'denied') {
+  } else if (Notification && Notification.permission !== 'denied') {
     Notification.requestPermission().then(permission => {
       if (permission === 'granted') {
         new Notification(title, { body });
@@ -127,18 +145,27 @@ window.showNotification = (title, body) => {
 
 // 加载用户设置
 const loadUserSettings = () => {
+  // 深色模式
   const darkMode = localStorage.getItem('setting_darkMode') === 'true';
   if (darkMode) {
+    document.documentElement.classList.add('dark-mode');
     document.body.classList.add('dark-mode');
   } else {
+    document.documentElement.classList.remove('dark-mode');
     document.body.classList.remove('dark-mode');
   }
   
+  // 声音和通知设置
   window.allowMessageSound = localStorage.getItem('setting_messageSound') !== 'false';
   window.allowNotifications = localStorage.getItem('setting_newMessageNotification') !== 'false';
+  window.privateChatMute = localStorage.getItem('setting_privateChatMute') === 'true';
+  window.groupChatMute = localStorage.getItem('setting_groupChatMute') === 'true';
+  window.systemNotificationMute = localStorage.getItem('setting_systemNotificationMute') === 'true';
 };
 
 app.mount("#app");
 
 // 初始化设置
 loadUserSettings();
+// 初始化通知系统
+initNotifications();

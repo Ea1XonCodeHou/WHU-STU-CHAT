@@ -19,7 +19,7 @@ namespace backend.Controllers
         }
         
         [HttpGet("history/private/{friendId}")]
-        public async Task<IActionResult> GetPrivateChatHistory(int friendId)
+        public async Task<IActionResult> GetPrivateChatHistory(int friendId, [FromQuery] int count = 50)
         {
             try
             {
@@ -44,7 +44,7 @@ namespace backend.Controllers
                 }
                 
                 // 获取私聊历史消息
-                var messages = await _chatService.GetPrivateChatHistoryAsync(userId, friendId, 50);
+                var messages = await _chatService.GetPrivateChatHistoryAsync(userId, friendId, count);
                 return Ok(messages);
             }
             catch (Exception ex)

@@ -74,7 +74,7 @@ namespace backend.DTOs
         /// 消息内容
         /// </summary>
         public string Content { get; set; }
-
+        
         /// <summary>
         /// 消息时间戳
         /// </summary>

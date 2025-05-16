@@ -120,7 +120,6 @@
                :class="{ active: activeSection === 'groups' }">
             <i class="fa-solid fa-layer-group"></i>
             <span>群组管理</span>
-            <div class="notification-badge pulse" v-if="groupNotifications > 0">{{ groupNotifications }}</div>
           </div>
           <div class="nav-item" 
                @click="navigateToGroupChat()" 
@@ -302,8 +301,8 @@
             </div>
             <div class="add-member-form">
               <div class="form-group">
-                <label for="userId">用户ID</label>
-                <input type="number" id="userId" v-model="newUserId" placeholder="输入用户ID...">
+                <label for="userName">用户名</label>
+                <input type="text" id="userName" v-model="newUserName" placeholder="输入用户名...">
               </div>
               <div class="form-actions">
                 <button class="action-button cancel" @click="showAddUserModal = false">
@@ -319,9 +318,13 @@
           <div class="member-section">
             <div class="section-header">
               <h4>群组成员</h4>
-              <div class="search-box">
+              <div class="member-search-box">
                 <i class="fa-solid fa-search"></i>
-                <input type="text" placeholder="搜索成员..." v-model="memberSearch">
+                <input 
+                  type="text" 
+                  v-model="memberSearch" 
+                  placeholder="搜索成员..." 
+                >
               </div>
             </div>
             <div class="members">
@@ -331,10 +334,14 @@
                 </div>
                 <div class="member-info">
                   <span class="member-name">{{ member.username }}</span>
-                  <span class="member-role" v-if="member.userId === selectedGroup.creatorId">群主</span>
+                  <span class="member-role" v-if="member.role === 'master'">群主</span>
+                  <span class="member-role admin" v-else-if="member.role === 'admin'">管理员</span>
                 </div>
                 <div class="member-actions" v-if="member.userId !== selectedGroup.creatorId">
-                  <button class="action-button remove" @click="removeUserFromGroup(member)">
+                  <button class="action-button toggle-admin" @click="toggleAdminRole(member)" v-if="isCurrentUserAdmin">
+                    <i class="fa-solid" :class="member.role === 'admin' ? 'fa-user-minus' : 'fa-user-shield'"></i>
+                  </button>
+                  <button class="action-button remove" @click="removeUserFromGroup(member)" v-if="isCurrentUserAdmin">
                     <i class="fa-solid fa-user-minus"></i>
                   </button>
                 </div>
@@ -375,9 +382,9 @@
 
     <!-- 模态窗口：添加好友 -->
     <div class="modal-overlay" v-if="showAddFriendModal" @click="showAddFriendModal = false">
-      <div class="modal-content" @click.stop>
+      <div class="modal-content add-friend-modal" @click.stop>
         <div class="modal-header">
-          <h3>添加好友</h3>
+          <h3><i class="fa-solid fa-user-plus"></i> 添加好友</h3>
           <button class="close-button" @click="showAddFriendModal = false">
             <i class="fa-solid fa-times"></i>
           </button>
@@ -385,12 +392,30 @@
         <div class="modal-body">
           <div class="add-friend-form">
             <div class="form-group">
-              <label for="friendUsername">用户名</label>
-              <input type="text" id="friendUsername" v-model="friendUsername" placeholder="输入用户名...">
+              <div class="search-input-wrapper">
+                <i class="fa-solid fa-user search-icon"></i>
+                <input 
+                  type="text" 
+                  id="friendUsername" 
+                  v-model="friendUsername" 
+                  placeholder="输入用户名搜索..."
+                  class="search-input"
+                >
+                <div class="input-focus-border"></div>
+              </div>
+              <p class="input-hint">
+                <i class="fa-solid fa-lightbulb"></i>
+                输入对方的用户名，系统将自动搜索
+              </p>
             </div>
-            <button class="submit-button" @click="addFriend">
-              <i class="fa-solid fa-user-plus"></i> 添加
-            </button>
+            <div class="form-actions">
+              <button class="action-button cancel" @click="showAddFriendModal = false">
+                <i class="fa-solid fa-times"></i> 取消
+              </button>
+              <button class="action-button submit" @click="addFriend">
+                <i class="fa-solid fa-user-plus"></i> 添加好友
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -408,33 +433,47 @@
         <div class="modal-body">
           <div class="create-group-form">
             <div class="form-group">
-              <label for="groupId">群组ID</label>
-              <input type="number" id="groupId" v-model="groupId" placeholder="输入群组ID...">
-            </div>
-            <div class="form-group">
               <label for="groupName">群组名称</label>
-              <input type="text" id="groupName" v-model="groupName" placeholder="输入群组名称...">
+              <input 
+                type="text" 
+                id="groupName" 
+                v-model="groupName" 
+                placeholder="输入群组名称..."
+                class="form-input"
+              >
             </div>
             <div class="form-group">
               <label for="groupDescription">群组描述</label>
-              <textarea id="groupDescription" v-model="groupDescription" placeholder="输入群组描述..."></textarea>
+              <textarea 
+                id="groupDescription" 
+                v-model="groupDescription" 
+                placeholder="输入群组描述..."
+                class="form-textarea"
+              ></textarea>
             </div>
-            <button class="submit-button" @click="createGroup">
-              <i class="fa-solid fa-plus"></i> 创建
-            </button>
+            <div class="form-actions">
+              <button class="action-button cancel" @click="showCreateGroupModal = false">
+                <i class="fa-solid fa-times"></i> 取消
+              </button>
+              <button class="action-button submit" @click="createGroup">
+                <i class="fa-solid fa-plus"></i> 创建
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- 系统通知模态窗口 -->
-    <div v-if="showNotifications" class="modal-overlay" @click="showNotifications = false">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
+    <div v-if="showNotifications" class="notification-modal-overlay" @click="showNotifications = false">
+      <div class="notification-modal-content" @click.stop>
+        <div class="notification-modal-header">
           <h3>系统通知</h3>
-          <button class="close-button" @click="showNotifications = false">×</button>
+          <button class="close-button" @click="showNotifications = false">
+            <i class="fa-solid fa-times"></i>
+          </button>
         </div>
-        <div class="modal-body">
+        <div class="notification-modal-body">
           <ul class="notification-list">
             <li v-for="n in notifications" :key="n.notificationId" 
                 class="notification-item" 
@@ -486,6 +525,20 @@
       @close="showSettingsModal = false"
       @settings-updated="handleSettingsUpdated"
     />
+    
+    <!-- 通知提示 -->
+    <transition name="notification-fade">
+      <div v-if="notification.show" 
+           class="notification-toast" 
+           :class="notification.type">
+        <i :class="{
+          'fa-solid fa-check-circle': notification.type === 'success',
+          'fa-solid fa-exclamation-circle': notification.type === 'error',
+          'fa-solid fa-info-circle': notification.type === 'info'
+        }"></i>
+        <span>{{ notification.message }}</span>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -508,17 +561,7 @@ export default {
     // 用户信息
     const userId = ref(localStorage.getItem('userId') || '');
     const username = ref(localStorage.getItem('username') || '');
-    
-    // 获取完整的头像URL
-    const getFullAvatarUrl = (avatarPath) => {
-      if (!avatarPath) return null;
-      if (avatarPath.startsWith('http')) return avatarPath;
-      
-      const origin = window.location.origin;
-      return avatarPath.startsWith('/') ? `${origin}${avatarPath}` : `${origin}/${avatarPath}`;
-    };
-
-    const userAvatar = ref(getFullAvatarUrl(localStorage.getItem('userAvatar')));
+    const userAvatar = ref(localStorage.getItem('userAvatar') || '');
     const userSignature = ref(localStorage.getItem('userSignature') || '');
     
     // UI 状态
@@ -530,6 +573,8 @@ export default {
     const showAddFriendModal = ref(false);
     const showCreateGroupModal = ref(false);
     const showOnlineFriends = ref(true);
+    const showAddUserModal = ref(false);
+    const showDeleteConfirm = ref(false); // 添加删除确认对话框状态
     
     // 表单数据
     const friendUsername = ref('');
@@ -553,27 +598,43 @@ export default {
     const chatRooms = ref([
       {
         id: 1,
-        name: '校园交流',
-        description: '讨论校园生活、学习和各种活动',
+        name: '校园公共聊天室',
+        description: '欢迎来到武汉大学校园公共聊天室，这里是交流分享的空间！',
         icon: 'fa-solid fa-school',
-        onlineCount: 42,
-        messageCount: 152
+        onlineCount: 15,
+        messageCount: 1024
       },
       {
         id: 2,
-        name: '技术讨论',
-        description: '分享IT技术、编程经验',
-        icon: 'fa-solid fa-code',
-        onlineCount: 28,
-        messageCount: 98
+        name: '交友聊天室',
+        description: '在这里找到志同道合的朋友，扩展你的社交圈',
+        icon: 'fa-solid fa-user-group',
+        onlineCount: 8,
+        messageCount: 536
       },
       {
         id: 3,
-        name: '考研交流',
-        description: '交流考研经验、资料分享',
+        name: '学术交流厅',
+        description: '讨论学术问题，分享研究心得和学习资源',
         icon: 'fa-solid fa-graduation-cap',
-        onlineCount: 35,
-        messageCount: 120
+        onlineCount: 12,
+        messageCount: 789
+      },
+      {
+        id: 4,
+        name: '游戏玩家俱乐部',
+        description: '讨论热门游戏，组队开黑，分享游戏攻略',
+        icon: 'fa-solid fa-gamepad',
+        onlineCount: 20,
+        messageCount: 1256
+      },
+      {
+        id: 5,
+        name: '求职交流区',
+        description: '分享求职经验，讨论职业规划，互通招聘信息',
+        icon: 'fa-solid fa-briefcase',
+        onlineCount: 10,
+        messageCount: 678
       }
     ]);
     
@@ -587,13 +648,23 @@ export default {
     const selectedGroup = ref(null);
     const groupMembers = ref([]);
     const memberSearch = ref('');
-    const showAddUserModal = ref(false);
-    const newUserId = ref('');
+    const newUserName = ref('');
     
     // 系统通知相关
     const notifications = ref([]);
     const showNotifications = ref(false);
     const unreadNotifications = ref(0);
+    
+    // 在 setup() 函数中添加更新未读通知数量的函数
+    const updateUnreadNotifications = async () => {
+      try {
+        const res = await axios.get(`/api/notification/user/${userId.value}`);
+        // 只计算未处理的通知数量
+        unreadNotifications.value = res.data.filter(n => !n.isHandled).length;
+      } catch (error) {
+        console.error('获取未读通知数量失败:', error);
+      }
+    };
     
     // 获取群组列表
     const fetchGroups = async () => {
@@ -808,41 +879,55 @@ export default {
     };
     
     const addFriend = async () => {
-      if (!friendUsername.value) return;
+      if (!friendUsername.value) {
+        showNotification('请输入用户名', 'error');
+        return;
+      }
+      
       try {
-        await axios.post('/api/notification/friend-request', {
-          TargetUsername: friendUsername.value,
-          RequesterUsername: username.value
+        const response = await axios.post('/api/notification/friend-request', {
+          targetUsername: friendUsername.value,
+          requesterUsername: username.value
         });
-        alert('好友请求已发送');
-        friendUsername.value = '';
-        showAddFriendModal.value = false;
+        
+        if (response.data && response.data.msg) {
+          showNotification(response.data.msg, 'success');
+          friendUsername.value = '';
+          showAddFriendModal.value = false;
+        }
       } catch (error) {
-        alert('添加好友失败: ' + (error.response?.data?.msg || error.message));
+        console.error('添加好友失败:', error);
+        if (error.response) {
+          // 服务器返回了错误响应
+          showNotification('添加好友失败: ' + (error.response.data?.msg || '服务器错误'), 'error');
+        } else if (error.request) {
+          // 请求发送失败
+          showNotification('添加好友失败: 无法连接到服务器', 'error');
+        } else {
+          // 其他错误
+          showNotification('添加好友失败: ' + error.message, 'error');
+        }
       }
     };
     
     const createGroup = async () => {
-      if (!groupId.value || !groupName.value) {
-        alert('群组ID和群组名称不能为空');
+      if (!groupName.value) {
+        alert('群组名称不能为空');
         return;
       }
       
       try {
         const groupData = {
-          groupId: parseInt(groupId.value),
           groupName: groupName.value,
           description: groupDescription.value || '',
           creatorId: parseInt(userId.value),
-          memberCount: 1,
-          createTime: new Date().toISOString()
+          memberCount: 1
         };
 
         const response = await axios.post('/api/group/create', groupData);
         
         if (response.data.code === 200) {
           // 创建成功后清空输入并关闭模态窗口
-          groupId.value = '';
           groupName.value = '';
           groupDescription.value = '';
           showCreateGroupModal.value = false;
@@ -911,12 +996,17 @@ export default {
         const membersResponse = await axios.get(`/api/group/${group.groupId}/users`);
         if (membersResponse.data.code === 200) {
           console.log('群组成员原始数据:', membersResponse.data.data);
-          // 确保每个成员都有 userId 字段
           groupMembers.value = membersResponse.data.data.map(member => ({
             ...member,
-            userId: member.userId || member.id // 尝试使用 id 作为备选
+            userId: member.userId,
+            username: member.username,
+            avatar: member.avatar,
+            role: member.role,
+            joinTime: member.joinTime,
+            lastActive: member.lastActive
           }));
           console.log('处理后的成员数据:', groupMembers.value);
+          console.log('当前用户权限:', isCurrentUserAdmin.value);
         }
       } catch (error) {
         console.error('获取群组详情失败:', error);
@@ -934,7 +1024,11 @@ export default {
       if (!selectedGroup.value) return;
       
       try {
-        const response = await axios.delete(`/api/group/${selectedGroup.value.groupId}`);
+        const response = await axios.delete(`/api/group/${selectedGroup.value.groupId}`, {
+          params: {
+            operatorUserId: parseInt(userId.value)
+          }
+        });
         if (response.data.code === 200) {
           selectedGroup.value = null;
           await fetchGroups();
@@ -948,21 +1042,25 @@ export default {
       }
     };
     
-    const addUserToGroup = async (member) => {
-      if (!selectedGroup.value || !newUserId.value) {
-        alert('请输入用户ID');
+    const addUserToGroup = async () => {
+      if (!selectedGroup.value || !newUserName.value) {
+        alert('请输入用户名');
         return;
       }
       
       try {
-        const response = await axios.post(`/api/group/${selectedGroup.value.groupId}/add-user/${newUserId.value}`);
+        const response = await axios.post(`/api/group/${selectedGroup.value.groupId}/add-user-by-username`, {
+          userName: newUserName.value,
+          operatorUserId: parseInt(userId.value) // 添加操作者ID
+        });
+        
         if (response.data.code === 200) {
           // 刷新成员列表
           const membersResponse = await axios.get(`/api/group/${selectedGroup.value.groupId}/users`);
           if (membersResponse.data.code === 200) {
             groupMembers.value = membersResponse.data.data;
           }
-          newUserId.value = '';
+          newUserName.value = '';
           showAddUserModal.value = false;
           alert('添加成员成功');
         } else {
@@ -978,29 +1076,54 @@ export default {
       if (!selectedGroup.value || !member) return;
       
       try {
+        // 检查当前用户权限
+        if (!isCurrentUserAdmin.value) {
+          alert('无权限，只有管理员或群主可以移除成员');
+          return;
+        }
+
         console.log('移除成员前的数据:', {
           selectedGroup: selectedGroup.value,
           member: member,
-          memberId: member.userId || member.id
+          memberId: member.userId,
+          operatorId: userId.value,
+          isAdmin: isCurrentUserAdmin.value
         });
         
         // 确保参数是数字类型
         const groupId = parseInt(selectedGroup.value.groupId);
-        const memberId = parseInt(member.userId || member.id);
+        const memberId = parseInt(member.userId);
+        const operatorId = parseInt(userId.value);
         
         console.log('转换后的参数:', {
           groupId: groupId,
           memberId: memberId,
+          operatorId: operatorId,
           isNaNGroupId: isNaN(groupId),
-          isNaNMemberId: isNaN(memberId)
+          isNaNMemberId: isNaN(memberId),
+          isNaNOperatorId: isNaN(operatorId)
         });
         
-        if (isNaN(groupId) || isNaN(memberId)) {
+        if (isNaN(groupId) || isNaN(memberId) || isNaN(operatorId)) {
           alert('参数错误：群组ID或用户ID无效');
           return;
         }
+
+        // 不能移除群主
+        if (member.role === 'master') {
+          alert('不能移除群主');
+          return;
+        }
         
-        const response = await axios.delete(`/api/group/${groupId}/remove-user/${memberId}`);
+        // 修改请求格式
+        const response = await axios({
+          method: 'delete',
+          url: `/api/group/${groupId}/remove-user/${memberId}`,
+          params: {
+            operatorUserId: operatorId
+          }
+        });
+        
         console.log('移除成员响应:', response.data);
         
         if (response.data.code === 200) {
@@ -1024,6 +1147,7 @@ export default {
       }
     };
     
+    // 修改 fetchNotifications 函数
     const fetchNotifications = async () => {
       try {
         const res = await axios.get(`/api/notification/user/${userId.value}`);
@@ -1032,28 +1156,43 @@ export default {
         unreadNotifications.value = notifications.value.length;
         showNotifications.value = true;
       } catch (error) {
-        alert('获取通知失败: ' + (error.response?.data?.msg || error.message));
+        showNotification('获取通知失败: ' + (error.response?.data?.msg || error.message), 'error');
       }
     };
-    
+
+    // 修改 acceptFriend 函数
     const acceptFriend = async (notificationId) => {
       try {
         await axios.post('/api/notification/accept-friend', { NotificationId: notificationId });
-        alert('已同意好友请求，已创建私聊');
+        showNotification('已同意好友请求，已创建私聊', 'success');
         await fetchNotifications(); // 立即刷新通知
         await fetchFriends(); // 立即刷新好友列表
+        await updateUnreadNotifications(); // 更新未读通知数量
       } catch (error) {
-        alert('操作失败: ' + (error.response?.data?.msg || error.message));
+        showNotification('操作失败: ' + (error.response?.data?.msg || error.message), 'error');
       }
     };
-    
+
+    // 修改 rejectFriend 函数
     const rejectFriend = async (notificationId) => {
       try {
-        await axios.post('/api/notification/reject-friend', { NotificationId: notificationId });
-        alert('已拒绝好友请求');
-        await fetchNotifications(); // 立即刷新通知
+        console.log('拒绝好友请求，通知ID:', notificationId);
+        const response = await axios.post('/api/notification/reject-friend', { 
+          notificationId: notificationId 
+        });
+        
+        if (response.data && response.data.msg) {
+          showNotification(response.data.msg, 'success');
+        } else {
+          showNotification('已拒绝好友请求', 'success');
+        }
+        
+        // 立即刷新通知列表和未读数量
+        await fetchNotifications();
+        await updateUnreadNotifications();
       } catch (error) {
-        alert('操作失败: ' + (error.response?.data?.msg || error.message));
+        console.error('拒绝好友请求失败:', error);
+        showNotification('操作失败: ' + (error.response?.data?.msg || error.message), 'error');
       }
     };
     
@@ -1136,22 +1275,23 @@ export default {
       // 自动加载数据
       fetchFriends(); // 加载好友列表
       fetchGroups(); // 加载群组列表
+      updateUnreadNotifications(); // 初始加载未读通知数量
       
       // 设置定时更新状态
       statusUpdateInterval = setInterval(updateFriendsOnlineStatus, 30000); // 每30秒更新一次
       
-      // 根据活动区域加载数据
-      if (activeSection.value === 'chatrooms') {
-        // chatRooms是静态数据，不需要加载
-        // 如果将来需要从后端加载，可以在这里添加逻辑
-      }
-    });
-    
-    // 组件卸载时清除定时器
-    onBeforeUnmount(() => {
-      if (statusUpdateInterval) {
-        clearInterval(statusUpdateInterval);
-      }
+      // 设置定时更新未读通知数量
+      const notificationInterval = setInterval(updateUnreadNotifications, 30000); // 每30秒更新一次
+      
+      // 在组件卸载时清除定时器
+      onBeforeUnmount(() => {
+        if (statusUpdateInterval) {
+          clearInterval(statusUpdateInterval);
+        }
+        if (notificationInterval) {
+          clearInterval(notificationInterval);
+        }
+      });
     });
     
     // 监听 activeSection 变化
@@ -1166,6 +1306,110 @@ export default {
         // 如果将来需要从后端加载聊天室数据，可以在这里添加逻辑
       }
     });
+    
+    const isCurrentUserAdmin = computed(() => {
+      if (!selectedGroup.value || !userId.value) return false;
+      const currentMember = groupMembers.value.find(m => parseInt(m.userId) === parseInt(userId.value));
+      console.log('当前用户权限检查:', {
+        currentMember,
+        userId: userId.value,
+        role: currentMember?.role,
+        isAdmin: currentMember?.role === 'master' || currentMember?.role === 'admin'
+      });
+      return currentMember?.role === 'master' || currentMember?.role === 'admin';
+    });
+    
+    const toggleAdminRole = async (member) => {
+      if (!selectedGroup.value || !member) return;
+      
+      try {
+        // 检查当前用户权限
+        if (!isCurrentUserAdmin.value) {
+          alert('无权限，只有管理员或群主可以切换角色');
+          return;
+        }
+
+        const groupId = parseInt(selectedGroup.value.groupId);
+        const targetUserId = parseInt(member.userId);
+        const operatorId = parseInt(userId.value);
+        
+        console.log('切换管理员角色参数:', {
+          groupId,
+          targetUserId,
+          operatorId,
+          isNaNGroupId: isNaN(groupId),
+          isNaNTargetUserId: isNaN(targetUserId),
+          isNaNOperatorId: isNaN(operatorId)
+        });
+        
+        if (isNaN(groupId) || isNaN(targetUserId) || isNaN(operatorId)) {
+          alert('参数错误：群组ID或用户ID无效');
+          return;
+        }
+
+        // 不能修改群主的角色
+        if (member.role === 'master') {
+          alert('不能修改群主的角色');
+          return;
+        }
+        
+        // 修改请求格式
+        const response = await axios({
+          method: 'post',
+          url: `/api/group/${groupId}/toggle-admin/${targetUserId}`,
+          params: {
+            operatorUserId: operatorId
+          }
+        });
+        
+        console.log('切换管理员角色响应:', response.data);
+        
+        if (response.data.code === 200) {
+          // 刷新成员列表
+          const membersResponse = await axios.get(`/api/group/${groupId}/users`);
+          if (membersResponse.data.code === 200) {
+            groupMembers.value = membersResponse.data.data;
+          }
+          alert(response.data.msg || '操作成功');
+        } else {
+          alert(response.data.msg || '操作失败');
+        }
+      } catch (error) {
+        console.error('切换管理员角色失败:', {
+          error: error,
+          response: error.response?.data,
+          status: error.response?.status,
+          statusText: error.response?.statusText
+        });
+        alert('切换管理员角色失败: ' + (error.response?.data?.msg || error.message));
+      }
+    };
+    
+    // 添加通知状态
+    const notification = ref({
+      show: false,
+      message: '',
+      type: 'info',
+      timer: null
+    });
+    
+    // 显示通知
+    const showNotification = (message, type = 'info') => {
+      // 清除之前的定时器
+      if (notification.value.timer) {
+        clearTimeout(notification.value.timer);
+      }
+      
+      // 设置新的通知
+      notification.value = {
+        show: true,
+        message,
+        type,
+        timer: setTimeout(() => {
+          notification.value.show = false;
+        }, 3000)
+      };
+    };
     
     return {
       // 用户信息
@@ -1183,6 +1427,8 @@ export default {
       showAddFriendModal,
       showCreateGroupModal,
       showOnlineFriends,
+      showAddUserModal,
+      showDeleteConfirm,
       
       // 表单数据
       friendUsername,
@@ -1211,8 +1457,7 @@ export default {
       selectedGroup,
       groupMembers,
       memberSearch,
-      showAddUserModal,
-      newUserId,
+      newUserName,
       filteredMembers,
       
       // 系统通知相关
@@ -1244,7 +1489,15 @@ export default {
       // 新增返回项
       handleProfileUpdated,
       handleSettingsUpdated,
-      formatNotificationTime
+      formatNotificationTime,
+      isCurrentUserAdmin,
+      toggleAdminRole,
+      
+      // 通知状态
+      notification,
+      showNotification,
+      rejectFriend,
+      updateUnreadNotifications,
     };
   }
 };
@@ -2086,27 +2339,43 @@ export default {
   color: #333;
 }
 
-.search-box {
+.member-search-box {
   display: flex;
   align-items: center;
   background-color: #f5f5f5;
   border-radius: 20px;
   padding: 6px 12px;
   width: 200px;
+  border: 1px solid #e0e0e0;
 }
 
-.search-box i {
+.member-search-box i {
   color: #999;
   font-size: 14px;
   margin-right: 8px;
 }
 
-.search-box input {
+.member-search-box input {
   border: none;
   background: transparent;
   outline: none;
   font-size: 14px;
   width: 100%;
+  color: #333;
+  padding: 0;
+}
+
+.member-search-box input::placeholder {
+  color: #999;
+}
+
+.member-search-box input:focus {
+  outline: none;
+}
+
+.member-search-box:focus-within {
+  border-color: #4776E6;
+  box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.1);
 }
 
 .members {
@@ -2148,15 +2417,53 @@ export default {
   background-color: rgba(142, 84, 233, 0.1);
   padding: 2px 8px;
   border-radius: 10px;
+  margin-left: 8px;
+}
+
+.member-role.admin {
+  color: #4776E6;
+  background-color: rgba(71, 118, 230, 0.1);
 }
 
 .member-actions {
+  display: flex;
+  gap: 8px;
   opacity: 0;
   transition: opacity 0.2s;
 }
 
 .member-item:hover .member-actions {
   opacity: 1;
+}
+
+.action-button.toggle-admin {
+  color: #4776E6;
+  background-color: #f0f7ff;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-button.remove {
+  color: #ff4757;
+  background-color: #ffe0e3;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-button.toggle-admin:hover {
+  background-color: #e6f0ff;
+}
+
+.action-button.remove:hover {
+  background-color: #ffd7dc;
 }
 
 .action-buttons {
@@ -2197,164 +2504,6 @@ export default {
 
 .action-button i {
   font-size: 14px;
-}
-
-/* 过渡动画 */
-.slide-fade-enter-active, .slide-fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-fade-enter-from, .slide-fade-leave-to {
-  transform: translateY(-10px);
-  opacity: 0;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .home-container {
-    flex-direction: column;
-  }
-  
-  .sidebar {
-    width: 100%;
-    height: 60px;
-    flex-direction: row;
-  }
-  
-  .main-content {
-    padding: 15px;
-  }
-  
-  .rooms-grid, .forums-categories {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* 添加成员表单样式 */
-.add-member-section {
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  border: 1px solid #e9ecef;
-}
-
-.add-member-form {
-  margin-top: 15px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  color: #495057;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 10px 15px;
-  border: 1px solid #ced4da;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.form-group input:focus {
-  border-color: #4776E6;
-  box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.1);
-  outline: none;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.action-button.cancel {
-  background-color: #f8f9fa;
-  color: #495057;
-  border: 1px solid #ced4da;
-}
-
-.action-button.cancel:hover {
-  background-color: #e9ecef;
-}
-
-.action-button.submit {
-  background-color: #4776E6;
-  color: white;
-}
-
-.action-button.submit:hover {
-  background-color: #3b5dc4;
-}
-
-/* 删除确认模态窗口样式 */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: white;
-  border-radius: 10px;
-  width: 400px;
-  max-width: 90%;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.modal-header {
-  padding: 20px;
-  border-bottom: 1px solid #e9ecef;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 18px;
-  color: #333;
-}
-
-.modal-body {
-  padding: 20px;
-}
-
-.modal-body p {
-  margin-bottom: 20px;
-  color: #495057;
-  line-height: 1.5;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.action-button.delete {
-  background-color: #ff4757;
-  color: white;
-}
-
-.action-button.delete:hover {
-  background-color: #ff2e43;
 }
 
 .avatar-placeholder {
@@ -2459,5 +2608,772 @@ export default {
   font-size: 12px;
   color: #999;
   margin-top: 5px;
+}
+
+/* 系统通知模态窗口样式 */
+.notification-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.notification-modal-content {
+  background-color: white;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  max-height: 80vh;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.3s ease;
+}
+
+.notification-modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+}
+
+.notification-modal-body {
+  padding: 0;
+  overflow-y: auto;
+  max-height: calc(80vh - 70px);
+}
+
+.notification-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s;
+}
+
+.notification-item:hover {
+  background-color: #f5f5f5;
+}
+
+.notification-item.unread {
+  background-color: #f0f7ff;
+}
+
+.notification-content {
+  margin-bottom: 10px;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: #999;
+  text-align: right;
+}
+
+.empty-notification {
+  padding: 30px 20px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+.friend-request-header {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.friend-request-message {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-style: italic;
+  color: #666;
+  font-size: 13px;
+}
+
+.friend-request-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.accept-button, .reject-button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  border: none;
+  transition: all 0.2s;
+}
+
+.accept-button {
+  background-color: #4776E6;
+  color: white;
+}
+
+.reject-button {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.accept-button:hover {
+  background-color: #3b5dc4;
+}
+
+.reject-button:hover {
+  background-color: #e9ecef;
+}
+
+.friend-request-status {
+  font-size: 12px;
+  color: #999;
+  margin-top: 5px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 20px;
+  padding: 5px;
+  transition: all 0.2s;
+}
+
+.close-button:hover {
+  color: #333;
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.create-group-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-input,
+.form-textarea {
+  padding: 10px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  border-color: #4776E6;
+  box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.1);
+  outline: none;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.action-button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.action-button.cancel {
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  color: #333;
+}
+
+.action-button.submit {
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  border: none;
+  color: white;
+}
+
+.action-button.cancel:hover {
+  background-color: #e0e0e0;
+}
+
+.action-button.submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(71, 118, 230, 0.3);
+}
+
+.action-button i {
+  font-size: 14px;
+}
+
+.add-member-section {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  width: 400px;
+  max-width: 90%;
+  z-index: 1000;
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.add-member-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.add-member-section .section-header h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+}
+
+.add-member-section .close-button {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.add-member-section .close-button:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.add-member-form {
+  padding: 20px;
+}
+
+.add-member-form .form-group {
+  margin-bottom: 20px;
+}
+
+.add-member-form label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.add-member-form input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #eee;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.add-member-form input:focus {
+  border-color: #4776E6;
+  box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.1);
+  outline: none;
+}
+
+.add-member-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.add-member-form .action-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.add-member-form .action-button.cancel {
+  background: #f5f5f5;
+  border: none;
+  color: #666;
+}
+
+.add-member-form .action-button.cancel:hover {
+  background: #eee;
+  color: #333;
+}
+
+.add-member-form .action-button.submit {
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  border: none;
+  color: white;
+}
+
+.add-member-form .action-button.submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(71, 118, 230, 0.2);
+}
+
+.add-member-form .action-button i {
+  font-size: 14px;
+}
+
+/* 通知提示样式 */
+.notification-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2000;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.notification-toast.success {
+  background-color: #f0fdf4;
+  border-left: 4px solid #22c55e;
+  color: #166534;
+}
+
+.notification-toast.error {
+  background-color: #fef2f2;
+  border-left: 4px solid #ef4444;
+  color: #991b1b;
+}
+
+.notification-toast.info {
+  background-color: #f0f9ff;
+  border-left: 4px solid #3b82f6;
+  color: #1e40af;
+}
+
+.notification-toast i {
+  font-size: 18px;
+}
+
+.notification-fade-enter-active,
+.notification-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.notification-fade-enter-from,
+.notification-fade-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* 添加好友表单样式 */
+.add-friend-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.add-friend-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.add-friend-form label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.add-friend-form label i {
+  color: #4776E6;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+}
+
+.search-input:focus {
+  border-color: #4776E6;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.1);
+  outline: none;
+}
+
+.search-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.input-hint {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.add-friend-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.add-friend-form .action-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.add-friend-form .action-button.cancel {
+  background: #f5f5f5;
+  border: none;
+  color: #666;
+}
+
+.add-friend-form .action-button.cancel:hover {
+  background: #eee;
+  color: #333;
+}
+
+.add-friend-form .action-button.submit {
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  border: none;
+  color: white;
+}
+
+.add-friend-form .action-button.submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(71, 118, 230, 0.2);
+}
+
+.add-friend-form .action-button i {
+  font-size: 14px;
+}
+
+/* 添加好友模态框样式 */
+.add-friend-modal {
+  background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease;
+}
+
+.add-friend-modal .modal-header {
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  padding: 20px;
+  color: white;
+}
+
+.add-friend-modal .modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  margin: 0;
+}
+
+.add-friend-modal .modal-header h3 i {
+  font-size: 18px;
+}
+
+.add-friend-modal .close-button {
+  color: white;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.add-friend-modal .close-button:hover {
+  opacity: 1;
+  transform: rotate(90deg);
+}
+
+.add-friend-modal .modal-body {
+  padding: 30px;
+}
+
+.add-friend-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 15px 45px 15px 45px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background-color: white;
+  color: #333;
+}
+
+.search-input:focus {
+  border-color: #4776E6;
+  box-shadow: 0 0 0 4px rgba(71, 118, 230, 0.1);
+  outline: none;
+}
+
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #4776E6;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.input-focus-border {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  transition: width 0.3s ease;
+}
+
+.search-input:focus + .input-focus-border {
+  width: 100%;
+}
+
+.input-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+  margin-top: 8px;
+  padding-left: 5px;
+}
+
+.input-hint i {
+  color: #4776E6;
+  font-size: 14px;
+}
+
+.add-friend-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.add-friend-form .action-button {
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.add-friend-form .action-button.cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.add-friend-form .action-button.cancel:hover {
+  background: #eee;
+  color: #333;
+  transform: translateY(-2px);
+}
+
+.add-friend-form .action-button.submit {
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(71, 118, 230, 0.2);
+}
+
+.add-friend-form .action-button.submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(71, 118, 230, 0.3);
+}
+
+.add-friend-form .action-button i {
+  font-size: 14px;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style> 

@@ -30,11 +30,11 @@ namespace backend.Controllers
         }
 
         [HttpDelete("{groupId}")]
-        public async Task<IActionResult> DeleteGroup(int groupId)
+        public async Task<IActionResult> DeleteGroup(int groupId, [FromQuery] int operatorUserId)
         {
             try
             {
-                var result = await _groupService.DeleteGroupAsync(groupId);
+                var result = await _groupService.DeleteGroupAsync(groupId, operatorUserId);
                 if (result)
                     return Ok(new { code = 200, msg = "群组删除成功" });
                 return NotFound(new { code = 404, msg = "群组不存在" });
@@ -76,11 +76,11 @@ namespace backend.Controllers
         }
 
         [HttpPost("{groupId}/add-user/{userId}")]
-        public async Task<IActionResult> AddUserToGroup(int groupId, int userId)
+        public async Task<IActionResult> AddUserToGroup(int groupId, int userId, [FromQuery] int operatorUserId)
         {
             try
             {
-                var result = await _groupService.AddUserToGroupAsync(groupId, userId);
+                var result = await _groupService.AddUserToGroupAsync(groupId, userId, operatorUserId);
                 if (result)
                     return Ok(new { code = 200, msg = "添加用户到群组成功" });
                 return BadRequest(new { code = 400, msg = "添加用户到群组失败" });
@@ -91,12 +91,35 @@ namespace backend.Controllers
             }
         }
 
-        [HttpDelete("{groupId}/remove-user/{userId}")]
-        public async Task<IActionResult> RemoveUserFromGroup(int groupId, int userId)
+        [HttpPost("{groupId}/add-user-by-username")]
+        public async Task<IActionResult> AddUserToGroupByUserName(int groupId, [FromBody] AddUserByUsernameDTO request)
         {
             try
             {
-                var result = await _groupService.RemoveUserFromGroupAsync(groupId, userId);
+                if (string.IsNullOrWhiteSpace(request.UserName))
+                {
+                    return BadRequest(new { code = 400, msg = "用户名不能为空" });
+                }
+
+                var result = await _groupService.AddUserToGroupByUserNameAsync(groupId, request.UserName,request.OperatorUserId);
+                if (result)
+                {
+                    return Ok(new { code = 200, msg = "用户已成功添加到群组" });
+                }
+                return BadRequest(new { code = 400, msg = "添加用户到群组失败" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { code = 400, msg = ex.Message });
+            }
+        }
+
+        [HttpDelete("{groupId}/remove-user/{userId}")]
+        public async Task<IActionResult> RemoveUserFromGroup(int groupId, int userId, [FromQuery] int operatorUserId)
+        {
+            try
+            {
+                var result = await _groupService.RemoveUserFromGroupAsync(groupId, userId, operatorUserId);
                 if (result)
                     return Ok(new { code = 200, msg = "从群组移除用户成功" });
                 return BadRequest(new { code = 400, msg = "从群组移除用户失败" });
@@ -106,6 +129,15 @@ namespace backend.Controllers
                 return BadRequest(new { code = 400, msg = ex.Message });
             }
         }
+        [HttpPost("{groupId}/toggle-admin/{userId}")]
+        public async Task<IActionResult> ToggleAdminRole(int groupId, int userId, [FromQuery] int operatorUserId)
+        {
+            var result = await _groupService.ToggleAdminRoleAsync(groupId, userId, operatorUserId);
+            if (result == "已切换")
+                return Ok(new { code = 200, msg = result });
+            return BadRequest(new { code = 400, msg = result });
+        }
+
 
         [HttpGet("{groupId}/users")]
         public async Task<IActionResult> GetGroupUsers(int groupId)
@@ -138,28 +170,26 @@ namespace backend.Controllers
         [HttpGet("user/{userId}/private")]
         public async Task<IActionResult> GetUserPrivateChats(int userId)
         {
-            var groups = await _groupService.GetAllGroupsAsync(userId);
-            // 只保留成员数为2的群聊
-            var privateChats = groups.Where(g => g.MemberCount == 2).ToList();
-
-            var result = new List<object>();
-            foreach (var group in privateChats)
+            try
             {
-                var members = await _groupService.GetGroupUsersAsync(group.GroupId);
-                result.Add(new {
-                    groupId = group.GroupId,
-                    groupName = group.GroupName,
-                    updateTime = group.UpdateTime,
-                    memberCount = members.Count,
-                    members = members.Select(m => new {
-                        id = m.Id,
-                        username = m.Username,
-                        status = m.Status,
-                        avatar = m.AvatarUrl
-                    }).ToList()
-                });
+                // 调用 GetFriendsAsync 获取好友列表
+                var friends = await _groupService.GetFriendsAsync(userId);
+
+                // 构造私聊信息
+                var privateChats = friends.Select(friend => new
+                {
+                    friendId = friend.FriendId,
+                    username = friend.Username,
+                    groupId = friend.GroupId,
+                    friendshipCreatedTime = friend.FriendshipCreatedTime
+                }).ToList();
+
+                return Ok(new { code = 200, data = privateChats, msg = "获取私聊列表成功" });
             }
-            return Ok(new { code = 200, data = result, msg = "获取私聊列表成功" });
+            catch (Exception ex)
+            {
+                return BadRequest(new { code = 400, msg = ex.Message });
+            }
         }
 
         [HttpGet("search")]

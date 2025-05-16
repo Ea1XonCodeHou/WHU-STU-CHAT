@@ -1,29 +1,53 @@
-# whu-chat-frontend
+# WHU-STU-CHAT 项目
 
-This template should help get you started developing with Vue 3 in Vite.
+武汉大学学生聊天系统
 
-## Recommended IDE Setup
+## 开发环境
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- 前端: Vue.js、ElementPlus
+- 后端: ASP.NET Core
+- 数据库: MySQL
 
-## Customize configuration
+## 项目结构
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+```
+WHU-STU-CHAT/
+├── backend/           // 后端项目
+├── frontend/          // 前端项目
+```
 
-## Project Setup
+## 启动步骤
 
-```sh
+### 完成音效设置
+
+1. 下载消息通知音效文件，重命名为 `notify.mp3`
+2. 将音效文件放入 `frontend/whu-chat-frontend/public/` 目录
+
+### 启动后端
+
+```bash
+cd backend
+dotnet run
+```
+
+### 启动前端
+
+```bash
+cd frontend/whu-chat-frontend
 npm install
+npm run serve
 ```
 
-### Compile and Hot-Reload for Development
+## 主要功能
 
-```sh
-npm run dev
-```
+- 用户注册与登录
+- 个人资料管理（含头像上传）
+- 好友添加与管理
+- 私聊与群聊
+- 消息发送与历史记录
+- 系统设置（主题切换、声音通知等）
+- 在线状态管理
 
-### Compile and Minify for Production
+## 说明
 
-```sh
-npm run build
-```
+本项目为武汉大学计算机学院毕业设计项目，旨在提供一个安全、高效的校园聊天系统。

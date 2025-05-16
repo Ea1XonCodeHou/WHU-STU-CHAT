@@ -27,8 +27,7 @@ namespace backend.Hubs
             {
                 _logger.LogInformation($"用户 {username}({userId}) 尝试加入群组 {groupId}");
 
-                //var group = await _groupService.GetGroupAsync(groupId);//要注意的是
-                var group = _groupService.GetGroupAsync(groupId);
+                var group = await _groupService.GetGroupAsync(groupId);
                 if (group == null)
                 {
                     _logger.LogWarning($"群组 {groupId} 不存在");
@@ -52,14 +51,7 @@ namespace backend.Hubs
                 // 设置用户全局在线状态
                 _groupService.SetUserOnline(userId, true);
 
-                // 将用户添加到群组
-                var success = await _groupService.AddUserToGroupAsync(groupId, userId);
-                if (!success)
-                {
-                    _logger.LogWarning($"无法将用户 {username}({userId}) 添加到群组 {groupId}");
-                    await Clients.Caller.SendAsync("Error", "添加用户到群组失败");
-                    return;
-                }
+                
 
                 // 获取群组历史消息
                 var messages = await _groupService.GetGroupMessagesAsync(groupId, 20);
@@ -166,8 +158,7 @@ namespace backend.Hubs
                 // 设置用户全局离线状态（检查是否还有其他连接）
                 _groupService.SetUserOnline(userConnection.UserId, false);
 
-                // 从群组中移除用户
-                await _groupService.RemoveUserFromGroupAsync(groupId, userConnection.UserId);
+                
 
                 // 通知群组其他成员用户已离开
                 var leaveMessage = new GroupMessageDTO
@@ -209,8 +200,7 @@ namespace backend.Hubs
                     // 设置用户全局离线状态（检查是否还有其他连接）
                     _groupService.SetUserOnline(userConnection.UserId, false);
 
-                    // 从群组中移除用户
-                    await _groupService.RemoveUserFromGroupAsync(userConnection.RoomId, userConnection.UserId);
+                    
 
                     // 通知群组其他成员用户已离开
                     var leaveMessage = new GroupMessageDTO

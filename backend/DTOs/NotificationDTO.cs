@@ -46,6 +46,11 @@ namespace backend.DTOs
         /// 通知是否已处理
         /// </summary>
         public bool IsHandled { get; set; }
+        
+        /// <summary>
+        /// 相关ID，用于存储如好友请求发起者ID等
+        /// </summary>
+        public int? RelatedId { get; set; }
     }
 
     public class FriendRequestDTO

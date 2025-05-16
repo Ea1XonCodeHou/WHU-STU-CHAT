@@ -46,6 +46,32 @@
             </label>
           </div>
           
+          <h4 class="section-title">消息提醒设置</h4>
+          
+          <div class="setting-item">
+            <span class="setting-label">私聊消息免打扰</span>
+            <label class="toggle-switch">
+              <input type="checkbox" v-model="settings.privateChatMute">
+              <span class="slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <span class="setting-label">群聊消息免打扰</span>
+            <label class="toggle-switch">
+              <input type="checkbox" v-model="settings.groupChatMute">
+              <span class="slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <span class="setting-label">系统通知免打扰</span>
+            <label class="toggle-switch">
+              <input type="checkbox" v-model="settings.systemNotificationMute">
+              <span class="slider"></span>
+            </label>
+          </div>
+          
           <div class="form-actions">
             <button 
               @click="saveSettings" 
@@ -83,88 +109,136 @@ export default {
       darkMode: localStorage.getItem('setting_darkMode') === 'true',
       messageSound: localStorage.getItem('setting_messageSound') === 'true',
       showMyOnlineStatus: localStorage.getItem('setting_showMyOnlineStatus') === 'true',
-      newMessageNotification: localStorage.getItem('setting_newMessageNotification') === 'true'
+      newMessageNotification: localStorage.getItem('setting_newMessageNotification') === 'true',
+      privateChatMute: localStorage.getItem('setting_privateChatMute') === 'true',
+      groupChatMute: localStorage.getItem('setting_groupChatMute') === 'true',
+      systemNotificationMute: localStorage.getItem('setting_systemNotificationMute') === 'true'
     });
+    
+    // 原始设置（用于取消操作）
+    const originalSettings = ref({});
     
     // 保存按钮状态
     const isSaving = ref(false);
     
     // 关闭模态框
     const closeModal = () => {
+      // 重置为原来的设置，不应用修改
+      if (userId.value) {
+        loadSettings();
+      }
       emit('close');
     };
     
     // 从服务器加载设置
     const loadSettings = async () => {
       try {
-        const apiBaseUrl = window.apiBaseUrl || '';
-        const response = await axios.get(`${apiBaseUrl}/api/user/${userId.value}/settings`);
+        // 确保我们有用户ID
+        if (!userId.value) return;
         
-        console.log('从服务器加载的设置:', response.data);
+        console.log(`正在加载用户 ${userId.value} 的设置...`);
         
-        if (response.data) {
-          const serverSettings = response.data;
+        // 使用GET请求获取所有用户设置
+        const response = await axios.get(`/api/user/${userId.value}/settings`);
+        const userSettings = response.data;
+        
+        // 处理返回的设置
+        if (userSettings) {
+          // 将服务器设置值映射到本地设置对象
+          const mappings = {
+            'setting_darkMode': 'darkMode',
+            'setting_messageSound': 'messageSound',
+            'setting_showMyOnlineStatus': 'showMyOnlineStatus',
+            'setting_newMessageNotification': 'newMessageNotification',
+            'setting_privateChatMute': 'privateChatMute',
+            'setting_groupChatMute': 'groupChatMute',
+            'setting_systemNotificationMute': 'systemNotificationMute'
+          };
           
-          // 将服务器设置合并到本地设置
-          Object.keys(serverSettings).forEach(key => {
-            const settingKey = key.replace('setting_', '');
-            if (settings.value.hasOwnProperty(settingKey)) {
-              settings.value[settingKey] = serverSettings[key] === 'true';
-              // 同时更新localStorage
-              localStorage.setItem(`setting_${settingKey}`, serverSettings[key]);
+          // 遍历服务器返回的所有设置
+          Object.entries(userSettings).forEach(([key, value]) => {
+            const localKey = mappings[key];
+            if (localKey && settings.value.hasOwnProperty(localKey)) {
+              // 将字符串的 "true"/"false" 转换为布尔值
+              settings.value[localKey] = value === 'true';
             }
           });
           
-          // 立即应用设置
-          applySettings();
+          console.log('设置加载成功:', settings.value);
         }
       } catch (error) {
         console.error('加载设置失败:', error);
-        // 如果加载失败，使用localStorage的设置并应用
-        applySettings();
       }
     };
     
     // 应用设置效果
-    const applySettings = () => {
-      // 应用深色模式
+    const applySettings = async () => {
+      console.log('正在应用设置:', settings.value);
+      
+      // 1. 应用深色模式
       if (settings.value.darkMode) {
+        document.documentElement.classList.add('dark-mode');
         document.body.classList.add('dark-mode');
       } else {
+        document.documentElement.classList.remove('dark-mode');
         document.body.classList.remove('dark-mode');
       }
+      localStorage.setItem('setting_darkMode', settings.value.darkMode.toString());
       
-      // 设置声音通知
+      // 2. 设置消息声音通知
       window.allowMessageSound = settings.value.messageSound;
       localStorage.setItem('setting_messageSound', settings.value.messageSound.toString());
       
-      // 设置在线状态可见性
+      // 3. 设置在线状态可见性
       localStorage.setItem('setting_showMyOnlineStatus', settings.value.showMyOnlineStatus.toString());
       // 将在线状态变更发送到后端
-      updateOnlineStatusVisibility(settings.value.showMyOnlineStatus);
+      await updateOnlineStatusVisibility(settings.value.showMyOnlineStatus);
       
-      // 设置消息通知
+      // 4. 设置消息通知
       window.allowNotifications = settings.value.newMessageNotification;
       localStorage.setItem('setting_newMessageNotification', settings.value.newMessageNotification.toString());
       
-      // 如果设置了消息通知，请求通知权限
+      // 5. 如果设置了消息通知，请求通知权限
       if (settings.value.newMessageNotification && Notification && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-        Notification.requestPermission();
+        try {
+          const permission = await Notification.requestPermission();
+          console.log('通知权限:', permission);
+        } catch (error) {
+          console.error('请求通知权限失败:', error);
+        }
       }
+      
+      // 6. 设置消息免打扰
+      localStorage.setItem('setting_privateChatMute', settings.value.privateChatMute.toString());
+      localStorage.setItem('setting_groupChatMute', settings.value.groupChatMute.toString());
+      localStorage.setItem('setting_systemNotificationMute', settings.value.systemNotificationMute.toString());
+      window.privateChatMute = settings.value.privateChatMute;
+      window.groupChatMute = settings.value.groupChatMute;
+      window.systemNotificationMute = settings.value.systemNotificationMute;
+      
+      // 7. 触发设置更新事件
+      emit('settings-updated', settings.value);
     };
     
     // 更新用户在线状态可见性
     const updateOnlineStatusVisibility = async (isVisible) => {
       try {
-        const statusData = {
-          isOnline: true,  // 假设用户当前在线
-          isVisible: isVisible
-        };
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+          console.error('用户ID不存在，无法更新在线状态');
+          return;
+        }
         
-        await axios.post(`/api/user/${userId.value}/status`, statusData);
-        console.log('在线状态可见性更新成功');
+        // 发送请求更新用户在线状态可见性
+        await axios.post(`/api/user/${userId}/status`, {
+          userId: userId,
+          isOnline: true, // 用户当前在线
+          isVisible: isVisible // 是否显示在线状态
+        });
+        
+        console.log('用户在线状态可见性已更新:', isVisible);
       } catch (error) {
-        console.error('更新状态可见性失败:', error);
+        console.error('更新用户在线状态可见性失败:', error);
       }
     };
     
@@ -174,7 +248,7 @@ export default {
       
       try {
         // 应用设置效果
-        applySettings();
+        await applySettings();
         
         // 保存每项设置到数据库
         for (const [key, value] of Object.entries(settings.value)) {
@@ -204,19 +278,11 @@ export default {
       }
     };
     
-    // 当设置改变时自动应用
-    watch(settings, () => {
-      applySettings();
-    }, { deep: true });
-    
     // 组件挂载时
     onMounted(() => {
       // 加载服务器设置
       if (userId.value) {
         loadSettings();
-      } else {
-        // 如果没有用户ID，也应用本地设置
-        applySettings();
       }
     });
     

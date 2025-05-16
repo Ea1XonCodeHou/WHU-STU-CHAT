@@ -15,6 +15,7 @@ namespace backend.Services
 {
     /// <summary>
     /// 聊天服务实现
+    /// 聊天服务实现
     /// </summary>
     public class ChatService : IChatService
     {
@@ -32,8 +33,10 @@ namespace backend.Services
             _logger = logger;
             
             // 临时文件目录
+            // 临时文件目录
             _tempFileDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp", "uploads");
             
+            // 确保目录存在
             // 确保目录存在
             if (!Directory.Exists(_tempFileDirectory))
             {
@@ -48,16 +51,47 @@ namespace backend.Services
         {
             try
             {
+                _logger.LogInformation($"尝试获取聊天室 {roomId} 的名称");
+                
                 using (var connection = new MySqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
+                    _logger.LogInformation($"数据库连接已打开，准备查询聊天室 {roomId}");
 
                     var command = new MySqlCommand(
-                        "SELECT RoomName FROM ChatRooms WHERE RoomId = @RoomId",
+                        "SELECT RoomName FROM chatrooms WHERE RoomId = @RoomId",
                         connection);
                     command.Parameters.AddWithValue("@RoomId", roomId);
 
                     var result = await command.ExecuteScalarAsync();
+                    
+                    if (result == null || result == DBNull.Value)
+                    {
+                        _logger.LogWarning($"未找到ID为 {roomId} 的聊天室");
+                        
+                        // 检查数据库中是否有任何聊天室
+                        var checkCommand = new MySqlCommand("SELECT COUNT(*) FROM chatrooms", connection);
+                        var count = Convert.ToInt32(await checkCommand.ExecuteScalarAsync());
+                        _logger.LogInformation($"数据库中共有 {count} 个聊天室");
+                        
+                        // 如果没有聊天室，自动创建一个
+                        if (count == 0)
+                        {
+                            _logger.LogInformation("尝试创建默认聊天室");
+                            var defaultRoomId = await GetOrCreateDefaultRoomAsync();
+                            _logger.LogInformation($"已创建默认聊天室，ID: {defaultRoomId}");
+                            
+                            // 如果创建的默认聊天室ID与请求的ID相同，返回默认名称
+                            if (defaultRoomId == roomId)
+                            {
+                                return "WHU 校园公共聊天室";
+                            }
+                        }
+                        
+                        return null;
+                    }
+                    
+                    _logger.LogInformation($"成功找到聊天室 {roomId}，名称: {result}");
                     return result?.ToString();
                 }
             }
@@ -85,7 +119,7 @@ namespace backend.Services
                     var command = new MySqlCommand(
                         @"SELECT m.MessageId, m.SenderId, u.Username AS SenderName, m.Content, 
                           m.CreateTime, m.RoomId, m.MessageType, m.FileUrl
-                          FROM RoomMessages m
+                          FROM roommessages m
                           JOIN Users u ON m.SenderId = u.UserId
                           WHERE m.RoomId = @RoomId
                           ORDER BY m.CreateTime DESC
@@ -202,7 +236,7 @@ namespace backend.Services
 
                     // 使用自定义的SQL语句，包括MessageType和FileUrl字段
                     var command = new MySqlCommand(
-                        @"INSERT INTO RoomMessages (RoomId, SenderId, Content, CreateTime, MessageType, FileUrl) 
+                        @"INSERT INTO roommessages (RoomId, SenderId, Content, CreateTime, MessageType, FileUrl) 
                           VALUES (@RoomId, @SenderId, @Content, @CreateTime, @MessageType, @FileUrl);
                           SELECT LAST_INSERT_ID();",
                         connection);
@@ -294,7 +328,7 @@ namespace backend.Services
                         var command = new MySqlCommand(
                             @"SELECT DISTINCT u.UserId, u.Username, u.Avatar, MAX(m.CreateTime) as LastActivity
                               FROM Users u
-                              JOIN RoomMessages m ON u.UserId = m.SenderId
+                              JOIN roommessages m ON u.UserId = m.SenderId
                               WHERE m.RoomId = @RoomId
                               GROUP BY u.UserId, u.Username, u.Avatar
                               ORDER BY LastActivity DESC
@@ -341,33 +375,32 @@ namespace backend.Services
                 {
                     await connection.OpenAsync();
 
-                    // 查询默认房间
-                    var selectCommand = new MySqlCommand(
-                        "SELECT RoomId FROM ChatRooms WHERE RoomName = 'WHU 院系交流群' LIMIT 1",
+                    // 检查默认房间是否存在
+                    var checkCommand = new MySqlCommand(
+                        "SELECT RoomId FROM chatrooms WHERE RoomName = 'WHU 院系交流群' LIMIT 1",
                         connection);
 
-                    var roomId = await selectCommand.ExecuteScalarAsync();
-                    
-                    if (roomId != null && roomId != DBNull.Value)
+                    var existingRoomId = await checkCommand.ExecuteScalarAsync();
+                    if (existingRoomId != null && Convert.ToInt32(existingRoomId) > 0)
                     {
-                        return Convert.ToInt32(roomId);
+                        return Convert.ToInt32(existingRoomId);
                     }
 
                     // 创建默认房间
-                    var insertCommand = new MySqlCommand(
-                        @"INSERT INTO ChatRooms (RoomName, Description, CreateTime, UpdateTime) 
-                          VALUES ('WHU 院系交流群', '欢迎加入武汉大学院系交流群，这里是大家交流学习和生活的地方。', NOW(), NOW());
+                    var createCommand = new MySqlCommand(
+                        @"INSERT INTO chatrooms (RoomName, Description, CreateTime, UpdateTime)
+                          VALUES ('WHU 院系交流群', '欢迎来到武汉大学院系交流群！', NOW(), NOW());
                           SELECT LAST_INSERT_ID();",
                         connection);
 
-                    var newRoomId = await insertCommand.ExecuteScalarAsync();
-                    return Convert.ToInt32(newRoomId);
+                    var newRoomId = Convert.ToInt32(await createCommand.ExecuteScalarAsync());
+                    return newRoomId;
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"获取或创建默认房间失败: {ex.Message}");
-                return 1; // 默认返回1，通常是第一个房间
+                return 0;
             }
         }
 
@@ -410,15 +443,15 @@ namespace backend.Services
                 
                 // 获取双向私聊记录
                 string sql = @"
-                    SELECT pm.id, pm.sender_id, pm.receiver_id, pm.content, pm.message_type, 
-                        pm.file_url, pm.file_name, pm.file_size, pm.send_time, pm.is_read,
+                    SELECT pm.MessageId, pm.SenderId, pm.ReceiverId, pm.Content, pm.MessageType, 
+                        pm.FileUrl, pm.FileName, pm.FileSize, pm.CreateTime as SendTime, pm.IsRead,
                         u1.Username as sender_name, u2.Username as receiver_name
-                    FROM private_messages pm
-                    JOIN Users u1 ON pm.sender_id = u1.UserId
-                    JOIN Users u2 ON pm.receiver_id = u2.UserId
-                    WHERE (pm.sender_id = @userId AND pm.receiver_id = @friendId)
-                       OR (pm.sender_id = @friendId AND pm.receiver_id = @userId)
-                    ORDER BY pm.send_time DESC
+                    FROM privatemessages pm
+                    JOIN Users u1 ON pm.SenderId = u1.UserId
+                    JOIN Users u2 ON pm.ReceiverId = u2.UserId
+                    WHERE (pm.SenderId = @userId AND pm.ReceiverId = @friendId)
+                       OR (pm.SenderId = @friendId AND pm.ReceiverId = @userId)
+                    ORDER BY pm.CreateTime DESC
                     LIMIT @count";
                 
                 using (var command = new MySqlCommand(sql, connection))
@@ -433,18 +466,18 @@ namespace backend.Services
                         {
                             messages.Add(new MessageDTO
                             {
-                                MessageId = reader.GetInt32(reader.GetOrdinal("id")),
-                                SenderId = reader.GetInt32(reader.GetOrdinal("sender_id")),
+                                MessageId = reader.GetInt32(reader.GetOrdinal("MessageId")),
+                                SenderId = reader.GetInt32(reader.GetOrdinal("SenderId")),
                                 SenderName = reader.GetString(reader.GetOrdinal("sender_name")),
-                                ReceiverId = reader.GetInt32(reader.GetOrdinal("receiver_id")),
+                                ReceiverId = reader.GetInt32(reader.GetOrdinal("ReceiverId")),
                                 ReceiverName = reader.GetString(reader.GetOrdinal("receiver_name")),
-                                Content = reader.GetString(reader.GetOrdinal("content")),
-                                MessageType = reader.GetString(reader.GetOrdinal("message_type")),
-                                FileUrl = !reader.IsDBNull(reader.GetOrdinal("file_url")) ? reader.GetString(reader.GetOrdinal("file_url")) : null,
-                                FileName = !reader.IsDBNull(reader.GetOrdinal("file_name")) ? reader.GetString(reader.GetOrdinal("file_name")) : null,
-                                FileSize = !reader.IsDBNull(reader.GetOrdinal("file_size")) ? reader.GetInt32(reader.GetOrdinal("file_size")) : 0,
-                                SendTime = reader.GetDateTime(reader.GetOrdinal("send_time")),
-                                IsRead = reader.GetBoolean(reader.GetOrdinal("is_read"))
+                                Content = reader.GetString(reader.GetOrdinal("Content")),
+                                MessageType = reader.GetString(reader.GetOrdinal("MessageType")),
+                                FileUrl = !reader.IsDBNull(reader.GetOrdinal("FileUrl")) ? reader.GetString(reader.GetOrdinal("FileUrl")) : null,
+                                FileName = !reader.IsDBNull(reader.GetOrdinal("FileName")) ? reader.GetString(reader.GetOrdinal("FileName")) : null,
+                                FileSize = !reader.IsDBNull(reader.GetOrdinal("FileSize")) ? reader.GetInt32(reader.GetOrdinal("FileSize")) : 0,
+                                SendTime = reader.GetDateTime(reader.GetOrdinal("SendTime")),
+                                IsRead = reader.GetBoolean(reader.GetOrdinal("IsRead"))
                             });
                         }
                     }
@@ -462,9 +495,9 @@ namespace backend.Services
         private async Task UpdateMessagesAsReadAsync(MySqlConnection connection, int userId, int friendId)
         {
             string sql = @"
-                UPDATE private_messages
-                SET is_read = TRUE
-                WHERE sender_id = @friendId AND receiver_id = @userId AND is_read = FALSE";
+                UPDATE privatemessages
+                SET IsRead = TRUE
+                WHERE SenderId = @friendId AND ReceiverId = @userId AND IsRead = FALSE";
             
             using (var command = new MySqlCommand(sql, connection))
             {
@@ -484,8 +517,8 @@ namespace backend.Services
                 await connection.OpenAsync();
                 
                 string sql = @"
-                    INSERT INTO private_messages (sender_id, receiver_id, content, message_type, file_url, file_name, file_size, send_time, is_read)
-                    VALUES (@senderId, @receiverId, @content, @messageType, @fileUrl, @fileName, @fileSize, @sendTime, FALSE);
+                    INSERT INTO privatemessages (SenderId, ReceiverId, Content, MessageType, FileUrl, FileName, FileSize, IsRead, CreateTime)
+                    VALUES (@senderId, @receiverId, @content, @messageType, @fileUrl, @fileName, @fileSize, FALSE, @createTime);
                     SELECT LAST_INSERT_ID();";
                 
                 using (var command = new MySqlCommand(sql, connection))
@@ -497,7 +530,7 @@ namespace backend.Services
                     command.Parameters.AddWithValue("@fileUrl", message.FileUrl as object ?? DBNull.Value);
                     command.Parameters.AddWithValue("@fileName", message.FileName as object ?? DBNull.Value);
                     command.Parameters.AddWithValue("@fileSize", message.FileSize as object ?? DBNull.Value);
-                    command.Parameters.AddWithValue("@sendTime", message.SendTime != default ? message.SendTime : DateTime.Now);
+                    command.Parameters.AddWithValue("@createTime", DateTime.UtcNow);
                     
                     var result = await command.ExecuteScalarAsync();
                     return Convert.ToInt32(result);

@@ -31,30 +31,113 @@ namespace backend.Services
         public async Task<List<Discussion>> GetAllDiscussionsAsync()
         {
             var discussions = new List<Discussion>();
-            using (var connection = GetConnection())
+            try
             {
-                await connection.OpenAsync();
-                using (var command = new MySqlCommand("SELECT * FROM discussion ORDER BY UpdateTime DESC", connection))
+                Console.WriteLine("正在获取所有讨论区...");
+                using (var connection = GetConnection())
                 {
-                    using (var reader = await command.ExecuteReaderAsync())
+                    await connection.OpenAsync();
+                    Console.WriteLine("数据库连接已打开");
+                    
+                    using (var command = new MySqlCommand("SELECT * FROM discussions ORDER BY UpdateTime DESC", connection))
                     {
-                        while (await reader.ReadAsync())
+                        using (var reader = await command.ExecuteReaderAsync())
                         {
-                            discussions.Add(new Discussion
+                            // 检查是否有结果
+                            if (!reader.HasRows)
                             {
-                                DiscussionId = reader.GetInt32("DiscussionId"),
-                                Title = reader.GetString("Title"),
-                                Description = reader.GetString("Description"),
-                                CreatorId = reader.GetInt32("CreatorId"),
-                                IsHot = reader.GetBoolean("IsHot"),
-                                CreateTime = reader.GetDateTime("CreateTime"),
-                                UpdateTime = reader.GetDateTime("UpdateTime")
-                            });
+                                Console.WriteLine("数据库中没有讨论区数据，初始化默认讨论区");
+                                // 如果没有结果，尝试创建默认讨论区
+                                await reader.CloseAsync(); // 关闭reader后才能执行其他命令
+                                
+                                try
+                                {
+                                    // 检查表是否存在
+                                    var checkTableCommand = new MySqlCommand(
+                                        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'discussions'",
+                                        connection);
+                                    int tableExists = Convert.ToInt32(await checkTableCommand.ExecuteScalarAsync());
+                                    
+                                    if (tableExists == 0)
+                                    {
+                                        Console.WriteLine("discussions表不存在");
+                                        throw new Exception("discussions表不存在");
+                                    }
+                                    
+                                    // 创建默认讨论区
+                                    var createDefaultDiscussionCommand = new MySqlCommand(
+                                        @"INSERT INTO discussions (Title, Description, CreatorId, IsHot, CreateTime, UpdateTime) 
+                                          VALUES ('校园生活', '讨论校园日常生活、活动和经验分享', 1, 1, NOW(), NOW()),
+                                                 ('学习交流', '学业问题、考试经验、学习方法分享', 1, 1, NOW(), NOW()),
+                                                 ('校园公告', '重要通知与公告', 1, 0, NOW(), NOW()),
+                                                 ('失物招领', '丢失和拾获物品信息发布', 1, 0, NOW(), NOW())",
+                                        connection);
+                                        
+                                    await createDefaultDiscussionCommand.ExecuteNonQueryAsync();
+                                    Console.WriteLine("已创建默认讨论区");
+                                    
+                                    // 重新获取数据
+                                    var reloadCommand = new MySqlCommand("SELECT * FROM discussions ORDER BY UpdateTime DESC", connection);
+                                    using (var reloadReader = await reloadCommand.ExecuteReaderAsync())
+                                    {
+                                        while (await reloadReader.ReadAsync())
+                                        {
+                                            discussions.Add(new Discussion
+                                            {
+                                                DiscussionId = reloadReader.GetInt32("DiscussionId"),
+                                                Title = reloadReader.GetString("Title"),
+                                                Description = reloadReader.GetString("Description"),
+                                                CreatorId = reloadReader.GetInt32("CreatorId"),
+                                                IsHot = reloadReader.GetBoolean("IsHot"),
+                                                CreateTime = reloadReader.GetDateTime("CreateTime"),
+                                                UpdateTime = reloadReader.GetDateTime("UpdateTime")
+                                            });
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"创建默认讨论区失败: {ex.Message}");
+                                    throw;
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("开始读取讨论区数据");
+                                while (await reader.ReadAsync())
+                                {
+                                    try
+                                    {
+                                        discussions.Add(new Discussion
+                                        {
+                                            DiscussionId = reader.GetInt32("DiscussionId"),
+                                            Title = reader.GetString("Title"),
+                                            Description = reader.GetString("Description"),
+                                            CreatorId = reader.GetInt32("CreatorId"),
+                                            IsHot = reader.GetBoolean("IsHot"),
+                                            CreateTime = reader.GetDateTime("CreateTime"),
+                                            UpdateTime = reader.GetDateTime("UpdateTime")
+                                        });
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"读取讨论区记录时出错: {ex.Message}");
+                                        // 跳过错误的记录，继续处理其他记录
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+                Console.WriteLine($"成功获取 {discussions.Count} 个讨论区");
+                return discussions;
             }
-            return discussions;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"获取讨论区失败: {ex.Message}");
+                Console.WriteLine($"异常堆栈: {ex.StackTrace}");
+                throw;
+            }
         }
 
         /// <summary>
@@ -65,7 +148,7 @@ namespace backend.Services
             using (var connection = GetConnection())
             {
                 await connection.OpenAsync();
-                using (var command = new MySqlCommand("SELECT * FROM discussion WHERE DiscussionId = @DiscussionId", connection))
+                using (var command = new MySqlCommand("SELECT * FROM discussions WHERE DiscussionId = @DiscussionId", connection))
                 {
                     command.Parameters.AddWithValue("@DiscussionId", discussionId);
                     using (var reader = await command.ExecuteReaderAsync())
@@ -98,7 +181,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 using (var command = new MySqlCommand(
-                    "INSERT INTO discussion (Title, Description, CreatorId, IsHot, CreateTime, UpdateTime) " +
+                    "INSERT INTO discussions (Title, Description, CreatorId, IsHot, CreateTime, UpdateTime) " +
                     "VALUES (@Title, @Description, @CreatorId, @IsHot, @CreateTime, @UpdateTime); " +
                     "SELECT LAST_INSERT_ID();", connection))
                 {
@@ -124,7 +207,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 using (var command = new MySqlCommand(
-                    "UPDATE discussion SET Title = @Title, Description = @Description, " +
+                    "UPDATE discussions SET Title = @Title, Description = @Description, " +
                     "IsHot = @IsHot, UpdateTime = @UpdateTime " +
                     "WHERE DiscussionId = @DiscussionId", connection))
                 {
@@ -153,7 +236,7 @@ namespace backend.Services
                     {
                         // 先删除该讨论区下的所有评论
                         using (var cmd1 = new MySqlCommand(
-                            "DELETE FROM comment WHERE PostId IN (SELECT PostId FROM post WHERE DiscussionId = @DiscussionId)", connection))
+                            "DELETE FROM comment WHERE PostId IN (SELECT PostId FROM posts WHERE DiscussionId = @DiscussionId)", connection))
                         {
                             cmd1.Transaction = transaction;
                             cmd1.Parameters.AddWithValue("@DiscussionId", discussionId);
@@ -162,7 +245,7 @@ namespace backend.Services
 
                         // 删除该讨论区下的所有帖子
                         using (var cmd2 = new MySqlCommand(
-                            "DELETE FROM post WHERE DiscussionId = @DiscussionId", connection))
+                            "DELETE FROM posts WHERE DiscussionId = @DiscussionId", connection))
                         {
                             cmd2.Transaction = transaction;
                             cmd2.Parameters.AddWithValue("@DiscussionId", discussionId);
@@ -171,7 +254,7 @@ namespace backend.Services
 
                         // 删除讨论区
                         using (var cmd3 = new MySqlCommand(
-                            "DELETE FROM discussion WHERE DiscussionId = @DiscussionId", connection))
+                            "DELETE FROM discussions WHERE DiscussionId = @DiscussionId", connection))
                         {
                             cmd3.Transaction = transaction;
                             cmd3.Parameters.AddWithValue("@DiscussionId", discussionId);
@@ -198,7 +281,7 @@ namespace backend.Services
             using (var connection = GetConnection())
             {
                 await connection.OpenAsync();
-                using (var command = new MySqlCommand("SELECT * FROM discussion WHERE IsHot = 1 ORDER BY UpdateTime DESC", connection))
+                using (var command = new MySqlCommand("SELECT * FROM discussions WHERE IsHot = 1 ORDER BY UpdateTime DESC", connection))
                 {
                     using (var reader = await command.ExecuteReaderAsync())
                     {
@@ -231,7 +314,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 using (var command = new MySqlCommand(
-                    "SELECT * FROM post WHERE DiscussionId = @DiscussionId ORDER BY PostType DESC, UpdateTime DESC", connection))
+                    "SELECT * FROM posts WHERE DiscussionId = @DiscussionId ORDER BY PostType DESC, UpdateTime DESC", connection))
                 {
                     command.Parameters.AddWithValue("@DiscussionId", discussionId);
                     using (var reader = await command.ExecuteReaderAsync())
@@ -268,7 +351,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 using (var command = new MySqlCommand(
-                    "INSERT INTO post (DiscussionId, Title, Content, AuthorId, LikeCount, CommentCount, PostType, IsAnonymous, CreateTime, UpdateTime) " +
+                    "INSERT INTO posts (DiscussionId, Title, Content, AuthorId, LikeCount, CommentCount, PostType, IsAnonymous, CreateTime, UpdateTime) " +
                     "VALUES (@DiscussionId, @Title, @Content, @AuthorId, @LikeCount, @CommentCount, @PostType, @IsAnonymous, @CreateTime, @UpdateTime); " +
                     "SELECT LAST_INSERT_ID();", connection))
                 {
@@ -287,7 +370,7 @@ namespace backend.Services
                     
                     // 更新讨论区的更新时间
                     using (var updateCmd = new MySqlCommand(
-                        "UPDATE discussion SET UpdateTime = @UpdateTime WHERE DiscussionId = @DiscussionId", connection))
+                        "UPDATE discussions SET UpdateTime = @UpdateTime WHERE DiscussionId = @DiscussionId", connection))
                     {
                         updateCmd.Parameters.AddWithValue("@DiscussionId", post.DiscussionId);
                         updateCmd.Parameters.AddWithValue("@UpdateTime", DateTime.Now);
@@ -307,7 +390,7 @@ namespace backend.Services
             using (var connection = GetConnection())
             {
                 await connection.OpenAsync();
-                using (var command = new MySqlCommand("SELECT * FROM post WHERE PostId = @PostId", connection))
+                using (var command = new MySqlCommand("SELECT * FROM posts WHERE PostId = @PostId", connection))
                 {
                     command.Parameters.AddWithValue("@PostId", postId);
                     using (var reader = await command.ExecuteReaderAsync())
@@ -344,7 +427,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 using (var command = new MySqlCommand(
-                    "UPDATE post SET Title = @Title, Content = @Content, PostType = @PostType, IsAnonymous = @IsAnonymous, UpdateTime = @UpdateTime " +
+                    "UPDATE posts SET Title = @Title, Content = @Content, PostType = @PostType, IsAnonymous = @IsAnonymous, UpdateTime = @UpdateTime " +
                     "WHERE PostId = @PostId", connection))
                 {
                     command.Parameters.AddWithValue("@PostId", post.PostId);
@@ -360,7 +443,7 @@ namespace backend.Services
                     {
                         // 更新讨论区的更新时间
                         using (var updateCmd = new MySqlCommand(
-                            "UPDATE discussion SET UpdateTime = @UpdateTime WHERE DiscussionId = @DiscussionId", connection))
+                            "UPDATE discussions SET UpdateTime = @UpdateTime WHERE DiscussionId = @DiscussionId", connection))
                         {
                             updateCmd.Parameters.AddWithValue("@DiscussionId", post.DiscussionId);
                             updateCmd.Parameters.AddWithValue("@UpdateTime", DateTime.Now);
@@ -388,7 +471,7 @@ namespace backend.Services
                         int discussionId = 0;
                         
                         // 获取帖子所属的讨论区ID
-                        using (var getCmd = new MySqlCommand("SELECT DiscussionId FROM post WHERE PostId = @PostId", connection))
+                        using (var getCmd = new MySqlCommand("SELECT DiscussionId FROM posts WHERE PostId = @PostId", connection))
                         {
                             getCmd.Transaction = transaction;
                             getCmd.Parameters.AddWithValue("@PostId", postId);
@@ -408,7 +491,7 @@ namespace backend.Services
                         }
 
                         // 删除帖子
-                        using (var cmd2 = new MySqlCommand("DELETE FROM post WHERE PostId = @PostId", connection))
+                        using (var cmd2 = new MySqlCommand("DELETE FROM posts WHERE PostId = @PostId", connection))
                         {
                             cmd2.Transaction = transaction;
                             cmd2.Parameters.AddWithValue("@PostId", postId);
@@ -418,7 +501,7 @@ namespace backend.Services
                             {
                                 // 更新讨论区的更新时间
                                 using (var updateCmd = new MySqlCommand(
-                                    "UPDATE discussion SET UpdateTime = @UpdateTime WHERE DiscussionId = @DiscussionId", connection))
+                                    "UPDATE discussions SET UpdateTime = @UpdateTime WHERE DiscussionId = @DiscussionId", connection))
                                 {
                                     updateCmd.Transaction = transaction;
                                     updateCmd.Parameters.AddWithValue("@DiscussionId", discussionId);
@@ -529,7 +612,7 @@ namespace backend.Services
 
                             // 更新帖子的评论数和更新时间
                             using (var updateCmd = new MySqlCommand(
-                                "UPDATE post SET CommentCount = CommentCount + 1, UpdateTime = @UpdateTime " +
+                                "UPDATE posts SET CommentCount = CommentCount + 1, UpdateTime = @UpdateTime " +
                                 "WHERE PostId = @PostId", connection))
                             {
                                 updateCmd.Transaction = transaction;
@@ -539,7 +622,7 @@ namespace backend.Services
                             }
 
                             // 获取帖子所属的讨论区ID并更新讨论区的更新时间
-                            using (var getCmd = new MySqlCommand("SELECT DiscussionId FROM post WHERE PostId = @PostId", connection))
+                            using (var getCmd = new MySqlCommand("SELECT DiscussionId FROM posts WHERE PostId = @PostId", connection))
                             {
                                 getCmd.Transaction = transaction;
                                 getCmd.Parameters.AddWithValue("@PostId", comment.PostId);
@@ -548,7 +631,7 @@ namespace backend.Services
                                 if (discussionId != null)
                                 {
                                     using (var updateDiscussionCmd = new MySqlCommand(
-                                        "UPDATE discussion SET UpdateTime = @UpdateTime WHERE DiscussionId = @DiscussionId", connection))
+                                        "UPDATE discussions SET UpdateTime = @UpdateTime WHERE DiscussionId = @DiscussionId", connection))
                                     {
                                         updateDiscussionCmd.Transaction = transaction;
                                         updateDiscussionCmd.Parameters.AddWithValue("@DiscussionId", discussionId);
@@ -608,7 +691,7 @@ namespace backend.Services
                             {
                                 // 更新帖子的评论数
                                 using (var updateCmd = new MySqlCommand(
-                                    "UPDATE post SET CommentCount = GREATEST(CommentCount - 1, 0), UpdateTime = @UpdateTime " +
+                                    "UPDATE posts SET CommentCount = GREATEST(CommentCount - 1, 0), UpdateTime = @UpdateTime " +
                                     "WHERE PostId = @PostId", connection))
                                 {
                                     updateCmd.Transaction = transaction;
@@ -618,7 +701,7 @@ namespace backend.Services
                                 }
                                 
                                 // 获取帖子所属的讨论区ID并更新讨论区的更新时间
-                                using (var getCmd = new MySqlCommand("SELECT DiscussionId FROM post WHERE PostId = @PostId", connection))
+                                using (var getCmd = new MySqlCommand("SELECT DiscussionId FROM posts WHERE PostId = @PostId", connection))
                                 {
                                     getCmd.Transaction = transaction;
                                     getCmd.Parameters.AddWithValue("@PostId", postId);
@@ -627,7 +710,7 @@ namespace backend.Services
                                     if (discussionId != null)
                                     {
                                         using (var updateDiscussionCmd = new MySqlCommand(
-                                            "UPDATE discussion SET UpdateTime = @UpdateTime WHERE DiscussionId = @DiscussionId", connection))
+                                            "UPDATE discussions SET UpdateTime = @UpdateTime WHERE DiscussionId = @DiscussionId", connection))
                                         {
                                             updateDiscussionCmd.Transaction = transaction;
                                             updateDiscussionCmd.Parameters.AddWithValue("@DiscussionId", discussionId);
@@ -699,7 +782,7 @@ namespace backend.Services
                     await connection.OpenAsync();
 
                     // 检查帖子是否存在
-                    string checkPostSql = "SELECT * FROM Post WHERE PostId = @PostId";
+                    string checkPostSql = "SELECT * FROM Posts WHERE PostId = @PostId";
                     var post = await connection.QueryFirstOrDefaultAsync<Post>(checkPostSql, new { PostId = postId });
                     if (post == null)
                     {
@@ -733,7 +816,7 @@ namespace backend.Services
 
                             // 更新帖子点赞数
                             string updatePostSql = @"
-                                UPDATE Post 
+                                UPDATE Posts 
                                 SET LikeCount = LikeCount + 1 
                                 WHERE PostId = @PostId";
                             await connection.ExecuteAsync(updatePostSql, new { PostId = postId }, transaction);
@@ -771,7 +854,7 @@ namespace backend.Services
                     await connection.OpenAsync();
 
                     // 检查帖子是否存在
-                    string checkPostSql = "SELECT * FROM Post WHERE PostId = @PostId";
+                    string checkPostSql = "SELECT * FROM Posts WHERE PostId = @PostId";
                     var post = await connection.QueryFirstOrDefaultAsync<Post>(checkPostSql, new { PostId = postId });
                     if (post == null)
                     {
@@ -800,7 +883,7 @@ namespace backend.Services
 
                             // 更新帖子点赞数
                             string updatePostSql = @"
-                                UPDATE Post 
+                                UPDATE Posts 
                                 SET LikeCount = GREATEST(LikeCount - 1, 0) 
                                 WHERE PostId = @PostId";
                             await connection.ExecuteAsync(updatePostSql, new { PostId = postId }, transaction);

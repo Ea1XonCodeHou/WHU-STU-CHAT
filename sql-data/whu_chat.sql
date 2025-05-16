@@ -10,6 +10,9 @@ USE `whu-chat`;
 -- 基础用户和权限表
 -- =====================================================
 
+
+
+
 -- 用户表 - 存储用户基本信息
 CREATE TABLE IF NOT EXISTS Users (
     UserId INT PRIMARY KEY AUTO_INCREMENT,
@@ -42,17 +45,32 @@ CREATE TABLE IF NOT EXISTS UserSettings (
 );
 
 -- 好友关系表
-CREATE TABLE IF NOT EXISTS Friendships (
-    FriendshipId INT AUTO_INCREMENT PRIMARY KEY,
-    UserId INT NOT NULL,
-    FriendId INT NOT NULL,
-    Status VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending, accepted, rejected, blocked
-    CreateTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdateTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
-    FOREIGN KEY (FriendId) REFERENCES Users(UserId) ON DELETE CASCADE,
-    UNIQUE KEY (UserId, FriendId)
+CREATE TABLE Friendship (
+    ShipId INT PRIMARY KEY AUTO_INCREMENT,
+    UserId1 INT NOT NULL,
+    UserId2 INT NOT NULL,
+    CreateTime DATETIME NOT NULL,
+    GroupId INT,
+    FOREIGN KEY (GroupId) REFERENCES ChatGroups(GroupId),
+    CONSTRAINT CHK_UserIds_Different CHECK (UserId1 <> UserId2)
 );
+
+-- 通过触发器实现唯一性检查
+DELIMITER //
+CREATE TRIGGER trg_Friendship_UniquePair
+BEFORE INSERT ON Friendship
+FOR EACH ROW
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM Friendship 
+        WHERE (UserId1 = NEW.UserId2 AND UserId2 = NEW.UserId1)
+           OR (UserId1 = NEW.UserId1 AND UserId2 = NEW.UserId2)
+    ) THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'Friendship relationship already exists';
+    END IF;
+END//
+DELIMITER ;
 
 -- =====================================================
 -- 私聊相关表
@@ -245,7 +263,10 @@ CREATE TABLE IF NOT EXISTS Notifications (
     Type VARCHAR(50) NOT NULL DEFAULT 'system', -- system, friend_request, group_invite, message, etc.
     RelatedId INT,                           -- 相关联的实体ID（如消息ID、好友请求ID等）
     IsRead TINYINT(1) NOT NULL DEFAULT 0,
+<<<<<<< HEAD
+=======
     IsHandled TINYINT(1) NOT NULL DEFAULT 0, -- 是否已处理
+>>>>>>> f8272c33ad61caee02b3de0ad804aa587f2eae7c
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (NotificationId),
     INDEX idx_user_id (UserId),
@@ -349,6 +370,25 @@ VALUES
 (1, 'setting_showMyOnlineStatus', 'true');
 
 -- 添加测试通知
-INSERT INTO Notifications (UserId, Title, Content, Type, IsRead, IsHandled, CreatedAt)
+
+INSERT INTO Notifications (UserId, Title, Content, Type, IsRead, CreatedAt)
 VALUES
-(1, '欢迎加入WHU-STU-CHAT', '欢迎加入武汉大学学生互助交流平台！', 'system', 0, 0, NOW()); 
+(1, '欢迎加入WHU-STU-CHAT', '欢迎加入武汉大学学生互助交流平台！', 'system', 0, NOW()); 
+
+-- 添加isprivate列
+ALTER TABLE `whu-chat`.`chatgroups` 
+ADD COLUMN `IsPrivate` TINYINT NULL AFTER `UpdateTime`;
+
+-- 新添加 5月8号 好友更新
+ALTER TABLE `whu-chat`.`chatgroups` 
+ADD COLUMN `IsPrivate` TINYINT NULL AFTER `UpdateTime`;
+ALTER TABLE Friendship
+DROP FOREIGN KEY friendship_ibfk_1;
+ALTER TABLE Friendship
+ADD CONSTRAINT friendship_ibfk_1
+FOREIGN KEY (GroupId) REFERENCES ChatGroups(GroupId)
+ON DELETE CASCADE;
+ALTER TABLE Users ADD COLUMN Status VARCHAR(50) DEFAULT 'offline';
+ALTER TABLE Users ADD COLUMN Signature VARCHAR(50) DEFAULT ' ';
+
+

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US" prefix="og: https://ogp.me/ns#">
+<head>
+	<meta charset="UTF-8" />
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    
+    <link rel="profile" href="/gmpg.org/xfn/11" />
+    
+    <!-- Schema meta -->
+    
+    
+    <title>Page not found &#8211; Webmobtuts</title>
+<script type="application/javascript">var ajaxurl = "https://webmobtuts.com/wp-admin/admin-ajax.php"</script>	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+	
+                        
+            
+		<!-- All in One SEO 4.8.1.1 - aioseo.com -->
+	<meta name="robots" content="noindex" />
+	<meta name="p:domain_verify" content="ef1c28e3c5e54e4821153f3d8d9757b4" />
+	<meta name="generator" content="All in One SEO (AIOSEO) 4.8.1.1" />
+		<script type="application/ld+json" class="aioseo-schema">
+			{"@context":"https:\/\/schema.org","@graph":[{"@type":"BreadcrumbList","@id":"https:\/\/webmobtuts.com\/wp-content\/uploads\/2018\/11\/notify.mp3\/#breadcrumblist","itemListElement":[{"@type":"ListItem","@id":"https:\/\/webmobtuts.com\/#listItem","position":1,"name":"Home","item":"https:\/\/webmobtuts.com\/","nextItem":{"@type":"ListItem","@id":"https:\/\/webmobtuts.com\/wp-content\/uploads\/2018\/11\/notify.mp3\/#listItem","name":"Not Found"}},{"@type":"ListItem","@id":"https:\/\/webmobtuts.com\/wp-content\/uploads\/2018\/11\/notify.mp3\/#listItem","position":2,"name":"Not Found","previousItem":{"@type":"ListItem","@id":"https:\/\/webmobtuts.com\/#listItem","name":"Home"}}]},{"@type":"Organization","@id":"https:\/\/webmobtuts.com\/#organization","name":"Webmobtuts","url":"https:\/\/webmobtuts.com\/","logo":{"@type":"ImageObject","url":"https:\/\/webmobtuts.com\/wp-content\/uploads\/2022\/10\/webmobtuts-logo.png","@id":"https:\/\/webmobtuts.com\/wp-content\/uploads\/2018\/11\/notify.mp3\/#organizationLogo","width":340,"height":90},"image":{"@id":"https:\/\/webmobtuts.com\/wp-content\/uploads\/2018\/11\/notify.mp3\/#organizationLogo"},"sameAs":["https:\/\/www.facebook.com\/Web-Mob-Tuts-244459632965214","https:\/\/twitter.com\/webmobtuts","https:\/\/www.linkedin.com\/company\/webmobtuts\/"]},{"@type":"WebPage","@id":"https:\/\/webmobtuts.com\/wp-content\/uploads\/2018\/11\/notify.mp3\/#webpage","url":"https:\/\/webmobtuts.com\/wp-content\/uploads\/2018\/11\/notify.mp3\/","inLanguage":"en-US","isPartOf":{"@id":"https:\/\/webmobtuts.com\/#website"},"breadcrumb":{"@id":"https:\/\/webmobtuts.com\/wp-content\/uploads\/2018\/11\/notify.mp3\/#breadcrumblist"}},{"@type":"WebSite","@id":"https:\/\/webmobtuts.com\/#website","url":"https:\/\/webmobtuts.com\/","name":"Webmobtuts","alternateName":"Web and Mobile Tutorials","inLanguage":"en-US","publisher":{"@id":"https:\/\/webmobtuts.com\/#organization"}}]}
+		</script>
+		<!-- All in One SEO -->
+
+<link rel='dns-prefetch' href='//www.googletagmanager.com' />
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin />
+<link rel="alternate" type="application/rss+xml" title="Webmobtuts &raquo; Feed" href="https://webmobtuts.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Webmobtuts &raquo; Comments Feed" href="https://webmobtuts.com/comments/feed/" />
+<script type="text/javascript">
+/* <![CDATA[ */
+window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/15.1.0\/72x72\/","ext":".png","svgUrl":"https:\/\/s.w.org\/images\/core\/emoji\/15.1.0\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/webmobtuts.com\/wp-includes\/js\/wp-emoji-release.min.js?ver=6.8.1"}};
+/*! This file is auto-generated */
+!function(i,n){var o,s,e;function c(e){try{var t={supportTests:e,timestamp:(new Date).valueOf()};sessionStorage.setItem(o,JSON.stringify(t))}catch(e){}}function p(e,t,n){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);var t=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data),r=(e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(n,0,0),new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data));return t.every(function(e,t){return e===r[t]})}function u(e,t,n){switch(t){case"flag":return n(e,"\ud83c\udff3\ufe0f\u200d\u26a7\ufe0f","\ud83c\udff3\ufe0f\u200b\u26a7\ufe0f")?!1:!n(e,"\ud83c\uddfa\ud83c\uddf3","\ud83c\uddfa\u200b\ud83c\uddf3")&&!n(e,"\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f","\ud83c\udff4\u200b\udb40\udc67\u200b\udb40\udc62\u200b\udb40\udc65\u200b\udb40\udc6e\u200b\udb40\udc67\u200b\udb40\udc7f");case"emoji":return!n(e,"\ud83d\udc26\u200d\ud83d\udd25","\ud83d\udc26\u200b\ud83d\udd25")}return!1}function f(e,t,n){var r="undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?new OffscreenCanvas(300,150):i.createElement("canvas"),a=r.getContext("2d",{willReadFrequently:!0}),o=(a.textBaseline="top",a.font="600 32px Arial",{});return e.forEach(function(e){o[e]=t(a,e,n)}),o}function t(e){var t=i.createElement("script");t.src=e,t.defer=!0,i.head.appendChild(t)}"undefined"!=typeof Promise&&(o="wpEmojiSettingsSupports",s=["flag","emoji"],n.supports={everything:!0,everythingExceptFlag:!0},e=new Promise(function(e){i.addEventListener("DOMContentLoaded",e,{once:!0})}),new Promise(function(t){var n=function(){try{var e=JSON.parse(sessionStorage.getItem(o));if("object"==typeof e&&"number"==typeof e.timestamp&&(new Date).valueOf()<e.timestamp+604800&&"object"==typeof e.supportTests)return e.supportTests}catch(e){}return null}();if(!n){if("undefined"!=typeof Worker&&"undefined"!=typeof OffscreenCanvas&&"undefined"!=typeof URL&&URL.createObjectURL&&"undefined"!=typeof Blob)try{var e="postMessage("+f.toString()+"("+[JSON.stringify(s),u.toString(),p.toString()].join(",")+"));",r=new Blob([e],{type:"text/javascript"}),a=new Worker(URL.createObjectURL(r),{name:"wpTestEmojiSupports"});return void(a.onmessage=function(e){c(n=e.data),a.terminate(),t(n)})}catch(e){}c(n=f(s,u,p))}t(n)}).then(function(e){for(var t in e)n.supports[t]=e[t],n.supports.everything=n.supports.everything&&n.supports[t],"flag"!==t&&(n.supports.everythingExceptFlag=n.supports.everythingExceptFlag&&n.supports[t]);n.supports.everythingExceptFlag=n.supports.everythingExceptFlag&&!n.supports.flag,n.DOMReady=!1,n.readyCallback=function(){n.DOMReady=!0}}).then(function(){return e}).then(function(){var e;n.supports.everything||(n.readyCallback(),(e=n.source||{}).concatemoji?t(e.concatemoji):e.wpemoji&&e.twemoji&&(t(e.twemoji),t(e.wpemoji)))}))}((window,document),window._wpemojiSettings);
+/* ]]> */
+</script>
+<style id='wp-emoji-styles-inline-css' type='text/css'>
+
+	img.wp-smiley, img.emoji {
+		display: inline !important;
+		border: none !important;
+		box-shadow: none !important;
+		height: 1em !important;
+		width: 1em !important;
+		margin: 0 0.07em !important;
+		vertical-align: -0.1em !important;
+		background: none !important;
+		padding: 0 !important;
+	}
+</style>
+<link rel='stylesheet' id='wp-block-library-css' href='https://webmobtuts.com/wp-includes/css/dist/block-library/style.min.css?ver=6.8.1' type='text/css' media='all' />
+<style id='classic-theme-styles-inline-css' type='text/css'>
+/*! This file is auto-generated */
+.wp-block-button__link{color:#fff;background-color:#32373c;border-radius:9999px;box-shadow:none;text-decoration:none;padding:calc(.667em + 2px) calc(1.333em + 2px);font-size:1.125em}.wp-block-file__button{background:#32373c;color:#fff;text-decoration:none}
+</style>
+<style id='global-styles-inline-css' type='text/css'>
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgba(255, 255, 255, 1), 6px 6px rgba(0, 0, 0, 1);--wp--preset--shadow--crisp: 6px 6px 0px rgba(0, 0, 0, 1);}:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}
+:root :where(.wp-block-pullquote){font-size: 1.5em;line-height: 1.6;}
+</style>
+<link rel='stylesheet' id='wp-ai-content-generator-css' href='https://webmobtuts.com/wp-content/plugins/gpt3-ai-content-generator/public/css/wp-ai-content-generator-public.css?ver=1.9.18' type='text/css' media='all' />
+<link rel='stylesheet' id='fontawsome-css-css' href='https://webmobtuts.com/wp-content/plugins/accesspress-social-login-lite/css/font-awesome/font-awesome.min.css?ver=3.4.8' type='text/css' media='all' />
+<link rel='stylesheet' id='apsl-frontend-css-css' href='https://webmobtuts.com/wp-content/plugins/accesspress-social-login-lite/css/frontend.css?ver=3.4.8' type='text/css' media='all' />
+<link rel='stylesheet' id='contact-form-7-css' href='https://webmobtuts.com/wp-content/plugins/contact-form-7/includes/css/styles.css?ver=6.0.6' type='text/css' media='all' />
+<style id='contact-form-7-inline-css' type='text/css'>
+.wpcf7 .wpcf7-recaptcha iframe {margin-bottom: 0;}.wpcf7 .wpcf7-recaptcha[data-align="center"] > div {margin: 0 auto;}.wpcf7 .wpcf7-recaptcha[data-align="right"] > div {margin: 0 0 0 auto;}
+</style>
+<link rel='stylesheet' id='ceris-vendors-css' href='https://webmobtuts.com/wp-content/themes/ceris/css/vendors.css?ver=6.8.1' type='text/css' media='all' />
+<link rel='stylesheet' id='ceris-style-css' href='https://webmobtuts.com/wp-content/themes/ceris/css/style.css?ver=6.8.1' type='text/css' media='all' />
+<style id='ceris-style-inline-css' type='text/css'>
+.site-footer, .footer-3.site-footer, .footer-5.site-footer, .footer-6.site-footer , .site-footer.footer-7 .site-footer__section:first-child, .site-footer.footer-8 .site-footer__section:first-child
+                                        {background: #ffffff;}::selection {color: #FFF; background: #000000;}::-webkit-selection {color: #FFF; background: #000000;}.scroll-count-percent .progress__value {stroke: #000000;}  .ceris-feature-i .sub-posts .block-heading__view-all a, .atbs-ceris-carousel.atbs-ceris-carousel-post-vertical .owl-prev, .atbs-ceris-carousel.atbs-ceris-carousel-post-vertical .owl-next, .post--overlay-back-face .button__readmore:hover i, .post--vertical-has-media .list-index, .navigation--main .sub-menu li:hover>a, .infinity-single-trigger:before, .ceris-icon-load-infinity-single:before, .atbs-article-reactions .atbs-reactions-content.active .atbs-reaction-count, .atbs-article-reactions .atbs-reactions-content:active .atbs-reaction-count, .post-slider-text-align-center .owl-carousel .owl-prev, .post-slider-text-align-center .owl-carousel .owl-next, .ceris-category-tiles .owl-carousel .owl-prev, .ceris-category-tiles .owl-carousel .owl-next, 
+                                    a.block-heading__secondary, .atbs-ceris-pagination a.btn-default, 
+                                    .atbs-ceris-pagination a.btn-default:active, 
+                                    .atbs-ceris-pagination a.btn-default:hover, 
+                                    .atbs-ceris-pagination a.btn-default:focus, 
+                                    .atbs-ceris-search-full .result-default, 
+                                    .atbs-ceris-search-full .result-default .search-module-heading, 
+                                    .search-module-heading, .atbs-ceris-post--grid-c-update .atbs-ceris-carousel.nav-circle .owl-prev, .single .entry-meta .entry-author__name, .pagination-circle .atbs-ceris-pagination__item.atbs-ceris-pagination__item-next:hover,
+                                    .pagination-circle .atbs-ceris-pagination__item.atbs-ceris-pagination__item-prev:hover, 
+                                    .atbs-ceris-video-has-post-list .main-post .post-type-icon, .widget-subscribe .subscribe-form__fields button, 
+                                    .list-index, a, a:hover, a:focus, a:active, .color-primary, .site-title, 
+                                    .entry-tags ul > li > a:hover, .social-share-label, .ceris-single .single-header--top .entry-author__name, .atbs-ceris-widget-indexed-posts-b .posts-list > li .post__title:after, .posts-navigation .post:hover .posts-navigation__label,
+                                    .posts-navigation .post:hover .post__title, .sticky-ceris-post .cerisStickyMark i, .typography-copy blockquote:before, .comment-content blockquote:before, .listing--list-large .post__readmore:hover .readmore__text,
+                                    .post--horizontal-reverse-big.post--horizontal-reverse-big__style-3 .post__readmore .readmore__text:hover, .reviews-score-average, .star-item.star-full i:before,
+                                    .wc-block-grid__product-rating .star-rating span:before, .wc-block-grid__product-rating .wc-block-grid__product-rating__stars span:before,
+                                    .woocommerce-message::before, .woocommerce-info::before, .woocommerce-error::before, .woocommerce-downloads .woocommerce-info:before
+            {color: #000000;}.ceris-grid-j .icon-has-animation .btn-play-left-not-center.post-type-icon:after, div.wpforms-container-full .wpforms-form button[type=submit], div.wpforms-container-full .wpforms-form button[type=submit]:hover{background-color: #000000;} .ceris-grid-j .btn-play-left-not-center .circle, .scroll-count-percent .btn-bookmark-icon .bookmark-status-saved path {fill: #000000;} .infinity-single-trigger:before, .ceris-grid-j .btn-play-left-not-center .g-path path{fill: #fff;}@media(max-width: 768px) {.ceris-grid-j .icon-has-animation .btn-play-left-not-center.post-type-icon:after{background-color: #fff;} }@media(max-width: 768px) {.ceris-grid-j .btn-play-left-not-center .circle{fill: #fff;} } @media(max-width: 768px) {.ceris-grid-j .btn-play-left-not-center .g-path path{fill: #000;} }@media(max-width: 768px) {.ceris-module-video .post-list-no-thumb-3i .posts-no-thumb .post-type-icon:after{background-color: #000000;} }@media(max-width: 768px) {.ceris-module-video .post-list-no-thumb-3i .list-item .posts-no-thumb:hover .post-type-icon:after{background-color: #fff;} }@media(max-width: 768px) {.ceris-module-video .post-list-no-thumb-3i .list-item:first-child .posts-no-thumb:hover .post-type-icon:after{background-color: #fff;} }@media(max-width: 768px) {.ceris-module-video .post-list-no-thumb-3i:hover .list-item:first-child .posts-no-thumb .post-type-icon:after{background-color: #000000;} }@media(max-width: 768px) {.ceris-module-video .post-list-no-thumb-3i .list-item:first-child .posts-no-thumb:hover .post-type-icon:after{background-color: #fff;} }@media (max-width: 380px){.featured-slider-d .owl-carousel .owl-dot.active span{background-color: #000000;}}.g-path path {fill: #000;} .circle{fill: #fff;}@media(max-width: 576px) {.atbs-ceris-post--vertical-3i-row .post--vertical .post__cat{background-color: #000000;} }.atbs-article-reactions .atbs-reactions-content:hover{
+                border-color: rgba(0, 0, 0,0.3);
+            } .post-no-thumb-height-default:hover{
+                box-shadow: 0 45px 25px -20px rgba(0, 0, 0,0.27);
+            } .ceris-feature-h .owl-item.active .post--overlay-height-275 .post__thumb--overlay.post__thumb:after{
+                background-color: rgba(0, 0, 0,0.8);
+            } .post-list-no-thumb-3i .list-item:first-child:hover:before, .post-list-no-thumb-3i .list-item:hover:before{
+                background-color: rgba(0, 0, 0, 0.4);
+            } .ceris-grid-carousel-d .owl-stage .post--card-overlay-middle-has-hidden-content:hover .post__thumb--overlay.post__thumb:after, .ceris-grid-carousel-d .owl-stage .owl-item.active.center .post--card-overlay-middle-has-hidden-content:hover .post__thumb--overlay.post__thumb:after{
+                -webkit-box-shadow: 0px 20px 27px 0 rgba(0, 0, 0,0.2);
+                box-shadow: 0px 20px 27px 0 rgba(0, 0, 0,0.2);
+            } @media(min-width:992px){
+                                .post--overlay-hover-effect .post__thumb--overlay.post__thumb:after{
+                                    background-color: #000000;
+                                }
+            }.atbs-ceris-block__aside-left .banner__button, .ceris-feature-k .atbs-ceris-carousel-nav-custom-holder .owl-prev:hover, .ceris-feature-k .atbs-ceris-carousel-nav-custom-holder .owl-next:hover, .ceris-feature-k .atbs-ceris-block__inner::before, .ceris-feature-i .atbs-ceris-carousel-nav-custom-holder .owl-prev:hover, .ceris-feature-i .atbs-ceris-carousel-nav-custom-holder .owl-next:hover, .ceris-feature-j .sub-posts .atbs-ceris-carousel-nav-custom-holder .owl-prev:hover, .ceris-feature-j .sub-posts .atbs-ceris-carousel-nav-custom-holder .owl-next:hover, .ceris-feature-h .owl-item.active + .owl-item.active .post--overlay-height-275 .post__cat-has-line:before, .atbs-ceris-carousel.atbs-ceris-carousel-post-vertical .owl-prev:hover, .atbs-ceris-carousel.atbs-ceris-carousel-post-vertical .owl-next:hover, .ceris-feature-f .button__readmore--round:hover i, .post--overlay-hover-effect .post__text-backface .post__readmore .button__readmore:hover,
+             
+             .post--overlay-hover-effect.post--overlay-bottom,
+              .post--overlay-back-face,
+              .pagination-circle .atbs-ceris-pagination__item:not(.atbs-ceris-pagination__dots):hover, .open-sub-col, .atbs-ceris-posts-feature-a-update .atbs-ceris-carousel.nav-circle .owl-prev:hover,
+            .atbs-ceris-posts-feature-a-update .atbs-ceris-carousel.nav-circle .owl-next:hover, .owl-carousel.button--dots-center-nav .owl-prev:hover, .owl-carousel.button--dots-center-nav .owl-next:hover, .section-has-subscribe-no-border > .btn:focus, .section-has-subscribe-no-border > .btn:active, .section-has-subscribe-no-border > *:hover, .widget-slide .atbs-ceris-carousel .owl-dot.active span, .featured-slider-e .owl-carousel .owl-prev:hover, .featured-slider-e .owl-carousel .owl-next:hover, .post--horizontal-hasbackground.post:hover, .post-slider-text-align-center .owl-carousel .owl-prev:hover, .post-slider-text-align-center .owl-carousel .owl-next:hover, .atbs-ceris-pagination [class*='js-ajax-load-']:active, .atbs-ceris-pagination [class*='js-ajax-load-']:hover, .atbs-ceris-pagination [class*='js-ajax-load-']:focus, .atbs-ceris-widget-indexed-posts-a .posts-list>li .post__thumb:after, .post-list-no-thumb-3i:hover .list-item:first-child .post__cat:before, .header-17 .btn-subscribe-theme, .header-13 .btn-subscribe-theme, .header-16 .offcanvas-menu-toggle.navigation-bar-btn, .atbs-ceris-widget-posts-list.atbs-ceris-widget-posts-list-overlay-first ul:hover li.active .post--overlay .post__cat:before, .dots-circle .owl-dot.active span, .atbs-ceris-search-full .popular-tags .entry-tags ul > li > a, .atbs-ceris-search-full .form-control, .atbs-ceris-post--grid-g-update .post-grid-carousel .owl-dot.active span, .nav-row-circle .owl-prev:hover, .nav-row-circle .owl-next:hover, .post--grid--2i_row .post-no-thumb-title-line, .atbs-ceris-post--grid-d-update .post-no-thumb-title-line, .atbs-ceris-posts-feature .post-sub .list-item:hover .post__cat:before, .atbs-ceris-post--grid-c-update .post-main .owl-item.active + .owl-item.active .post__cat:before, .atbs-ceris-post--grid-c-update .atbs-ceris-carousel.nav-circle .owl-next, .atbs-ceris-post--grid-c-update .post-main .owl-item.active .post-no-thumb-title-line, .post-no-thumb-height-default:hover, .carousel-dots-count-number .owl-dot.active span, .header-16 .btn-subscribe-theme, .header-14 .btn-subscribe-theme, .header-11 .btn-subscribe-theme, .atbs-ceris-pagination [class*='js-ajax-load-'], .atbs-ceris-post--overlay-first-big .post--overlay:hover .background-img:after, .post-list-no-thumb-3i .list-item:hover, .post__cat-has-line:before, .category-tile__name, .cat-0.cat-theme-bg.cat-theme-bg, .primary-bg-color, .navigation--main > li > a:before, .atbs-ceris-pagination__item-current, .atbs-ceris-pagination__item-current:hover, 
+            .atbs-ceris-pagination__item-current:focus, .atbs-ceris-pagination__item-current:active, .atbs-ceris-pagination--next-n-prev .atbs-ceris-pagination__links a:last-child .atbs-ceris-pagination__item,
+            .subscribe-form__fields input[type='submit'], .has-overlap-bg:before, .post__cat--bg, a.post__cat--bg, .entry-cat--bg, a.entry-cat--bg, 
+            .comments-count-box, .atbs-ceris-widget--box .widget__title, 
+            .widget_calendar td a:before, .widget_calendar #today, .widget_calendar #today a, .entry-action-btn, .posts-navigation__label:before, 
+            .comment-form .form-submit input[type='submit'], .atbs-ceris-carousel-dots-b .swiper-pagination-bullet-active,
+             .site-header--side-logo .header-logo:not(.header-logo--mobile), .list-square-bullet > li > *:before, .list-square-bullet-exclude-first > li:not(:first-child) > *:before,
+             .btn-primary, .btn-primary:active, .btn-primary:focus, .btn-primary:hover, 
+             .btn-primary.active.focus, .btn-primary.active:focus, .btn-primary.active:hover, .btn-primary:active.focus, .btn-primary:active:focus, .btn-primary:active:hover, .header-10 .navigation--main > li > a:before, 
+             .atbs-ceris-feature-slider .post__readmore, .atbs-ceris-grid-carousel .atbs-ceris-carousel .owl-dot:last-child.active span, .atbs-ceris-grid-carousel .atbs-ceris-carousel .owl-dot.active span,  
+             .atbs-ceris-post-slide-has-list .atbs-ceris-post-slide-text-center .atbs-ceris-carousel .owl-dot.active span, 
+             .pagination-circle .atbs-ceris-pagination__item:hover, .pagination-circle .atbs-ceris-pagination__item.atbs-ceris-pagination__item-current, .social-share-label:before, .social-share ul li a svg:hover, 
+             .comment-form .form-submit input[type='submit'], input[type='button']:not(.btn), input[type='reset']:not(.btn), input[type='submit']:not(.btn), .form-submit input, 
+             .comment-form .form-submit input[type='submit']:active, .comment-form .form-submit input[type='submit']:focus, .comment-form .form-submit input[type='submit']:hover,
+             .reviews-rating .rating-form .rating-submit, .reviews-rating .rating-form .rating-submit:hover, .ceris-bookmark-page-notification,
+             .rating-star, .score-item .score-percent, .ceris-grid-w .post-slide .owl-carousel, .widget-subscribe .widget-subscribe__inner,
+             .ceris-grid-carousel-d .owl-stage .post--card-overlay-middle-has-hidden-content:hover .post__thumb--overlay.post__thumb:after, .ceris-grid-carousel-d .owl-stage .owl-item.active.center .post--card-overlay-middle-has-hidden-content:hover .post__thumb--overlay.post__thumb:after,
+             .post--vertical-thumb-70-background .button__readmore--outline:hover i, .atbs-ceris-search-full--result .atbs-ceris-pagination .btn,
+             .atbs-ceris-posts-feature-c-update.ceris-light-mode .owl-carousel .owl-prev:hover, .atbs-ceris-posts-feature-c-update.ceris-light-mode .owl-carousel .owl-next:hover,
+             .editor-styles-wrapper .wc-block-grid__products .wc-block-grid__product .wc-block-grid__product-onsale, .wc-block-grid__product-onsale,
+             .woocommerce .wc-block-grid__product .wp-block-button__link:hover, .woocommerce ul.products li.product .onsale, 
+             .woocommerce .editor-styles-wrapper .wc-block-grid__products .wc-block-grid__product .wc-block-grid__product-onsale, .woocommerce .wc-block-grid__product-onsale,
+             .woocommerce #respond input#submit, .woocommerce #respond input#submit:hover, .woocommerce a.button:hover, .woocommerce button.button:hover, .woocommerce input.button:hover,
+             .woocommerce .wp-block-button__link, .woocommerce .wp-block-button:not(.wc-block-grid__product-add-to-cart) .wp-block-button__link,
+             .woocommerce nav.woocommerce-pagination ul li a:focus, .woocommerce nav.woocommerce-pagination ul li a:hover, .woocommerce nav.woocommerce-pagination ul li span.current,
+             .woocommerce div.product form.cart .button, .woocommerce div.product .woocommerce-tabs ul.tabs li.active, .woocommerce-Tabs-panel .comment-reply-title:before,
+             .woocommerce button.button, .woocommerce a.button.wc-backward, .woocommerce a.button.alt, .woocommerce a.button.alt:hover,
+             .woocommerce-message a.button, .woocommerce-downloads .woocommerce-Message a.button,
+             .woocommerce button.button.alt, .woocommerce button.button.alt:hover, .woocommerce.widget_product_search .woocommerce-product-search button,
+             .woocommerce .widget_price_filter .ui-slider .ui-slider-range, .woocommerce .widget_price_filter .ui-slider .ui-slider-handle, .header-current-reading-article .current-reading-article-label,
+             #cookie-notice .cn-button, .atbs-ceris-widget-posts-list.atbs-ceris-widget-posts-list-overlay-first .posts-list:hover li.active  .post__cat:before,
+             .ceris-mobile-share-socials ul li:hover a, .ceris-admin-delete-review
+            {background-color: #000000;}.site-header--skin-4 .navigation--main > li > a:before
+            {background-color: #000000 !important;}@media(max-width: 767px){
+                .atbs-ceris-post--grid-c-update .atbs-ceris-carousel.nav-circle .owl-prev,
+                .atbs-ceris-post--grid-c-update .atbs-ceris-carousel.nav-circle .owl-next{
+                        color: #000000 !important;
+                    }
+                }.post-score-hexagon .hexagon-svg g path
+            {fill: #000000;}.ceris-feature-k .atbs-ceris-carousel-nav-custom-holder .owl-prev:hover, .ceris-feature-k .atbs-ceris-carousel-nav-custom-holder .owl-next:hover, .ceris-feature-i .atbs-ceris-carousel-nav-custom-holder .owl-prev:hover, .ceris-feature-i .atbs-ceris-carousel-nav-custom-holder .owl-next:hover, .ceris-feature-j .sub-posts .atbs-ceris-carousel-nav-custom-holder .owl-prev:hover, .ceris-feature-j .sub-posts .atbs-ceris-carousel-nav-custom-holder .owl-next:hover, .post--overlay-line-top-hover:hover::after, .ceris-feature-f .button__readmore--round:hover i, .post--overlay-hover-effect .post__text-backface .post__readmore .button__readmore:hover, .ceris-about-module .about__content, .atbs-ceris-posts-feature-a-update .atbs-ceris-carousel.nav-circle .owl-prev:hover,
+.atbs-ceris-posts-feature-a-update .atbs-ceris-carousel.nav-circle .owl-next:hover, .owl-carousel.button--dots-center-nav .owl-prev:hover, .owl-carousel.button--dots-center-nav .owl-next:hover, .atbs-article-reactions .atbs-reactions-content.active, .atbs-ceris-pagination [class*='js-ajax-load-']:active, .atbs-ceris-pagination [class*='js-ajax-load-']:hover, .atbs-ceris-pagination [class*='js-ajax-load-']:focus, .atbs-ceris-search-full--result .atbs-ceris-pagination .btn, .atbs-ceris-pagination [class*='js-ajax-load-'], .comment-form .form-submit input[type='submit'], .form-submit input:hover, .comment-form .form-submit input[type='submit']:active, .comment-form .form-submit input[type='submit']:focus, .comment-form .form-submit input[type='submit']:hover, .has-overlap-frame:before, .atbs-ceris-gallery-slider .fotorama__thumb-border, .bypostauthor > .comment-body .comment-author > img,
+.post--vertical-thumb-70-background .button__readmore--outline:hover i, .block-heading.block-heading--style-7,
+.atbs-ceris-posts-feature-c-update.ceris-light-mode .owl-carousel .owl-prev:hover,
+.atbs-ceris-posts-feature-c-update.ceris-light-mode .owl-carousel .owl-next:hover,
+.ceris-mobile-share-socials ul li:hover a,
+.wc-block-grid__product .wp-block-button__link:hover, .woocommerce #respond input#submit:hover, .woocommerce a.button:hover, .woocommerce button.button:hover, .woocommerce input.button:hover
+            {border-color: #000000;}.atbs-ceris-pagination--next-n-prev .atbs-ceris-pagination__links a:last-child .atbs-ceris-pagination__item:after, .typography-copy blockquote, .comment-content blockquote
+            {border-left-color: #000000;}.comments-count-box:before, .bk-preload-wrapper:after, .woocommerce-error, .woocommerce-message, .woocommerce-info
+            {border-top-color: #000000;}.bk-preload-wrapper:after
+            {border-bottom-color: #000000;}.navigation--offcanvas li > a:after
+            {border-right-color: #000000;}.post--single-cover-gradient .single-header
+            {
+                background-image: -webkit-linear-gradient( bottom , #000000 0%, rgba(252, 60, 45, 0.7) 50%, rgba(252, 60, 45, 0) 100%);
+                background-image: linear-gradient(to top, #000000 0%, rgba(252, 60, 45, 0.7) 50%, rgba(252, 60, 45, 0) 100%);
+            }@media (max-width: 576px){
+                .atbs-ceris-posts-feature .post-sub .list-item:nth-child(2), .atbs-ceris-posts-feature .post-sub .list-item:not(:nth-child(2)) .post__cat-has-line:before {
+                    background-color: #000000;
+                }
+            }
+                .ceris-feature-k .atbs-ceris-block__inner::before{
+                    box-shadow: 
+                    -210px 0 1px #000000, -180px 0 1px #000000, -150px 0 1px #000000, -120px 0 1px #000000, -90px 0 1px #000000, -60px 0 1px #000000, -30px 0 1px #000000, 30px 0 1px #000000, 60px 0 1px #000000,
+                -210px 30px 1px #000000, -180px 30px 1px #000000, -150px 30px 1px #000000, -120px 30px 1px #000000, -90px 30px 1px #000000, -60px 30px 1px #000000, -30px 30px 1px #000000, 0 30px 1px #000000, 30px 30px 1px #000000, 60px 30px 1px #000000,
+                -210px 60px 1px #000000, -180px 60px 1px #000000, -150px 60px 1px #000000, -120px 60px 1px #000000, -90px 60px 1px #000000, -60px 60px 1px #000000, -30px 60px 1px #000000, 0 60px 1px #000000, 30px 60px 1px #000000, 60px 60px 1px #000000,
+                -210px 90px 1px #000000, -180px 90px 1px #000000, -150px 90px 1px #000000, -120px 90px 1px #000000, -90px 90px 1px #000000, -60px 90px 1px #000000, -30px 90px 1px #000000, 0 90px 1px #000000, 30px 90px 1px #000000, 60px 90px 1px #000000,
+                -210px 120px 1px #000000, -180px 120px 1px #000000, -150px 120px 1px #000000, -120px 120px 1px #000000, -90px 120px 1px #000000, -60px 120px 1px #000000, -30px 120px 1px #000000, 0 120px 1px #000000, 30px 120px 1px #000000, 60px 120px 1px #000000,
+                -210px 150px 1px #000000, -180px 150px 1px #000000, -150px 150px 1px #000000, -120px 150px 1px #000000, -90px 150px 1px #000000, -60px 150px 1px #000000, -30px 150px 1px #000000, 0 150px 1px #000000, 30px 150px 1px #000000, 60px 150px 1px #000000,
+                -210px 180px 1px #000000, -180px 180px 1px #000000, -150px 180px 1px #000000, -120px 180px 1px #000000, -90px 180px 1px #000000, -60px 180px 1px #000000, -30px 180px 1px #000000, 0 180px 1px #000000, 30px 180px 1px #000000, 60px 180px 1px #000000,
+                -210px 210px 1px #000000, -180px 210px 1px #000000, -150px 210px 1px #000000, -120px 210px 1px #000000, -90px 210px 1px #000000, -60px 210px 1px #000000, -30px 210px 1px #000000, 0 210px 1px #000000, 30px 210px 1px #000000, 60px 210px 1px #000000,
+                -210px 240px 1px #000000, -180px 240px 1px #000000, -150px 240px 1px #000000, -120px 240px 1px #000000, -90px 240px 1px #000000, -60px 240px 1px #000000, -30px 240px 1px #000000, 0 240px 1px #000000, 30px 240px 1px #000000, 60px 240px 1px #000000,
+                -210px 270px 1px #000000, -180px 270px 1px #000000, -150px 270px 1px #000000, -120px 270px 1px #000000, -90px 270px 1px #000000, -60px 270px 1px #000000, -30px 270px 1px #000000, 0 270px 1px #000000, 30px 270px 1px #000000, 60px 270px 1px #000000
+                
+                }
+            atbs-ceris-video-box__playlist .is-playing .post__thumb:after { content: 'Now playing'; }
+</style>
+<style id='akismet-widget-style-inline-css' type='text/css'>
+
+			.a-stats {
+				--akismet-color-mid-green: #357b49;
+				--akismet-color-white: #fff;
+				--akismet-color-light-grey: #f6f7f7;
+
+				max-width: 350px;
+				width: auto;
+			}
+
+			.a-stats * {
+				all: unset;
+				box-sizing: border-box;
+			}
+
+			.a-stats strong {
+				font-weight: 600;
+			}
+
+			.a-stats a.a-stats__link,
+			.a-stats a.a-stats__link:visited,
+			.a-stats a.a-stats__link:active {
+				background: var(--akismet-color-mid-green);
+				border: none;
+				box-shadow: none;
+				border-radius: 8px;
+				color: var(--akismet-color-white);
+				cursor: pointer;
+				display: block;
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen-Sans', 'Ubuntu', 'Cantarell', 'Helvetica Neue', sans-serif;
+				font-weight: 500;
+				padding: 12px;
+				text-align: center;
+				text-decoration: none;
+				transition: all 0.2s ease;
+			}
+
+			/* Extra specificity to deal with TwentyTwentyOne focus style */
+			.widget .a-stats a.a-stats__link:focus {
+				background: var(--akismet-color-mid-green);
+				color: var(--akismet-color-white);
+				text-decoration: none;
+			}
+
+			.a-stats a.a-stats__link:hover {
+				filter: brightness(110%);
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 0 2px rgba(0, 0, 0, 0.16);
+			}
+
+			.a-stats .count {
+				color: var(--akismet-color-white);
+				display: block;
+				font-size: 1.5em;
+				line-height: 1.4;
+				padding: 0 13px;
+				white-space: nowrap;
+			}
+		
+</style>
+<link rel='stylesheet' id='login-with-ajax-css' href='https://webmobtuts.com/wp-content/themes/ceris/plugins/login-with-ajax/widget.css?ver=4.4' type='text/css' media='all' />
+<link rel='stylesheet' id='enlighterjs-css' href='https://webmobtuts.com/wp-content/plugins/enlighter/cache/enlighterjs.min.css?ver=/DhF9vgjF4IsMoI' type='text/css' media='all' />
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900,100italic,300italic,400italic,500italic,700italic,900italic%7CPoppins:100,200,300,400,500,600,700,800,900,100italic,200italic,300italic,400italic,500italic,600italic,700italic,800italic,900italic%7CRubik:300,400,500,600,700,800,900,300italic,400italic,500italic,600italic,700italic,800italic,900italic&#038;display=swap&#038;ver=1625477194" /><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900,100italic,300italic,400italic,500italic,700italic,900italic%7CPoppins:100,200,300,400,500,600,700,800,900,100italic,200italic,300italic,400italic,500italic,600italic,700italic,800italic,900italic%7CRubik:300,400,500,600,700,800,900,300italic,400italic,500italic,600italic,700italic,800italic,900italic&#038;display=swap&#038;ver=1625477194" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900,100italic,300italic,400italic,500italic,700italic,900italic%7CPoppins:100,200,300,400,500,600,700,800,900,100italic,200italic,300italic,400italic,500italic,600italic,700italic,800italic,900italic%7CRubik:300,400,500,600,700,800,900,300italic,400italic,500italic,600italic,700italic,800italic,900italic&#038;display=swap&#038;ver=1625477194" /></noscript><script type="text/javascript" src="https://webmobtuts.com/wp-includes/js/jquery/jquery.min.js?ver=3.7.1" id="jquery-core-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.4.1" id="jquery-migrate-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/gpt3-ai-content-generator/public/js/wp-ai-content-generator-public.js?ver=1.9.18" id="wp-ai-content-generator-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/accesspress-social-login-lite/js/frontend.js?ver=3.4.8" id="apsl-frontend-js-js"></script>
+<script type="text/javascript" id="login-with-ajax-js-extra">
+/* <![CDATA[ */
+var LWA = {"ajaxurl":"https:\/\/webmobtuts.com\/wp-admin\/admin-ajax.php","off":""};
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/plugins/login-with-ajax/login-with-ajax.source.js?ver=4.4" id="login-with-ajax-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/login-with-ajax/ajaxify/ajaxify.js?ver=4.4" id="login-with-ajax-ajaxify-js"></script>
+
+<!-- Google tag (gtag.js) snippet added by Site Kit -->
+
+<!-- Google Analytics snippet added by Site Kit -->
+<script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=GT-W6KMFZ8" id="google_gtagjs-js" async></script>
+<script type="text/javascript" id="google_gtagjs-js-after">
+/* <![CDATA[ */
+window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}
+gtag("set","linker",{"domains":["webmobtuts.com"]});
+gtag("js", new Date());
+gtag("set", "developer_id.dZTNiMT", true);
+gtag("config", "GT-W6KMFZ8");
+/* ]]> */
+</script>
+
+<!-- End Google tag (gtag.js) snippet added by Site Kit -->
+<link rel="https://api.w.org/" href="https://webmobtuts.com/wp-json/" /><meta name="generator" content="WordPress 6.8.1" />
+<meta name="framework" content="Redux 4.1.22" /><meta name="generator" content="Site Kit by Google 1.152.1" /><link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://webmobtuts.com/xmlrpc2.php?rsd" />
+			<link rel="preload" href="https://webmobtuts.com/wp-content/plugins/wordpress-popup/assets/hustle-ui/fonts/hustle-icons-font.woff2" as="font" type="font/woff2" crossorigin>
+		<link rel="icon" href="https://webmobtuts.com/wp-content/uploads/2018/03/imageedit_4_5793992977.png" sizes="32x32" />
+<link rel="icon" href="https://webmobtuts.com/wp-content/uploads/2018/03/imageedit_4_5793992977.png" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://webmobtuts.com/wp-content/uploads/2018/03/imageedit_4_5793992977.png" />
+<meta name="msapplication-TileImage" content="https://webmobtuts.com/wp-content/uploads/2018/03/imageedit_4_5793992977.png" />
+		<style type="text/css" id="wp-custom-css">
+			.custom-directory-structure .custom-directory-directories {
+    border-left: 1px solid #000;
+}
+
+.custom-directory-structure .custom-directory-directories p { 
+    margin-bottom: 0 !important;
+}
+
+.table-of-contents {
+width: 80%;
+background: #EAFFFF;
+border: 1px solid #aaa;
+display: table;
+padding: 1em 2em;
+margin: 0 0 0.5em 0.5em;
+}
+
+blockquote p, blockquote span {
+    font-size: 16px !important;
+font-style: italic !important;
+text-align: center !important;
+	color: #756e6e !important;
+}
+
+.table-of-contents ul>li {
+margin: 0 0 .6em 0;
+list-style-type: none;
+}
+
+.table-of-contents a {
+text-decoration: none;
+color: #3D5AFE;
+font-size: 16px !important;
+}
+
+.download-btn {
+    background: #ca8b48;
+padding: 7px;
+color: #fff;
+border-radius: 3px;
+font-size: 15px;
+}
+
+.page-heading__subtitle p {
+	display: none;
+}
+
+.home-posts-list .js-ajax-load-post .posts-list .post__meta {
+    display: none !important;
+}		</style>
+		<style id="ceris_option-dynamic-css" title="dynamic-css" class="redux-options-output">html{font-size:14px;font-display:swap;}body{font-family:Roboto,Arial, Helvetica, sans-serif;font-display:swap;} .comment-reply-title, .comments-title, .comment-reply-title, .category-tile__name, .block-heading, .block-heading__title, .post-categories__title, .post__title, .entry-title, h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, .text-font-primary, .social-tile__title, .widget_recent_comments .recentcomments > a, .widget_recent_entries li > a, .modal-title.modal-title, .author-box .author-name a, .comment-author, .widget_calendar caption, .widget_categories li>a, .widget_meta ul, .widget_recent_comments .recentcomments>a, .widget_recent_entries li>a, .widget_pages li>a, 
+                            .ceris-reviews-section .heading-title, .score-item .score-name, .score-item .score-number, .reviews-score-average, .btn-open-form-rating, .btn-open-form-rating label,
+                            .scroll-count-percent .percent-number, .scroll-count-percent .btn-bookmark-icon, .open-sub-col, .ceris-about-module .about__title,
+                            .post--overlay-hover-effect .post__text-backface .post__title, .atbs-ceris-mega-menu .post__title, .atbs-ceris-mega-menu .post__title a, .widget__title-text{font-family:Poppins,Arial, Helvetica, sans-serif;font-display:swap;}.text-font-secondary, .block-heading__subtitle, .widget_nav_menu ul, .typography-copy blockquote, .comment-content blockquote{font-family:Roboto,Arial, Helvetica, sans-serif;font-display:swap;}.mobile-header-btn, .menu, .meta-text, a.meta-text, .meta-font, a.meta-font, .text-font-tertiary, .block-heading-tabs, .block-heading-tabs > li > a, input[type="button"]:not(.btn), input[type="reset"]:not(.btn), input[type="submit"]:not(.btn), .btn, label, .page-nav, .post-score, .post-score-hexagon .post-score-value, .post__cat, a.post__cat, .entry-cat, 
+                            a.entry-cat, .read-more-link, .post__meta, .entry-meta, .entry-author__name, a.entry-author__name, .comments-count-box, .atbs-ceris-widget-indexed-posts-a .posts-list > li .post__thumb:after, .atbs-ceris-widget-indexed-posts-b .posts-list > li .post__title:after, .atbs-ceris-widget-indexed-posts-c .list-index, .social-tile__count, .widget_recent_comments .comment-author-link, .atbs-ceris-video-box__playlist .is-playing .post__thumb:after, .atbs-ceris-posts-listing-a .cat-title, 
+                            .atbs-ceris-news-ticker__heading, .page-heading__title, .post-sharing__title, .post-sharing--simple .sharing-btn, .entry-action-btn, .entry-tags-title, .comments-title__text, .comments-title .add-comment, .comment-metadata, .comment-metadata a, .comment-reply-link, .countdown__digit, .modal-title, .comment-meta, .comment .reply, .wp-caption, .gallery-caption, .widget-title, 
+                            .btn, .logged-in-as, .countdown__digit, .atbs-ceris-widget-indexed-posts-a .posts-list>li .post__thumb:after, .atbs-ceris-widget-indexed-posts-b .posts-list>li .post__title:after, .atbs-ceris-widget-indexed-posts-c .list-index, .atbs-ceris-horizontal-list .index, .atbs-ceris-pagination, .atbs-ceris-pagination--next-n-prev .atbs-ceris-pagination__label,
+                            .post__readmore, .single-header .atbs-date-style, a.ceris-btn-view-review, .bookmark-see-more, .entry-author__name, .post-author-vertical span.entry-lable,
+                            .post-author-vertical .entry-author__name, .post--overlay-hover-effect .post__text-front .entry-author span.entry-lable,
+                            .post--overlay-hover-effect .post__text-front .entry-author .entry-author__name, blockquote cite, .block-editor .wp-block-archives-dropdown select,
+                            .block-editor .wp-block-latest-posts__post-date, .block-editor .wp-block-latest-comments__comment-date,
+                            .wp-block-image .aligncenter>figcaption, .wp-block-image .alignleft>figcaption, .wp-block-image .alignright>figcaption, .wp-block-image.is-resized>figcaption{font-family:Roboto,Arial, Helvetica, sans-serif;font-display:swap;}.navigation, .navigation-bar-btn, .navigation--main>li>a{font-family:Roboto,Arial, Helvetica, sans-serif;text-transform:uppercase;font-weight:500;font-display:swap;}.navigation--main .sub-menu a{font-family:Rubik,Arial, Helvetica, sans-serif;text-transform:uppercase;font-weight:normal;font-display:swap;}.navigation--offcanvas>li>a{font-family:Roboto,Arial, Helvetica, sans-serif;text-transform:uppercase;font-weight:500;font-size:14px;font-display:swap;}.navigation--offcanvas>li>.sub-menu>li>a, .navigation--offcanvas>li>.sub-menu>li>.sub-menu>li>a{font-family:Rubik,Arial, Helvetica, sans-serif;text-transform:uppercase;font-weight:400;font-size:14px;font-display:swap;}.ceris-footer .navigation--footer > li > a, .navigation--footer > li > a{font-family:Roboto,Arial, Helvetica, sans-serif;font-weight:500;font-size:14px;font-display:swap;}.block-heading .block-heading__title{font-family:Poppins,Arial, Helvetica, sans-serif;text-transform:uppercase;font-weight:700;font-style:normal;font-size:34px;font-display:swap;}.single .single-entry-section .block-heading .block-heading__title, .single .comment-reply-title, .page .comment-reply-title,
+                                        .single .same-category-posts .block-heading .block-heading__title, .single .related-posts .block-heading .block-heading__title,
+                                        .single .comments-title, .page .comments-title{font-family:Poppins,Arial, Helvetica, sans-serif;text-transform:uppercase;font-weight:700;font-style:normal;font-size:22px;font-display:swap;}.block-heading .page-heading__subtitle{font-family:Roboto,Arial, Helvetica, sans-serif;font-weight:normal;font-style:normal;font-display:swap;}.header-main{padding-top:60px;padding-bottom:30px;}.site-header .navigation-custom-bg-color, .site-header .navigation-bar .navigation-custom-bg-color{background-color:#fff;}.archive.category .block-heading .block-heading__title{font-family:Poppins,Arial, Helvetica, sans-serif;font-weight:700;font-style:normal;font-size:34px;font-display:swap;}.archive.category .block-heading .block-heading__title{color:#222222;font-display:swap;}.archive .block-heading .block-heading__title{font-family:Poppins,Arial, Helvetica, sans-serif;font-weight:700;font-style:normal;font-size:34px;font-display:swap;}.archive .block-heading .block-heading__title{color:#222;font-display:swap;}.search.search-results .block-heading .block-heading__title, .search.search-no-results .block-heading .block-heading__title{font-family:Poppins,Arial, Helvetica, sans-serif;font-weight:700;font-style:normal;font-size:34px;font-display:swap;}.search.search-results .block-heading .block-heading__title{color:#222;font-display:swap;}.page-template-blog .block-heading .block-heading__title{font-family:Poppins,Arial, Helvetica, sans-serif;font-weight:700;font-style:normal;font-size:34px;font-display:swap;}.page-template-blog .block-heading .block-heading__title{color:#222;font-display:swap;}.page-template-default .block-heading .block-heading__title{font-family:Poppins,Arial, Helvetica, sans-serif;font-weight:700;font-style:normal;font-size:34px;font-display:swap;}.page-template-default .block-heading .block-heading__title{color:#222;font-display:swap;}.page-template-authors-list .block-heading .block-heading__title{font-family:Poppins,Arial, Helvetica, sans-serif;font-weight:700;font-style:normal;font-size:34px;font-display:swap;}.page-template-authors-list .block-heading .block-heading__title{color:#222;font-display:swap;}.page-template-bookmark .block-heading .block-heading__title, .page-template-dismiss .block-heading .block-heading__title{font-family:Poppins,Arial, Helvetica, sans-serif;font-weight:700;font-style:normal;font-size:34px;font-display:swap;}.page-template-bookmark .block-heading .block-heading__title, .page-template-dismiss .block-heading .block-heading__title{color:#222;font-display:swap;}</style>    
+    <script async src="https://fundingchoicesmessages.google.com/i/pub-6728275760893342?ers=1" nonce="6bqdxmMdApdN3Ntc-AIRAQ"></script><script nonce="6bqdxmMdApdN3Ntc-AIRAQ">(function() {function signalGooglefcPresent() {if (!window.frames['googlefcPresent']) {if (document.body) {const iframe = document.createElement('iframe'); iframe.style = 'width: 0; height: 0; border: none; z-index: -1000; left: -1000px; top: -1000px;'; iframe.style.display = 'none'; iframe.name = 'googlefcPresent'; document.body.appendChild(iframe);} else {setTimeout(signalGooglefcPresent, 0);}}}signalGooglefcPresent();})();</script>
+    
+    <script async custom-element="amp-auto-ads"
+        src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+     </script>
+     
+     <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-48ZY2HTK86"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-48ZY2HTK86');
+</script>
+     
+     <!-- Google tag (gtag.js) -->
+<!--<script async src="https://www.googletagmanager.com/gtag/js?id=AW-1008601694"></script>-->
+<!--<script>-->
+<!--  window.dataLayer = window.dataLayer || [];-->
+<!--  function gtag(){dataLayer.push(arguments);}-->
+<!--  gtag('js', new Date());-->
+
+<!--  gtag('config', 'AW-1008601694');-->
+<!--</script>-->
+
+</head>
+<body class="error404 wp-embed-responsive wp-theme-ceris">
+    
+    <amp-auto-ads type="adsense"
+        data-ad-client="ca-pub-6728275760893342">
+</amp-auto-ads>
+    
+            <div class="site-wrapper ceris-block-heading-loading header-2 ceris-mobile-header-sticky">
+        <div class="site-content">
+    <div class="container">
+        <div class="page-404-logo site-logo text-center">
+            <a href="https://webmobtuts.com/">
+                                    <img src="http://webmobtuts.com/wp-content/uploads/2019/03/webmobtuts-logo.png" alt="logo"  width="200"/>
+        		<!-- logo close -->
+                            </a>
+        </div>
+        <div class="page-404-image">
+                            <img src="http://webmobtuts.com/wp-content/uploads/2021/03/1_wUOrpv-selJOytCkslSIhg.png" alt="404"/>
+            		</div>
+        <div class="page-404-text text-center">
+			<p>
+				Come back, you're wandering too far!			</p>
+			<p>
+				We couldn't find the page you're looking for. Try searching or go back to the <a href="http://webmobtuts.com/">Homepage<a>			</p>
+		</div>
+        <div class="page-404-search">
+            <form class="search-form search-form--inline" action="https://webmobtuts.com/" method="get">
+                <input type="text" name="s" class="search-form__input" placeholder="Type here to search" value="">
+                <button type="submit" class="search-form__submit btn btn-primary">Search</button>
+            </form>
+		</div>
+    </div>
+</div>
+
+            <script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"\/*"},{"not":{"href_matches":["\/wp-*.php","\/wp-admin\/*","\/wp-content\/uploads\/*","\/wp-content\/*","\/wp-content\/plugins\/*","\/wp-content\/themes\/ceris\/*","\/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+<link rel='stylesheet' id='hustle_icons-css' href='https://webmobtuts.com/wp-content/plugins/wordpress-popup/assets/hustle-ui/css/hustle-icons.min.css?ver=7.8.6' type='text/css' media='all' />
+<link rel='stylesheet' id='hustle_global-css' href='https://webmobtuts.com/wp-content/plugins/wordpress-popup/assets/hustle-ui/css/hustle-global.min.css?ver=7.8.6' type='text/css' media='all' />
+<link rel='stylesheet' id='hustle_social-css' href='https://webmobtuts.com/wp-content/plugins/wordpress-popup/assets/hustle-ui/css/hustle-social.min.css?ver=7.8.6' type='text/css' media='all' />
+<link rel='stylesheet' id='hustle_inline-css' href='https://webmobtuts.com/wp-content/plugins/wordpress-popup/assets/hustle-ui/css/hustle-inline.min.css?ver=7.8.6' type='text/css' media='all' />
+<script type="text/javascript" id="wpaicg-init-js-extra">
+/* <![CDATA[ */
+var wpaicgParams = {"ajax_url":"https:\/\/webmobtuts.com\/wp-admin\/admin-ajax.php","search_nonce":"296036b954","logged_in":"0","languages":{"source":"Sources","no_result":"No result found","wrong":"Something went wrong","prompt_strength":"Please enter a valid prompt strength value.","num_inference_steps":"Please enter a valid number of inference steps value.","guidance_scale":"Please enter a valid guidance scale value.","error_image":"Please select least one image for generate","save_image_success":"Save images to media successfully","select_all":"Select All","unselect":"Unselect","select_save_error":"Please select least one image to save","alternative":"Alternative Text","title":"Title","edit_image":"Edit Image","caption":"Caption","description":"Description","save":"Save","removed_pdf":"Your pdf session is cleared"},"katex_enabled":"0"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/gpt3-ai-content-generator/public/js/wpaicg-init.js" id="wpaicg-init-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/gpt3-ai-content-generator/public/js/wpaicg-chat.js" id="wpaicg-chat-script-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/gpt3-ai-content-generator/public/js/marked.js" id="wpaicg-markdown-script-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/gpt3-ai-content-generator/public/js/recorder.js" id="wpaicg-chat-recorder-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-includes/js/dist/hooks.min.js?ver=4d63a3d491d11ffd8ac6" id="wp-hooks-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-includes/js/dist/i18n.min.js?ver=5e580eb46a90c2b997e6" id="wp-i18n-js"></script>
+<script type="text/javascript" id="wp-i18n-js-after">
+/* <![CDATA[ */
+wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/contact-form-7/includes/swv/js/index.js?ver=6.0.6" id="swv-js"></script>
+<script type="text/javascript" id="contact-form-7-js-before">
+/* <![CDATA[ */
+var wpcf7 = {
+    "api": {
+        "root": "https:\/\/webmobtuts.com\/wp-json\/",
+        "namespace": "contact-form-7\/v1"
+    },
+    "cached": 1
+};
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/contact-form-7/includes/js/index.js?ver=6.0.6" id="contact-form-7-js"></script>
+<script type="text/javascript" id="hui_scripts-js-extra">
+/* <![CDATA[ */
+var hustleSettings = {"mobile_breakpoint":"782"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/wordpress-popup/assets/hustle-ui/js/hustle-ui.min.js?ver=7.8.6" id="hui_scripts-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-includes/js/underscore.min.js?ver=1.13.7" id="underscore-js"></script>
+<script type="text/javascript" id="hustle_front-js-extra">
+/* <![CDATA[ */
+var Modules = [{"module_id":"2","blog_id":"0","module_name":"popup social share","module_type":"social_sharing","active":"1","module_mode":""}];
+var incOpt = {"conditional_tags":{"is_single":false,"is_singular":false,"is_tag":false,"is_category":false,"is_author":false,"is_date":false,"is_post_type_archive":false,"is_404":true,"is_front_page":false,"is_search":false},"is_admin":"","real_page_id":"","thereferrer":"","actual_url":"webmobtuts.com\/wp-content\/uploads\/2018\/11\/notify.mp3","full_actual_url":"https:\/\/webmobtuts.com\/wp-content\/uploads\/2018\/11\/notify.mp3","native_share_enpoints":{"facebook":"https:\/\/www.facebook.com\/sharer\/sharer.php?u=https%3A%2F%2Fwebmobtuts.com%2Fwp-content%2Fuploads%2F2018%2F11%2Fnotify.mp3","twitter":"https:\/\/twitter.com\/intent\/tweet?url=https%3A%2F%2Fwebmobtuts.com%2Fwp-content%2Fuploads%2F2018%2F11%2Fnotify.mp3&text=","pinterest":"https:\/\/www.pinterest.com\/pin\/create\/button\/?url=https%3A%2F%2Fwebmobtuts.com%2Fwp-content%2Fuploads%2F2018%2F11%2Fnotify.mp3","reddit":"https:\/\/www.reddit.com\/submit?url=https%3A%2F%2Fwebmobtuts.com%2Fwp-content%2Fuploads%2F2018%2F11%2Fnotify.mp3","linkedin":"https:\/\/www.linkedin.com\/shareArticle?mini=true&url=https%3A%2F%2Fwebmobtuts.com%2Fwp-content%2Fuploads%2F2018%2F11%2Fnotify.mp3","vkontakte":"https:\/\/vk.com\/share.php?url=https%3A%2F%2Fwebmobtuts.com%2Fwp-content%2Fuploads%2F2018%2F11%2Fnotify.mp3","whatsapp":"https:\/\/api.whatsapp.com\/send?text=https%3A%2F%2Fwebmobtuts.com%2Fwp-content%2Fuploads%2F2018%2F11%2Fnotify.mp3","email":"mailto:?subject=&body=https%3A%2F%2Fwebmobtuts.com%2Fwp-content%2Fuploads%2F2018%2F11%2Fnotify.mp3"},"ajaxurl":"https:\/\/webmobtuts.com\/wp-admin\/admin-ajax.php","page_id":"0","page_slug":"wp-content-uploads-2018-11-notify-mp3","is_upfront":"","script_delay":"3000"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/wordpress-popup/assets/js/front.min.js?ver=7.8.6" id="hustle_front-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-includes/js/jquery/ui/core.min.js?ver=1.13.3" id="jquery-ui-core-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-includes/js/jquery/ui/tabs.min.js?ver=1.13.3" id="jquery-ui-tabs-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-includes/js/jquery/ui/accordion.min.js?ver=1.13.3" id="jquery-ui-accordion-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-includes/js/imagesloaded.min.js?ver=5.0.0" id="imagesloaded-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-includes/js/masonry.min.js?ver=4.2.2" id="masonry-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-includes/js/jquery/jquery.masonry.min.js?ver=3.1.2b" id="jquery-masonry-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/js/vendors/throttle-debounce.min.js?ver=6.8.1" id="throttle-debounce-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/js/vendors/bootstrap.min.js?ver=6.8.1" id="bootstrap-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/js/vendors/countdown.min.js?ver=6.8.1" id="final-countdown-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/js/vendors/flickity.min.js?ver=6.8.1" id="flickity-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/js/vendors/fotorama.min.js?ver=6.8.1" id="fotorama-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/js/vendors/magnific-popup.min.js?ver=6.8.1" id="magnific-popup-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/js/vendors/owl-carousel.min.js?ver=6.8.1" id="owl-carousel-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/js/vendors/perfect-scrollbar.min.js?ver=6.8.1" id="perfect-scrollbar-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/js/vendors/theiaStickySidebar.min.js?ver=6.8.1" id="theiaStickySidebar-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/js/vendors/vticker.min.js?ver=6.8.1" id="vticker-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/js/vendors/fitvids.js?ver=6.8.1" id="fitvids-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/themes/ceris/js/scripts.js?ver=6.8.1" id="ceris-scripts-js"></script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/enlighter/cache/enlighterjs.min.js?ver=/DhF9vgjF4IsMoI" id="enlighterjs-js"></script>
+<script type="text/javascript" id="enlighterjs-js-after">
+/* <![CDATA[ */
+!function(e,n){if("undefined"!=typeof EnlighterJS){var o={"selectors":{"block":"pre.EnlighterJSRAW","inline":"code.EnlighterJSRAW"},"options":{"indent":4,"ampersandCleanup":true,"linehover":true,"rawcodeDbclick":false,"textOverflow":"break","linenumbers":true,"theme":"enlighter","language":"generic","retainCssClasses":false,"collapse":false,"toolbarOuter":"","toolbarTop":"{BTN_RAW}{BTN_COPY}{BTN_WINDOW}{BTN_WEBSITE}","toolbarBottom":""}};(e.EnlighterJSINIT=function(){EnlighterJS.init(o.selectors.block,o.selectors.inline,o.options)})()}else{(n&&(n.error||n.log)||function(){})("Error: EnlighterJS resources not loaded yet!")}}(window,console);
+/* ]]> */
+</script>
+<script type="text/javascript" id="wp-consent-api-js-extra">
+/* <![CDATA[ */
+var consent_api = {"consent_type":"","waitfor_consent_hook":"","cookie_expiration":"30","cookie_prefix":"wp_consent"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="https://webmobtuts.com/wp-content/plugins/wp-consent-api/assets/js/wp-consent-api.min.js?ver=1.0.8" id="wp-consent-api-js"></script>
+        <script type="text/javascript">
+            function AI_responsive_widget() {
+                jQuery('object.StefanoAI-youtube-responsive').each(function () {
+                    jQuery(this).parent('.fluid-width-video-wrapper').removeClass('fluid-width-video-wrapper').removeAttr('style').css('width', '100%').css('display', 'block');
+                    jQuery(this).children('.fluid-width-video-wrapper').removeClass('fluid-width-video-wrapper').removeAttr('style').css('width', '100%').css('display', 'block');
+                    var width = jQuery(this).parent().innerWidth();
+                    var maxwidth = jQuery(this).css('max-width').replace(/px/, '');
+                    var pl = parseInt(jQuery(this).parent().css('padding-left').replace(/px/, ''));
+                    var pr = parseInt(jQuery(this).parent().css('padding-right').replace(/px/, ''));
+                    width = width - pl - pr;
+                    if (maxwidth < width) {
+                        width = maxwidth;
+                    }
+                    var ratio = jQuery(this).attr('data-ratio');
+                    if (typeof ratio == 'undefined') {
+                        ratio = 16 / 9;
+                    }
+                    jQuery(this).css('width', width + "px");
+                    jQuery(this).css('height', width / ratio + "px");
+                    jQuery(this).find('iframe').css('width', width + "px");
+                    jQuery(this).find('iframe').css('height', width / ratio + "px");
+                });
+            }
+            if (typeof jQuery !== 'undefined') {
+                jQuery(document).ready(function () {
+                    setTimeout(function () {
+                        jQuery("div[data-iframe='StefanoAI-youtube-widget-responsive']").each(function () {
+                            var iframe = jQuery("<iframe></iframe>");
+                            jQuery.each(this.attributes, function () {
+                                if (this.name == 'data-iframe' || this.name == 'data-')
+                                    return;
+                                iframe.attr(this.name.replace(/^data-/, ''), this.value);
+                            });
+                            jQuery(iframe).insertAfter(jQuery(this));
+                            jQuery(this).remove();
+                        });
+                                        AI_responsive_widget();
+                    }, 50);
+                });
+                jQuery(window).resize(function () {
+                    AI_responsive_widget();
+                });
+            }
+                </script>
+        
+</body>
+</html>
+<!-- Performance optimized by W3 Total Cache. Learn more: http://www.w3-edge.com/wordpress-plugins/
+
+ Served from: webmobtuts.com @ 2025-05-14 09:08:18 by W3 Total Cache -->
+<!-- Performance optimized by W3 Total Cache. Learn more: http://www.w3-edge.com/wordpress-plugins/
+
+ Served from: webmobtuts.com @ 2025-05-14 09:08:18 by W3 Total Cache -->

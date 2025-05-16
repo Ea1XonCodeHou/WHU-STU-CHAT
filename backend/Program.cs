@@ -1,5 +1,6 @@
 using backend.Hubs;
 using backend.Services;
+using backend.Utils;
 using MySql.Data.MySqlClient;
 using System.IO;
 
@@ -32,6 +33,7 @@ builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IDiscussionService, DiscussionService>(); // 添加讨论区服务
 builder.Services.AddScoped<IFriendshipService, FriendshipService>(); // 添加好友关系服务
+builder.Services.AddScoped<AliOSSHelper>(); // 添加阿里云OSS助手服务
 
 // 为AI服务添加HttpClient
 builder.Services.AddHttpClient<IAIService, AIService>(client =>

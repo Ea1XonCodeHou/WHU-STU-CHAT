@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace backend.Services
 {
@@ -20,16 +21,19 @@ namespace backend.Services
     {
         private readonly string _connectionString;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="configuration">配置</param>
         /// <param name="webHostEnvironment">Web环境</param>
-        public UserService(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
+        /// <param name="serviceScopeFactory">服务范围工厂</param>
+        public UserService(IConfiguration configuration, IWebHostEnvironment webHostEnvironment, IServiceScopeFactory serviceScopeFactory)
         {
             _connectionString = configuration.GetConnectionString("DefaultConnection");
             _webHostEnvironment = webHostEnvironment;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         /// <summary>
@@ -536,25 +540,21 @@ namespace backend.Services
                     return Result<string>.Error("不支持的文件类型，请上传jpg、jpeg、png或gif格式的图片");
                 }
 
-                // 创建保存头像的目录
-                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "avatars");
-                if (!Directory.Exists(uploadsFolder))
+                // 检查文件大小限制（5MB）
+                if (file.Length > 5 * 1024 * 1024)
                 {
-                    Directory.CreateDirectory(uploadsFolder);
+                    return Result<string>.Error("头像图片大小不能超过5MB");
                 }
 
-                // 生成唯一的文件名
-                var uniqueFileName = $"{userId}_{Guid.NewGuid()}{extension}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                // 使用阿里云OSS上传头像
+                using var serviceScope = _serviceScopeFactory.CreateScope();
+                var ossHelper = serviceScope.ServiceProvider.GetRequiredService<AliOSSHelper>();
 
-                // 保存文件
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
-
-                // 获取相对路径
-                var relativePath = $"/uploads/avatars/{uniqueFileName}";
+                // 生成唯一的对象名称
+                var uniqueFileName = $"avatars/{userId}_{Guid.NewGuid()}{extension}";
+                
+                // 上传到阿里云OSS
+                var avatarUrl = await ossHelper.UploadFileAsync(file, uniqueFileName);
 
                 // 更新数据库中的头像路径
                 using (var connection = new MySqlConnection(_connectionString))
@@ -564,22 +564,17 @@ namespace backend.Services
                         "UPDATE Users SET Avatar = @Avatar, UpdateTime = @UpdateTime WHERE UserId = @UserId",
                         connection);
                     command.Parameters.AddWithValue("@UserId", userId);
-                    command.Parameters.AddWithValue("@Avatar", relativePath);
+                    command.Parameters.AddWithValue("@Avatar", avatarUrl);
                     command.Parameters.AddWithValue("@UpdateTime", DateTime.Now);
 
                     var rowsAffected = await command.ExecuteNonQueryAsync();
                     if (rowsAffected <= 0)
                     {
-                        // 如果更新失败，删除已上传的文件
-                        if (File.Exists(filePath))
-                        {
-                            File.Delete(filePath);
-                        }
                         return Result<string>.Error("更新头像失败");
                     }
                 }
 
-                return Result<string>.SuccessResult(relativePath, "头像上传成功");
+                return Result<string>.SuccessResult(avatarUrl, "头像上传成功");
             }
             catch (Exception ex)
             {

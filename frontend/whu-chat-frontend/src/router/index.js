@@ -8,6 +8,7 @@ import GroupChat from '../views/GroupChat.vue'
 import Home from '../views/Home.vue'
 import AIChat from '@/components/AIChat.vue'
 import Discussion from '../views/Discussion.vue'
+import MemberBenefits from '../views/MemberBenefits.vue'
 
 
 const routes = [
@@ -66,6 +67,12 @@ const routes = [
     path: '/private-chat/:id',
     name: 'PrivateChat',
     component: () => import('../views/PrivateChat.vue')
+  },
+  {
+    path: '/member-benefits',
+    name: 'MemberBenefits',
+    component: MemberBenefits,
+    meta: { requiresAuth: true } // 需要登录才能访问
   }
 ]
 

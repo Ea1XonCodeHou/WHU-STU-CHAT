@@ -395,3 +395,4 @@ C:\Users\noteles\Desktop\scch\WHU-STU-CHAT\backend\obj\Debug\net8.0\refint\backe
 C:\Users\noteles\Desktop\scch\WHU-STU-CHAT\backend\obj\Debug\net8.0\backend.pdb
 C:\Users\noteles\Desktop\scch\WHU-STU-CHAT\backend\obj\Debug\net8.0\backend.genruntimeconfig.cache
 C:\Users\noteles\Desktop\scch\WHU-STU-CHAT\backend\obj\Debug\net8.0\ref\backend.dll
+E:\VS2022PROJECTS-CSharp\Teamwork\backend\bin\Debug\net8.0\Aliyun.OSS.Core.dll

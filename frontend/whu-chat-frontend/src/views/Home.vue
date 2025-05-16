@@ -134,6 +134,11 @@
           <span>系统通知</span>
           <div class="notification-badge" v-if="unreadNotifications > 0">{{ unreadNotifications }}</div>
         </div>
+
+        <div class="nav-item" @click="navigateToMemberBenefits()" style="cursor:pointer;">
+          <i class="fa-solid fa-crown"></i>
+          <span>升级权益</span>
+        </div>
       </div>
     </div>
 
@@ -981,6 +986,10 @@ export default {
       router.push('/discussion');
     };
     
+    const navigateToMemberBenefits = () => {
+      router.push('/member-benefits');
+    };
+    
     const selectGroup = async (group) => {
       try {
         console.log('选择的群组数据:', group);
@@ -1476,6 +1485,7 @@ export default {
       navigateToAIChat,
       navigateToGroupChat,
       navigateToForums,
+      navigateToMemberBenefits,
       selectGroup,
       confirmDeleteGroup,
       deleteGroup,

@@ -64,9 +64,16 @@ const routes = [
     meta: { requiresAuth: true } // 需要登录才能访问
   },
   {
+    path: '/private-chat',
+    name: 'PrivateChatList',
+    component: () => import('../views/PrivateChat.vue'),
+    meta: { requiresAuth: true } // 需要登录才能访问
+  },
+  {
     path: '/private-chat/:id',
     name: 'PrivateChat',
-    component: () => import('../views/PrivateChat.vue')
+    component: () => import('../views/PrivateChat.vue'),
+    meta: { requiresAuth: true } // 需要登录才能访问
   },
   {
     path: '/member-benefits',

@@ -1,6 +1,7 @@
 <template>
   <div class="private-chat-container">
-    <div class="header">
+    <!-- 头部信息 -->
+    <header class="chat-header">
       <div class="chat-info">
         <div class="avatar-container">
           <img v-if="friendInfo.avatar" :src="friendInfo.avatar" class="avatar" :alt="friendInfo.username" />
@@ -14,77 +15,130 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="action-button" @click="goBack">
-          <i class="fas fa-arrow-left"></i>
+        <button class="action-button leave-button" @click="goBack">
+          退出
         </button>
       </div>
-    </div>
+    </header>
     
-    <div class="chat-content" ref="chatContent">
-      <div class="empty-chat-message" v-if="messages.length === 0">
-        <i class="fas fa-comments"></i>
-        <p>还没有消息，开始聊天吧！</p>
-      </div>
-      
-      <div v-else class="messages-wrapper">
-        <div v-for="(message, index) in messages" 
-             :key="message.messageId || index" 
-             class="message-item"
-             :class="{'self-message': message.senderId === userId}">
-          
-          <div v-if="shouldShowDateSeparator(index)" class="date-separator">
-            <span>{{ formatDate(message.sendTime) }}</span>
-          </div>
-          
-          <div class="message-content">
-            <div class="message-avatar" v-if="message.senderId !== userId">
-              <div class="avatar default-avatar">
-                {{ message.senderName?.charAt(0)?.toUpperCase() || '?' }}
+    <!-- 主内容区 -->
+    <main class="chat-main">
+      <!-- 好友列表侧边栏 -->
+      <div class="sidebar">
+        <div class="sidebar-content">
+          <!-- 好友列表部分 -->
+          <div class="sidebar-section friends-section">
+            <div class="sidebar-header">
+              <h2>我的好友</h2>
+              <div class="search-box">
+                <input 
+                  type="text" 
+                  v-model="friendSearch" 
+                  placeholder="搜索好友..." 
+                  @input="handleFriendSearch"
+                >
               </div>
             </div>
-            
-            <div class="message-body">
-              <div class="message-info">
-                <span class="message-sender" v-if="message.senderId !== userId">
-                  {{ message.senderName }}
-                </span>
-                <span class="message-time">{{ formatTime(message.sendTime) }}</span>
-              </div>
-              
-              <div v-if="message.messageType === 'text'" class="message-text">
-                {{ message.content }}
-              </div>
-              
-              <div v-else-if="message.messageType === 'image'" class="message-image">
-                <img :src="message.fileUrl" alt="图片消息" @click="previewImage(message.fileUrl)" />
-                <div class="image-info">{{ message.fileName }} ({{ formatFileSize(message.fileSize) }})</div>
-              </div>
-              
-              <div v-else-if="message.messageType === 'file'" class="message-file" @click="downloadFile(message.fileUrl, message.fileName)">
-                <div class="file-icon"></div>
-                <div class="file-info">
-                  <div class="file-name">{{ message.fileName }}</div>
-                  <div class="file-size">{{ formatFileSize(message.fileSize) }}</div>
+            <div class="friends-list">
+              <div 
+                v-for="friend in filteredFriends" 
+                :key="friend.userId" 
+                class="friend-item"
+                :class="{ 'active': currentFriendId && currentFriendId === friend.userId }"
+                @click="selectFriend(friend)"
+              >
+                <div class="friend-avatar">
+                  <img v-if="friend.avatar" :src="friend.avatar" :alt="friend.username" />
+                  <span v-else class="default-avatar">{{ friend?.username?.charAt(0)?.toUpperCase() || '?' }}</span>
+                  <div class="status-indicator" :class="friend.status || 'offline'"></div>
                 </div>
-                <div class="download-icon"></div>
+                <div class="friend-details">
+                  <div class="friend-name">{{ friend.username }}</div>
+                  <div class="friend-status">{{ friend.status === 'online' ? '在线' : '离线' }}</div>
+                </div>
               </div>
               
-              <div v-else-if="message.messageType === 'emoji'" class="message-emoji">
-                {{ message.content }}
-              </div>
-            </div>
-            
-            <div class="message-avatar self-avatar" v-if="message.senderId === userId">
-              <div class="avatar default-avatar">
-                {{ username.charAt(0).toUpperCase() }}
+              <div v-if="filteredFriends.length === 0" class="empty-friends">
+                <i class="friends-icon"></i>
+                <p>暂无好友</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- 聊天消息区 -->
+      <div class="chat-content" ref="chatContent">
+        <div v-if="!currentFriendId" class="empty-chat-message">
+          <i class="fas fa-comments"></i>
+          <p>请选择一个好友开始聊天</p>
+        </div>
+        <div v-else-if="messages.length === 0" class="empty-chat-message">
+          <i class="fas fa-comments"></i>
+          <p>还没有消息，开始聊天吧！</p>
+        </div>
+        
+        <div v-else class="messages-wrapper">
+          <div v-for="(message, index) in messages" 
+               :key="message.messageId || index" 
+               class="message-item"
+               :class="{'self-message': message.senderId === userId}">
+            
+            <div v-if="shouldShowDateSeparator(index)" class="date-separator">
+              <span>{{ formatDate(message.sendTime || message.createTime) }}</span>
+            </div>
+            
+            <div class="message-content">
+              <div class="message-avatar" v-if="message.senderId !== userId">
+                <div class="avatar default-avatar">
+                  {{ (message.senderName || '?')?.charAt(0)?.toUpperCase() || '?' }}
+                </div>
+              </div>
+              
+              <div class="message-body">
+                <div class="message-info">
+                  <span class="message-sender" v-if="message.senderId !== userId">
+                    {{ message.senderName || '未知用户' }}
+                  </span>
+                  <span class="message-time">{{ formatTime(message.sendTime || message.createTime) }}</span>
+                </div>
+                
+                <div v-if="message.messageType === 'text'" class="message-text">
+                  {{ message.content }}
+                </div>
+                
+                <div v-else-if="message.messageType === 'image'" class="message-image">
+                  <img :src="message.fileUrl" alt="图片消息" @click="previewImage(message.fileUrl)" />
+                  <div class="image-info">{{ message.fileName || '图片' }} ({{ formatFileSize(message.fileSize) }})</div>
+                </div>
+                
+                <div v-else-if="message.messageType === 'file'" class="message-file" @click="downloadFile(message.fileUrl, message.fileName)">
+                  <div class="file-icon"></div>
+                  <div class="file-info">
+                    <div class="file-name">{{ message.fileName || '文件' }}</div>
+                    <div class="file-size">{{ formatFileSize(message.fileSize) }}</div>
+                  </div>
+                  <div class="download-icon"></div>
+                </div>
+                
+                <div v-else-if="message.messageType === 'emoji'" class="message-emoji">
+                  {{ message.content }}
+                </div>
+              </div>
+              
+              <div class="message-avatar self-avatar" v-if="message.senderId === userId">
+                <div class="avatar default-avatar">
+                  {{ username.charAt(0).toUpperCase() || '?' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
     
-    <div class="chat-input">
+    <!-- 底部输入区 -->
+    <footer class="chat-footer" v-if="currentFriendId">
       <div class="toolbar">
         <div class="tool-button emoji-button" @click="toggleEmojiPanel">
           <i class="fas fa-smile"></i>
@@ -119,12 +173,12 @@
       <button @click="sendMessage" :disabled="!newMessage.trim() || !isConnected">
         <i class="fas fa-paper-plane"></i>
       </button>
-    </div>
+    </footer>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import * as signalR from '@microsoft/signalr';
@@ -134,15 +188,23 @@ export default {
   setup() {
     const route = useRoute();
     const router = useRouter();
-    const friendId = route.params.id;
     const userId = ref(parseInt(localStorage.getItem('userId') || '0'));
     const username = ref(localStorage.getItem('username') || '访客');
+    
+    // 获取初始friendId (如果URL中有)
+    const initialFriendId = route.params.id ? parseInt(route.params.id) : null;
+    const currentFriendId = ref(initialFriendId);
+    
     const friendInfo = ref({
       username: '',
       avatar: '',
       status: 'offline',
       signature: ''
     });
+    
+    const friends = ref([]);
+    const filteredFriends = ref([]);
+    const friendSearch = ref('');
     
     const messages = ref([]);
     const newMessage = ref('');
@@ -156,35 +218,150 @@ export default {
                       '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛',
                       '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞',
                       '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭',
-                      '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥',
-                      '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯',
-                      '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢',
-                      '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '💩', '👻', '👽', '👾', '🤖',
-                      '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '🙈', '🙉', '🙊',
-                      '👶', '👧', '🧒', '👦', '👩', '🧑', '👨', '👵', '🧓', '👴', '👮', '🕵️',
-                      '👷', '👸', '🤴', '👳', '👲', '🧕', '🤵', '👰', '🤰', '🤱', '👼', '🎅',
-                      '🤶', '🦸', '🦹', '🧙', '🧚', '🧛', '🧜', '🧝', '🧞', '🧟', '🧌', '💆',
-                      '💇', '🚶', '🧍', '🧎', '🏃', '💃', '🕺', '🕴️', '👯', '🧖', '🧗', '🤺',
-                      '🏇', '⛷️', '🏂', '🏌️', '🏄', '🚣', '🏊', '⛹️', '🏋️', '🚴', '🚵', '🤸',
-                      '🤼', '🤽', '🤾', '🤹', '🧘', '🛀', '🛌', '👭', '👫', '👬', '💏', '💑',
-                      '🗣️', '👤', '👥', '👣', '🦰', '🦱', '🦳', '🦲', '🧠', '🫀', '🫁', '🦷',
-                      '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸', '🩹', '🩺', '💊', '💉', '🦠',
-                      '🧬', '🦡', '🦫', '🦦', '🦨', '🦘', '🦥', '🦙', '🦒', '🦣', '🦏', '🦛',
-                      '🦍', '🦧', '🐶', '🐕', '🦮', '🐩', '🐺', '🦊', '🦝', '🐱', '🐈', '🐈‍⬛',
-                      '🐆', '🐅', '🐃', '🐂', '🐄', '🦬', '🐪', '🐫', '🦙', '🦒', '🐘', '🦣',
-                      '🦏', '🦛', '🦍', '🦧', '🐒', '🦍', '🦧', '🐶', '🐕', '🦮', '🐩', '🐺',
-                      '🦊', '🦝', '🐱', '🐈', '🐈‍⬛', '🐆', '🐅', '🐃', '🐂', '🐄', '🦬', '🐪',
-                      '🐫', '🦙', '🦒', '🐘', '🦣', '🦏', '🦛', '🦍', '🦧', '🐒', '🦍', '🦧']);
+                      '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥']);
     
     const fileInput = ref(null);
     
+    // 加载好友列表
+    const loadFriends = async () => {
+      try {
+        const response = await axios.get(
+          `${window.apiBaseUrl}/api/user/${userId.value}/friends`,
+          {
+            headers: {
+              'UserId': userId.value.toString()
+            }
+          }
+        );
+        
+        if (response.data && response.data.code === 200 && response.data.data) {
+          friends.value = response.data.data.map(friend => ({
+            ...friend,
+            userId: friend.userId || friend.id // 确保userId字段存在
+          }));
+          filteredFriends.value = [...friends.value];
+          
+          console.log('加载的好友列表:', friends.value);
+          
+          // 如果有当前选中的好友，更新好友信息
+          if (currentFriendId.value) {
+            const currentFriend = friends.value.find(f => f.userId === currentFriendId.value);
+            if (currentFriend) {
+              friendInfo.value = {
+                username: currentFriend.username,
+                avatar: currentFriend.avatar,
+                status: currentFriend.status || 'offline',
+                signature: currentFriend.signature
+              };
+            }
+          }
+        } else {
+          console.error('获取好友列表失败:', response.data?.msg || '未知错误');
+          showNotification('获取好友列表失败', 'error');
+        }
+      } catch (error) {
+        console.error('加载好友列表失败:', error);
+        showNotification('加载好友列表失败', 'error');
+      }
+    };
+    
+    // 搜索好友
+    const handleFriendSearch = () => {
+      if (!friendSearch.value.trim()) {
+        filteredFriends.value = [...friends.value];
+        return;
+      }
+      
+      const search = friendSearch.value.toLowerCase();
+      filteredFriends.value = friends.value.filter(friend => 
+        friend.username.toLowerCase().includes(search)
+      );
+    };
+    
+    // 选择好友
+    const selectFriend = async (friend) => {
+      if (!friend || !friend.userId) {
+        console.error('选择的好友数据无效:', friend);
+        return;
+      }
+      
+      if (currentFriendId.value === friend.userId) return;
+      
+      currentFriendId.value = friend.userId;
+      friendInfo.value = {
+        username: friend.username,
+        avatar: friend.avatar,
+        status: friend.status || 'offline',
+        signature: friend.signature
+      };
+      
+      // 更新URL，但不触发页面重载
+      router.push({
+        name: 'PrivateChat',
+        params: { id: String(friend.userId) },
+        replace: true
+      });
+      
+      // 清空当前消息
+      messages.value = [];
+      
+      // 加入新的私聊
+      if (connection.value && isConnected.value) {
+        try {
+          await connection.value.invoke('JoinPrivateChat', friend.userId);
+          await loadChatHistory();
+        } catch (error) {
+          console.error('加入私聊或加载历史记录失败:', error);
+          showNotification('连接聊天服务失败，请刷新页面重试', 'error');
+        }
+      }
+    };
+    
+    // 监听路由变化
+    watch(() => route.params.id, async (newId) => {
+      if (newId && parseInt(newId) !== currentFriendId.value) {
+        const friendId = parseInt(newId);
+        currentFriendId.value = friendId;
+        
+        // 找到对应的好友信息
+        const friend = friends.value.find(f => f.userId === friendId);
+        if (friend) {
+          friendInfo.value = {
+            username: friend.username,
+            avatar: friend.avatar,
+            status: friend.status || 'offline',
+            signature: friend.signature
+          };
+        } else {
+          // 如果在好友列表中找不到，单独获取好友信息
+          await loadFriendInfo(friendId);
+        }
+        
+        // 加入新的私聊
+        if (connection.value && isConnected.value) {
+          await connection.value.invoke('JoinPrivateChat', friendId);
+          await loadChatHistory();
+        }
+      }
+    });
+    
     const loadChatHistory = async () => {
       try {
-        if (!friendId) return;
+        if (!currentFriendId.value) {
+          console.warn('未选择好友，无法加载聊天历史');
+          return;
+        }
+        
+        console.log('正在加载与好友 ID:', currentFriendId.value, '的聊天历史');
         
         // 使用SignalR获取历史消息
         if (connection.value && isConnected.value) {
-          await connection.value.invoke('GetPrivateChatHistory', parseInt(friendId), 50);
+          try {
+            await connection.value.invoke('GetPrivateChatHistory', currentFriendId.value, 50);
+          } catch (error) {
+            console.error('通过SignalR获取历史消息失败:', error);
+            showNotification('获取历史消息失败，请刷新页面重试', 'error');
+          }
         } else {
           console.warn('SignalR连接未建立，无法获取历史消息');
           showNotification('连接未建立，请稍后重试', 'warning');
@@ -195,7 +372,7 @@ export default {
       }
     };
     
-    const loadFriendInfo = async () => {
+    const loadFriendInfo = async (friendId) => {
       try {
         if (!friendId) return;
         
@@ -234,15 +411,23 @@ export default {
         
         // 注册连接
         connection.value.on('ReceivePrivateMessage', (message) => {
-          messages.value.push(message);
-          nextTick(() => scrollToBottom());
+          console.log('收到私聊消息:', message);
+          // 只显示当前聊天对象的消息
+          if ((message.senderId === currentFriendId.value && message.receiverId === userId.value) || 
+              (message.senderId === userId.value && message.receiverId === currentFriendId.value)) {
+            messages.value.push(message);
+            nextTick(() => scrollToBottom());
+          }
         });
         
         // 接收历史消息
         connection.value.on('ReceiveHistoryMessages', (historyMessages) => {
           console.log('收到历史消息:', historyMessages);
           if (Array.isArray(historyMessages)) {
-            messages.value = historyMessages;
+            messages.value = historyMessages.map(msg => ({
+              ...msg,
+              sendTime: msg.sendTime || msg.createTime || new Date().toISOString() // 确保时间戳存在
+            }));
             nextTick(() => scrollToBottom());
           } else {
             console.warn('历史消息数据格式不正确:', historyMessages);
@@ -252,7 +437,14 @@ export default {
         // 监听用户状态变化
         connection.value.on('UserStatusChanged', (changedUserId, status) => {
           console.log('用户状态变化:', changedUserId, status);
-          if (changedUserId === parseInt(friendId)) {
+          // 更新好友列表中的状态
+          const friend = friends.value.find(f => f.userId === changedUserId);
+          if (friend) {
+            friend.status = status;
+          }
+          
+          // 如果是当前聊天的好友，更新头部信息
+          if (changedUserId === currentFriendId.value) {
             friendInfo.value.status = status;
           }
         });
@@ -263,22 +455,63 @@ export default {
           showNotification(error, 'error');
         });
         
-        await connection.value.start();
-        isConnected.value = true;
-        
-        // 注册连接
-        await connection.value.invoke('RegisterConnection', userId.value);
-        
-        // 加入私聊
-        await connection.value.invoke('JoinPrivateChat', parseInt(friendId));
-        
-        // 获取历史消息
-        await loadChatHistory();
+        try {
+          await connection.value.start();
+          console.log('SignalR连接已建立');
+          isConnected.value = true;
+          
+          // 注册连接
+          await connection.value.invoke('RegisterConnection', userId.value);
+          
+          // 如果有选中的好友，加入私聊
+          if (currentFriendId.value) {
+            await connection.value.invoke('JoinPrivateChat', currentFriendId.value);
+            await loadChatHistory();
+          }
+        } catch (startError) {
+          console.error('SignalR连接启动失败:', startError);
+          showNotification('聊天服务连接失败，请刷新页面重试', 'error');
+          isConnected.value = false;
+        }
         
       } catch (error) {
         console.error('SignalR连接失败:', error);
         showNotification('连接失败，请刷新页面重试', 'error');
+        isConnected.value = false;
       }
+    };
+
+    const sendMessage = async () => {
+      if (!newMessage.value.trim() || !isConnected.value || !currentFriendId.value) return;
+      
+      try {
+        const message = {
+          senderId: userId.value,
+          senderName: username.value,
+          receiverId: currentFriendId.value,
+          content: newMessage.value.trim(),
+          messageType: 'text',
+          sendTime: new Date().toISOString()
+        };
+        
+        // 检查是否是表情消息
+        if (emojis.value.includes(newMessage.value.trim())) {
+          message.messageType = 'emoji';
+        }
+        
+        await connection.value.invoke('SendPrivateMessage', message);
+        
+        newMessage.value = '';
+        
+        messageInput.value?.focus();
+      } catch (error) {
+        console.error('发送消息失败:', error);
+        showNotification('发送消息失败，请重试', 'error');
+      }
+    };
+    
+    const goBack = () => {
+      router.push('/home');
     };
     
     const insertEmoji = (emoji) => {
@@ -324,30 +557,48 @@ export default {
     };
     
     const formatDate = (dateString) => {
-      const date = new Date(dateString);
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
+      if (!dateString) return '';
       
-      if (date.toDateString() === today.toDateString()) {
-        return '今天';
-      } else if (date.toDateString() === yesterday.toDateString()) {
-        return '昨天';
-      } else {
-        return date.toLocaleDateString('zh-CN', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        });
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+        
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (date.toDateString() === today.toDateString()) {
+          return '今天';
+        } else if (date.toDateString() === yesterday.toDateString()) {
+          return '昨天';
+        } else {
+          return date.toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          });
+        }
+      } catch (error) {
+        console.error('日期格式化错误:', error);
+        return '';
       }
     };
     
     const formatTime = (dateString) => {
-      const date = new Date(dateString);
-      return date.toLocaleTimeString('zh-CN', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      if (!dateString) return '';
+      
+      try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+        
+        return date.toLocaleTimeString('zh-CN', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (error) {
+        console.error('时间格式化错误:', error);
+        return '';
+      }
     };
     
     const formatFileSize = (bytes) => {
@@ -361,18 +612,31 @@ export default {
     const shouldShowDateSeparator = (index) => {
       if (index === 0) return true;
       
-      const currentDate = new Date(messages.value[index].sendTime).setHours(0, 0, 0, 0);
-      const prevDate = new Date(messages.value[index - 1].sendTime).setHours(0, 0, 0, 0);
-      
-      return currentDate !== prevDate;
+      try {
+        const currentMsg = messages.value[index];
+        const prevMsg = messages.value[index - 1];
+        
+        if (!currentMsg || !prevMsg) return false;
+        
+        const currentTime = currentMsg.sendTime || currentMsg.createTime;
+        const prevTime = prevMsg.sendTime || prevMsg.createTime;
+        
+        if (!currentTime || !prevTime) return false;
+        
+        const currentDate = new Date(currentTime).setHours(0, 0, 0, 0);
+        const prevDate = new Date(prevTime).setHours(0, 0, 0, 0);
+        
+        if (isNaN(currentDate) || isNaN(prevDate)) return false;
+        
+        return currentDate !== prevDate;
+      } catch (error) {
+        console.error('日期分隔符计算错误:', error);
+        return false;
+      }
     };
     
     const showNotification = (message, type = 'info') => {
       console.log(`${type}: ${message}`);
-    };
-    
-    const goBack = () => {
-      router.push('/home');
     };
     
     const triggerFileInput = () => {
@@ -399,7 +663,7 @@ export default {
         
         await connection.value.invoke(
           'SendFileToPrivate', 
-          parseInt(friendId),
+          currentFriendId.value,
           response.data.url, 
           response.data.fileName, 
           response.data.fileSize
@@ -434,37 +698,15 @@ export default {
       }
     };
     
-    const sendMessage = async () => {
-      if (!newMessage.value.trim() || !isConnected.value) return;
-      
-      try {
-        const message = {
-          senderId: userId.value,
-          senderName: username.value,
-          receiverId: parseInt(friendId),
-          content: newMessage.value.trim(),
-          messageType: 'text',
-          sendTime: new Date().toISOString()
-        };
-        
-        // 检查是否是表情消息
-        if (emojis.value.includes(newMessage.value.trim())) {
-          message.messageType = 'emoji';
-        }
-        
-        await connection.value.invoke('SendPrivateMessage', message);
-        
-        newMessage.value = '';
-        
-        messageInput.value?.focus();
-      } catch (error) {
-        console.error('发送消息失败:', error);
-        showNotification('发送消息失败，请重试', 'error');
-      }
+    const previewImage = (imageUrl) => {
+      // 实现图片预览逻辑
     };
     
     onMounted(async () => {
-      await loadFriendInfo();
+      await loadFriends();
+      if (currentFriendId.value) {
+        await loadFriendInfo(currentFriendId.value);
+      }
       await setupSignalR();
       document.addEventListener('click', handleClickOutside);
     });
@@ -484,7 +726,11 @@ export default {
     return {
       userId,
       username,
+      currentFriendId,
       friendInfo,
+      friends,
+      filteredFriends,
+      friendSearch,
       messages,
       newMessage,
       chatContent,
@@ -492,6 +738,9 @@ export default {
       isConnected,
       showEmojiPanel,
       emojis,
+      fileInput,
+      handleFriendSearch,
+      selectFriend,
       sendMessage,
       insertEmoji,
       toggleEmojiPanel,
@@ -500,11 +749,12 @@ export default {
       formatTime,
       formatFileSize,
       shouldShowDateSeparator,
+      scrollToBottom,
       goBack,
-      fileInput,
       triggerFileInput,
       handleFileUpload,
-      downloadFile
+      downloadFile,
+      previewImage,
     };
   }
 };
@@ -515,17 +765,19 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  width: 100%;
   background-color: #f5f5f5;
 }
 
-.header {
+.chat-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
-  color: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 15px 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #e1e1e1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 
 .chat-info {
@@ -535,19 +787,20 @@ export default {
 
 .avatar-container {
   position: relative;
-  margin-right: 12px;
+  margin-right: 15px;
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background-color: #8E54E9;
+  background-color: #1890ff;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   font-weight: bold;
+  font-size: 18px;
   overflow: hidden;
 }
 
@@ -559,20 +812,20 @@ export default {
 
 .status-indicator {
   position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 2px solid #4776E6;
   bottom: 0;
   right: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
 }
 
 .status-indicator.online {
-  background-color: #4CD964;
+  background-color: #52c41a;
 }
 
 .status-indicator.offline {
-  background-color: #8A8A8E;
+  background-color: #d9d9d9;
 }
 
 .user-details {
@@ -581,49 +834,195 @@ export default {
 }
 
 .username {
-  font-weight: 600;
-  font-size: 15px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
 }
 
 .status-text {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #888;
 }
 
 .signature {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #888;
   margin-top: 2px;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .header-actions {
   display: flex;
+  align-items: center;
 }
 
 .action-button {
   background: none;
   border: none;
-  color: white;
-  font-size: 16px;
+  color: #666;
+  font-size: 18px;
   cursor: pointer;
-  padding: 8px;
-  transition: all 0.2s;
+  padding: 5px;
+  margin-left: 10px;
+  transition: color 0.3s;
 }
 
 .action-button:hover {
-  transform: scale(1.1);
+  color: #1890ff;
 }
 
-.chat-content {
+.leave-button {
+  background-color: #f5222d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.leave-button:hover {
+  background-color: #ff4d4f;
+}
+
+/* 主内容区 */
+.chat-main {
+  display: flex;
   flex: 1;
-  overflow-y: auto;
-  padding: 20px;
+  overflow: hidden;
+}
+
+/* 侧边栏样式 */
+.sidebar {
+  width: 260px;
+  background-color: #fff;
+  border-right: 1px solid #e8e8e8;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  padding: 15px;
+  border-bottom: 1px solid #e8e8e8;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header h2 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.search-box {
+  margin-top: 5px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.search-box input:focus {
+  border-color: #1890ff;
+  outline: none;
+}
+
+.friends-list {
+  padding: 10px;
+}
+
+.friend-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-bottom: 5px;
+}
+
+.friend-item:hover {
+  background-color: #f0f0f0;
+}
+
+.friend-item.active {
+  background-color: #e6f7ff;
+}
+
+.friend-avatar {
+  position: relative;
+  margin-right: 10px;
+}
+
+.friend-avatar img, .friend-avatar .default-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #1890ff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+  overflow: hidden;
+}
+
+.friend-avatar img {
+  object-fit: cover;
+}
+
+.friend-details {
+  flex: 1;
+  overflow: hidden;
+}
+
+.friend-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.friend-status {
+  font-size: 12px;
+  color: #888;
+}
+
+.empty-friends {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 0;
+  color: #999;
+}
+
+.friends-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+/* 聊天内容区域 */
+.chat-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
   background-color: #f5f5f5;
 }
 
@@ -634,310 +1033,123 @@ export default {
   justify-content: center;
   height: 100%;
   color: #999;
-  text-align: center;
 }
 
 .empty-chat-message i {
-  font-size: 40px;
-  margin-bottom: 10px;
-  color: #ddd;
+  font-size: 48px;
+  margin-bottom: 15px;
 }
 
 .messages-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 100%;
 }
 
 .message-item {
-  display: flex;
-  flex-direction: column;
-  max-width: 80%;
+  margin-bottom: 20px;
 }
 
-.self-message {
-  align-self: flex-end;
+.date-separator {
+  text-align: center;
+  margin: 10px 0;
+  color: #999;
+  font-size: 12px;
 }
 
-.other-message {
-  align-self: flex-start;
+.date-separator span {
+  background-color: #f5f5f5;
+  padding: 0 10px;
 }
 
 .message-content {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-}
-
-.self-message .message-content {
-  flex-direction: row-reverse;
 }
 
 .message-avatar {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
+  margin-right: 10px;
 }
 
-.avatar.default-avatar {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background-color: #8E54E9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: bold;
-  font-size: 14px;
+.self-avatar {
+  margin-left: 10px;
+  margin-right: 0;
 }
 
 .message-body {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  max-width: 70%;
+  background-color: white;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.self-message .message-body {
+  background-color: #e6f7ff;
+  margin-left: auto;
 }
 
 .message-info {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  justify-content: space-between;
+  margin-bottom: 5px;
 }
 
 .message-sender {
-  font-size: 12px;
-  color: #666;
   font-weight: 500;
+  color: #666;
+  font-size: 14px;
+  margin-right: 5px;
 }
 
 .message-time {
-  font-size: 11px;
+  font-size: 12px;
   color: #999;
-}
-
-.self-message .message-info {
-  align-items: flex-end;
-}
-
-.other-message .message-info {
-  align-items: flex-start;
 }
 
 .message-text {
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 14px;
   line-height: 1.5;
   word-break: break-word;
-  max-width: 100%;
+  white-space: pre-wrap;
 }
 
-.self-message .message-text {
-  background-color: #4776E6;
-  color: white;
-  border-top-right-radius: 4px;
-}
-
-.other-message .message-text {
-  background-color: white;
-  color: #333;
-  border-top-left-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.date-separator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 16px 0;
-  color: #999;
-  font-size: 12px;
-  width: 100%;
-  position: relative;
-}
-
-.date-separator span {
-  padding: 4px 12px;
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 12px;
-  text-align: center;
-  position: relative;
-  z-index: 1;
-}
-
-.chat-input {
-  display: flex;
-  padding: 12px;
-  background-color: white;
-  border-top: 1px solid #eee;
-  gap: 8px;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-}
-
-.tool-button {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #666;
-  transition: all 0.2s;
-  position: relative;
-}
-
-.tool-button:hover {
-  background-color: #f5f5f5;
-  color: #4776E6;
-}
-
-.file-button {
-  margin-left: 8px;
-}
-
-.emoji-panel {
-  position: absolute;
-  left: 12px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  padding: 8px;
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 4px;
-  max-height: 300px;
-  overflow-y: auto;
-  z-index: 1000;
-  width: 320px;
-}
-
-.emoji-item {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
-  font-size: 20px;
-}
-
-.emoji-item:hover {
-  background-color: #f5f5f5;
-  transform: scale(1.1);
-}
-
-.chat-input textarea {
-  flex: 1;
-  border: 1px solid #ddd;
-  border-radius: 20px;
-  padding: 10px 15px;
-  resize: none;
-  outline: none;
-  font-size: 14px;
-  line-height: 1.5;
-  max-height: 100px;
-  overflow-y: auto;
-  transition: all 0.2s;
-}
-
-.chat-input textarea:focus {
-  border-color: #4776E6;
-  box-shadow: 0 0 0 2px rgba(71, 118, 230, 0.1);
-}
-
-.chat-input button {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
-  color: white;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.chat-input button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(71, 118, 230, 0.3);
-}
-
-.chat-input button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* 图片消息样式 */
-.message-image {
-  max-width: 300px;
-  border-radius: 12px;
-  overflow: hidden;
+.message-emoji {
+  font-size: 24px;
 }
 
 .message-image img {
-  width: 100%;
-  height: auto;
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.message-image img:hover {
-  transform: scale(1.02);
 }
 
 .image-info {
   font-size: 12px;
   color: #999;
-  margin-top: 4px;
+  margin-top: 5px;
 }
 
-/* 文件消息样式 */
 .message-file {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
+  padding: 10px;
+  background-color: #fafafa;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.message-file:hover {
-  background-color: #e9ecef;
 }
 
 .file-icon {
-  width: 24px;
-  height: 24px;
-  background-color: #4776E6;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
+  margin-right: 10px;
+  color: #1890ff;
 }
 
 .file-info {
   flex: 1;
-  min-width: 0;
+  overflow: hidden;
 }
 
 .file-name {
-  font-size: 13px;
+  font-size: 14px;
   color: #333;
   white-space: nowrap;
   overflow: hidden;
@@ -945,93 +1157,123 @@ export default {
 }
 
 .file-size {
-  font-size: 11px;
+  font-size: 12px;
   color: #999;
 }
 
 .download-icon {
-  width: 24px;
-  height: 24px;
+  margin-left: 10px;
+  color: #1890ff;
+}
+
+/* 底部输入区 */
+.chat-footer {
+  padding: 15px;
+  background-color: #fff;
+  border-top: 1px solid #e8e8e8;
   display: flex;
   align-items: center;
-  justify-content: center;
+}
+
+.toolbar {
+  display: flex;
+  margin-right: 10px;
+}
+
+.tool-button {
+  font-size: 18px;
   color: #666;
+  margin-right: 10px;
+  cursor: pointer;
+  transition: color 0.3s;
 }
 
-/* 图片预览弹窗 */
-.image-preview-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.9);
+.tool-button:hover {
+  color: #1890ff;
+}
+
+.emoji-panel {
+  position: absolute;
+  bottom: 80px;
+  left: 20px;
+  width: 300px;
+  height: 200px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 5px;
+  z-index: 100;
+}
+
+.emoji-item {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-}
-
-.image-preview-content {
-  position: relative;
-  max-width: 90%;
-  max-height: 90%;
-}
-
-.image-preview-content img {
-  max-width: 100%;
-  max-height: 90vh;
-  object-fit: contain;
-}
-
-.close-preview {
-  position: absolute;
-  top: -40px;
-  right: 0;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 24px;
+  font-size: 20px;
   cursor: pointer;
-  padding: 8px;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
 }
 
-/* 通知提示 */
-.notification {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 12px 20px;
-  border-radius: 8px;
-  background-color: white;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  animation: slideIn 0.3s ease;
+.emoji-item:hover {
+  background-color: #f0f0f0;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+textarea {
+  flex: 1;
+  resize: none;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 14px;
+  min-height: 60px;
+  max-height: 120px;
+  transition: border-color 0.3s;
 }
 
-.notification.error {
-  background-color: #ff4d4f;
-  color: white;
+textarea:focus {
+  outline: none;
+  border-color: #1890ff;
 }
 
-.notification.success {
-  background-color: #52c41a;
-  color: white;
-}
-
-.notification.info {
+button {
+  margin-left: 10px;
   background-color: #1890ff;
   color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #40a9ff;
+}
+
+button:disabled {
+  background-color: #d9d9d9;
+  cursor: not-allowed;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  
+  .chat-content {
+    padding: 10px;
+  }
+  
+  .message-body {
+    max-width: 85%;
+  }
 }
 </style>

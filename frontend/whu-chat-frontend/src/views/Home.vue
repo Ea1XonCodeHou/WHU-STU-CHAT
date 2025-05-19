@@ -645,7 +645,7 @@ export default {
     ]);
     
     // 好友列表
-    const friends = ref([]);
+    const friendsList = ref([]);
     
     // 最近聊天列表
     const recentChats = ref([]);
@@ -735,50 +735,32 @@ export default {
     // 加载好友列表
     const fetchFriends = async () => {
       try {
-        // 1. 获取私聊群组（保持现有逻辑兼容性）
-        const groupRes = await axios.get(`/api/group/user/${userId.value}/private`);
-        if (groupRes.data.code === 200) {
-          // 整理从群组中获取的好友信息
-          const groupFriends = [];
-          groupRes.data.data.forEach(group => {
-            if (Array.isArray(group.members)) {
-              const other = group.members.find(m => String(m.id) !== String(userId.value));
-              if (other) {
-                groupFriends.push({
-                  id: other.id,
-                  username: other.username,
-                  status: 'offline', // 初始设置为离线
-                  avatar: getFullAvatarUrl(other.avatar) || null,
-                  signature: other.signature || '',
-                  groupId: group.groupId
-                });
-              }
+        // 获取好友列表，确保URL前缀正确
+        const apiBaseUrl = window.apiBaseUrl || ''; // 使用全局配置的API URL或空字符串
+        const friendsResponse = await axios.get(`${apiBaseUrl}/api/user/${userId.value}/friends`);
+        if (friendsResponse.data.code === 200) {
+          // 确保每个好友对象有正确的属性
+          friendsList.value = friendsResponse.data.data.map(friend => {
+            // 处理头像URL
+            let avatarUrl = friend.avatar || '';
+            if (avatarUrl && !avatarUrl.startsWith('http')) {
+              avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
+              avatarUrl = `${apiBaseUrl}${avatarUrl}`;
             }
+            
+            return {
+              id: friend.userId || friend.id, // 确保id字段存在
+              userId: friend.userId || friend.id,
+              username: friend.username,
+              avatar: avatarUrl, // 使用处理后的头像URL
+              status: friend.status || 'offline',
+              signature: friend.signature || ''
+            };
           });
           
-          // 2. 获取好友关系表中的好友信息
-          const userRes = await axios.get(`/api/user/${userId.value}/friends`);
-          if (userRes.data && userRes.data.code === 200) {
-            const friendshipFriends = userRes.data.data.map(friend => ({
-              id: friend.id,
-              username: friend.username,
-              status: 'offline', // 初始设置为离线
-              avatar: getFullAvatarUrl(friend.avatar) || null,
-              signature: friend.signature || '',
-              // 查找是否有对应的群组ID
-              groupId: groupFriends.find(gf => gf.id === friend.id)?.groupId || null
-            }));
-            
-            // 合并两个来源的好友列表，确保没有重复
-            friends.value = friendshipFriends.filter(ff => 
-              !groupFriends.some(gf => gf.id === ff.id)
-            ).concat(groupFriends);
-          } else {
-            // 如果获取好友关系表失败，仍然使用群组信息
-            friends.value = groupFriends;
-          }
+          console.log('获取的好友列表:', friendsList.value);
           
-          // 获取好友在线状态
+          // 立即更新在线状态
           await updateFriendsOnlineStatus();
         }
       } catch (error) {
@@ -790,12 +772,13 @@ export default {
     const updateFriendsOnlineStatus = async () => {
       try {
         // 获取所有在线用户
-        const response = await axios.get(`/api/user/online`);
+        const apiBaseUrl = window.apiBaseUrl || ''; // 使用全局配置的API URL或空字符串
+        const response = await axios.get(`${apiBaseUrl}/api/user/online`);
         if (response.data && response.data.code === 200) {
           const onlineUserIds = response.data.data;
           
           // 更新每个好友的在线状态
-          friends.value.forEach(friend => {
+          friendsList.value.forEach(friend => {
             friend.status = onlineUserIds.includes(friend.id) ? 'online' : 'offline';
           });
         }
@@ -839,11 +822,11 @@ export default {
     ]);
     
     // 计算属性
-    const onlineFriends = computed(() => friends.value);
+    const onlineFriends = computed(() => friendsList.value);
     
     const filteredFriends = computed(() => {
-      if (!friendSearch.value) return friends.value;
-      return friends.value.filter(friend => 
+      if (!friendSearch.value) return friendsList.value;
+      return friendsList.value.filter(friend => 
         friend.username.toLowerCase().includes(friendSearch.value.toLowerCase())
       );
     });
@@ -1457,7 +1440,7 @@ export default {
       
       // 数据列表
       chatRooms,
-      friends,
+      friendsList,
       groups,
       onlineFriends,
       filteredFriends,

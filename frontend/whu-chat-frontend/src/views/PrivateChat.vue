@@ -88,6 +88,14 @@
               <span>{{ formatDate(message.sendTime || message.createTime) }}</span>
             </div>
             
+            <!-- 消息头部信息 -->
+            <div class="message-header">
+              <span class="message-sender" v-if="message.senderId !== userId">
+                {{ message.senderName || '未知用户' }}
+              </span>
+              <span class="message-time">{{ formatTime(message.sendTime || message.createTime) }}</span>
+            </div>
+            
             <div class="message-content">
               <div class="message-avatar" v-if="message.senderId !== userId">
                 <img v-if="message.senderAvatar" :src="message.senderAvatar" class="avatar" :alt="message.senderName" />
@@ -98,13 +106,6 @@
               </div>
               
               <div class="message-body">
-                <div class="message-info">
-                  <span class="message-sender" v-if="message.senderId !== userId">
-                    {{ message.senderName || '未知用户' }}
-                  </span>
-                  <span class="message-time">{{ formatTime(message.sendTime || message.createTime) }}</span>
-                </div>
-                
                 <div v-if="message.messageType === 'text'" class="message-text">
                   {{ message.content }}
                 </div>
@@ -240,10 +241,20 @@ export default {
         );
         
         if (response.data && response.data.code === 200 && response.data.data) {
-          friends.value = response.data.data.map(friend => ({
-            ...friend,
-            userId: friend.userId || friend.id // 确保userId字段存在
-          }));
+          friends.value = response.data.data.map(friend => {
+            // 处理头像URL
+            let avatarUrl = friend.avatar || '';
+            if (avatarUrl && !avatarUrl.startsWith('http')) {
+              avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
+              avatarUrl = `${window.apiBaseUrl}${avatarUrl}`;
+            }
+            
+            return {
+              ...friend,
+              userId: friend.userId || friend.id, // 确保userId字段存在
+              avatar: avatarUrl // 使用处理后的头像URL
+            };
+          });
           filteredFriends.value = [...friends.value];
           
           console.log('加载的好友列表:', friends.value);
@@ -394,9 +405,16 @@ export default {
         );
         
         if (response.data && response.data.code === 200 && response.data.data) {
+          // 处理头像URL
+          let avatarUrl = response.data.data.avatar || '';
+          if (avatarUrl && !avatarUrl.startsWith('http')) {
+            avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
+            avatarUrl = `${window.apiBaseUrl}${avatarUrl}`;
+          }
+          
           friendInfo.value = {
             username: response.data.data.username,
-            avatar: response.data.data.avatar,
+            avatar: avatarUrl,
             status: response.data.data.status || 'offline',
             signature: response.data.data.signature
           };
@@ -405,7 +423,7 @@ export default {
           // 更新本地好友列表中的信息
           const existingFriend = friends.value.find(f => f.userId === friendId);
           if (existingFriend) {
-            existingFriend.avatar = response.data.data.avatar;
+            existingFriend.avatar = avatarUrl;
             existingFriend.status = response.data.data.status;
             existingFriend.signature = response.data.data.signature;
           }
@@ -414,8 +432,8 @@ export default {
           showNotification('获取好友信息失败', 'error');
         }
       } catch (error) {
-        console.error('加载好友信息失败:', error);
-        showNotification('加载好友信息失败', 'error');
+        console.error('获取好友信息失败:', error);
+        showNotification('获取好友信息失败', 'error');
       }
     };
     
@@ -456,19 +474,23 @@ export default {
               
               // 为消息添加头像信息
               if (message.senderId === currentFriendId.value) {
-                message.senderAvatar = friendInfo.value.avatar;
+                const friend = friends.value.find(f => f.userId === currentFriendId.value);
+                message.senderAvatar = friend?.avatar || friendInfo.value.avatar;
+                message.senderName = friend?.username || friendInfo.value.username;
               } else if (message.senderId === userId.value) {
                 message.senderAvatar = userAvatar.value;
+                message.senderName = username.value;
               }
               
-              // 防止未显示头像的情况
-              if (message.senderId === currentFriendId.value && !message.senderAvatar) {
-                console.log('历史消息中好友头像缺失，尝试加载好友信息');
-                // 尝试再次加载好友信息
-                loadFriendInfo(currentFriendId.value).then(() => {
-                  // 更新消息中的头像
-                  message.senderAvatar = friendInfo.value.avatar;
-                }).catch(err => console.error('加载好友头像失败:', err));
+              // 如果还是没有头像，尝试加载用户信息
+              if (!message.senderAvatar) {
+                loadFriendInfo(message.senderId).then(() => {
+                  const friend = friends.value.find(f => f.userId === message.senderId);
+                  if (friend) {
+                    message.senderAvatar = friend.avatar;
+                    message.senderName = friend.username;
+                  }
+                }).catch(err => console.error('加载用户头像失败:', err));
               }
               
               return message;
@@ -606,19 +628,27 @@ export default {
       if (!dateString) return '';
       
       try {
+        // 直接创建Date对象
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return '';
         
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
+        // 计算北京时间
+        const localTime = new Date();
+        const localOffset = localTime.getTimezoneOffset() * 60000; // 本地时区偏移（毫秒）
+        const beijingOffset = 8 * 60 * 60000; // 北京时区偏移UTC+8（毫秒）
+        const beijingTime = new Date(date.getTime() + localOffset + beijingOffset);
         
-        if (date.toDateString() === today.toDateString()) {
+        // 获取当前的北京时间用于对比
+        const nowBJ = new Date(Date.now() + localOffset + beijingOffset);
+        const yesterdayBJ = new Date(nowBJ);
+        yesterdayBJ.setDate(nowBJ.getDate() - 1);
+        
+        if (beijingTime.toDateString() === nowBJ.toDateString()) {
           return '今天';
-        } else if (date.toDateString() === yesterday.toDateString()) {
+        } else if (beijingTime.toDateString() === yesterdayBJ.toDateString()) {
           return '昨天';
         } else {
-          return date.toLocaleDateString('zh-CN', {
+          return beijingTime.toLocaleDateString('zh-CN', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit'
@@ -634,12 +664,21 @@ export default {
       if (!dateString) return '';
       
       try {
+        // 直接创建Date对象
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return '';
         
-        return date.toLocaleTimeString('zh-CN', {
+        // 计算北京时间
+        const localTime = new Date();
+        const localOffset = localTime.getTimezoneOffset() * 60000; // 本地时区偏移（毫秒）
+        const beijingOffset = 8 * 60 * 60000; // 北京时区偏移UTC+8（毫秒）
+        const beijingTime = new Date(date.getTime() + localOffset + beijingOffset);
+        
+        // 格式化为北京时间
+        return beijingTime.toLocaleTimeString('zh-CN', {
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
+          hour12: false
         });
       } catch (error) {
         console.error('时间格式化错误:', error);
@@ -785,6 +824,7 @@ export default {
     return {
       userId,
       username,
+      userAvatar,
       currentFriendId,
       friendInfo,
       friends,
@@ -1120,6 +1160,28 @@ export default {
   padding: 0 10px;
 }
 
+.message-header {
+  display: flex;
+  padding: 0 50px;
+  margin-bottom: 5px;
+}
+
+.self-message .message-header {
+  flex-direction: row-reverse;
+}
+
+.message-sender {
+  font-weight: 500;
+  color: #666;
+  font-size: 14px;
+}
+
+.message-time {
+  font-size: 12px;
+  color: #999;
+  margin: 0 5px;
+}
+
 .message-content {
   display: flex;
   align-items: flex-start;
@@ -1145,24 +1207,6 @@ export default {
 .self-message .message-body {
   background-color: #e6f7ff;
   margin-left: auto;
-}
-
-.message-info {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 5px;
-}
-
-.message-sender {
-  font-weight: 500;
-  color: #666;
-  font-size: 14px;
-  margin-right: 5px;
-}
-
-.message-time {
-  font-size: 12px;
-  color: #999;
 }
 
 .message-text {

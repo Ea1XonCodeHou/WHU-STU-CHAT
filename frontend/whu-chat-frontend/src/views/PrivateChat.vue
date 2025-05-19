@@ -90,7 +90,9 @@
             
             <div class="message-content">
               <div class="message-avatar" v-if="message.senderId !== userId">
-                <div class="avatar default-avatar">
+                <img v-if="message.senderAvatar" :src="message.senderAvatar" class="avatar" :alt="message.senderName" />
+                <img v-else-if="friendInfo.avatar" :src="friendInfo.avatar" class="avatar" :alt="friendInfo.username" />
+                <div v-else class="avatar default-avatar">
                   {{ (message.senderName || '?')?.charAt(0)?.toUpperCase() || '?' }}
                 </div>
               </div>
@@ -127,7 +129,9 @@
               </div>
               
               <div class="message-avatar self-avatar" v-if="message.senderId === userId">
-                <div class="avatar default-avatar">
+                <img v-if="message.senderAvatar" :src="message.senderAvatar" class="avatar" :alt="username" />
+                <img v-else-if="userAvatar" :src="userAvatar" class="avatar" :alt="username" />
+                <div v-else class="avatar default-avatar">
                   {{ username.charAt(0).toUpperCase() || '?' }}
                 </div>
               </div>
@@ -190,6 +194,7 @@ export default {
     const router = useRouter();
     const userId = ref(parseInt(localStorage.getItem('userId') || '0'));
     const username = ref(localStorage.getItem('username') || '访客');
+    const userAvatar = ref(localStorage.getItem('userAvatar') || '');
     
     // 获取初始friendId (如果URL中有)
     const initialFriendId = route.params.id ? parseInt(route.params.id) : null;
@@ -323,19 +328,8 @@ export default {
         const friendId = parseInt(newId);
         currentFriendId.value = friendId;
         
-        // 找到对应的好友信息
-        const friend = friends.value.find(f => f.userId === friendId);
-        if (friend) {
-          friendInfo.value = {
-            username: friend.username,
-            avatar: friend.avatar,
-            status: friend.status || 'offline',
-            signature: friend.signature
-          };
-        } else {
-          // 如果在好友列表中找不到，单独获取好友信息
-          await loadFriendInfo(friendId);
-        }
+        // 立即获取好友信息
+        await loadFriendInfo(friendId);
         
         // 加入新的私聊
         if (connection.value && isConnected.value) {
@@ -343,7 +337,7 @@ export default {
           await loadChatHistory();
         }
       }
-    });
+    }, { immediate: true });
     
     const loadChatHistory = async () => {
       try {
@@ -376,6 +370,20 @@ export default {
       try {
         if (!friendId) return;
         
+        // 先从已有好友列表查找
+        const friend = friends.value.find(f => f.userId === friendId);
+        if (friend && friend.avatar) {
+          friendInfo.value = {
+            username: friend.username,
+            avatar: friend.avatar,
+            status: friend.status || 'offline',
+            signature: friend.signature
+          };
+          console.log('从好友列表获取到好友信息:', friendInfo.value);
+          return;
+        }
+        
+        console.log('正在从API获取好友信息, ID:', friendId);
         const response = await axios.get(
           `${window.apiBaseUrl}/api/user/${friendId}`,
           {
@@ -392,6 +400,15 @@ export default {
             status: response.data.data.status || 'offline',
             signature: response.data.data.signature
           };
+          console.log('从API获取到好友信息:', friendInfo.value);
+          
+          // 更新本地好友列表中的信息
+          const existingFriend = friends.value.find(f => f.userId === friendId);
+          if (existingFriend) {
+            existingFriend.avatar = response.data.data.avatar;
+            existingFriend.status = response.data.data.status;
+            existingFriend.signature = response.data.data.signature;
+          }
         } else {
           console.error('获取好友信息失败:', response.data?.msg || '未知错误');
           showNotification('获取好友信息失败', 'error');
@@ -415,6 +432,12 @@ export default {
           // 只显示当前聊天对象的消息
           if ((message.senderId === currentFriendId.value && message.receiverId === userId.value) || 
               (message.senderId === userId.value && message.receiverId === currentFriendId.value)) {
+            // 确保消息有适当的头像信息
+            if (message.senderId === currentFriendId.value) {
+              message.senderAvatar = friendInfo.value.avatar;
+            } else if (message.senderId === userId.value) {
+              message.senderAvatar = userAvatar.value;
+            }
             messages.value.push(message);
             nextTick(() => scrollToBottom());
           }
@@ -424,10 +447,32 @@ export default {
         connection.value.on('ReceiveHistoryMessages', (historyMessages) => {
           console.log('收到历史消息:', historyMessages);
           if (Array.isArray(historyMessages)) {
-            messages.value = historyMessages.map(msg => ({
-              ...msg,
-              sendTime: msg.sendTime || msg.createTime || new Date().toISOString() // 确保时间戳存在
-            }));
+            messages.value = historyMessages.map(msg => {
+              // 添加时间戳和头像信息
+              const message = {
+                ...msg,
+                sendTime: msg.sendTime || msg.createTime || new Date().toISOString() // 确保时间戳存在
+              };
+              
+              // 为消息添加头像信息
+              if (message.senderId === currentFriendId.value) {
+                message.senderAvatar = friendInfo.value.avatar;
+              } else if (message.senderId === userId.value) {
+                message.senderAvatar = userAvatar.value;
+              }
+              
+              // 防止未显示头像的情况
+              if (message.senderId === currentFriendId.value && !message.senderAvatar) {
+                console.log('历史消息中好友头像缺失，尝试加载好友信息');
+                // 尝试再次加载好友信息
+                loadFriendInfo(currentFriendId.value).then(() => {
+                  // 更新消息中的头像
+                  message.senderAvatar = friendInfo.value.avatar;
+                }).catch(err => console.error('加载好友头像失败:', err));
+              }
+              
+              return message;
+            });
             nextTick(() => scrollToBottom());
           } else {
             console.warn('历史消息数据格式不正确:', historyMessages);
@@ -488,6 +533,7 @@ export default {
         const message = {
           senderId: userId.value,
           senderName: username.value,
+          senderAvatar: userAvatar.value,
           receiverId: currentFriendId.value,
           content: newMessage.value.trim(),
           messageType: 'text',
@@ -664,8 +710,8 @@ export default {
         await connection.value.invoke(
           'SendFileToPrivate', 
           currentFriendId.value,
-          response.data.url, 
-          response.data.fileName, 
+          response.data.url,
+          response.data.fileName,
           response.data.fileSize
         );
         
@@ -703,11 +749,24 @@ export default {
     };
     
     onMounted(async () => {
+      // 先加载好友列表
       await loadFriends();
+      
+      // 如果URL中有好友ID，立即加载该好友信息
       if (currentFriendId.value) {
         await loadFriendInfo(currentFriendId.value);
       }
+      
+      // 初始化SignalR连接
       await setupSignalR();
+      
+      // 初始化连接后，如果有当前好友ID，加载历史消息
+      if (currentFriendId.value && connection.value && isConnected.value) {
+        // 确保已加入聊天
+        await connection.value.invoke('JoinPrivateChat', currentFriendId.value);
+        await loadChatHistory();
+      }
+      
       document.addEventListener('click', handleClickOutside);
     });
     

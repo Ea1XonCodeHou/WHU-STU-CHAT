@@ -398,3 +398,4 @@ C:\Users\noteles\Desktop\scch\WHU-STU-CHAT\backend\obj\Debug\net8.0\ref\backend.
 E:\VS2022PROJECTS-CSharp\Teamwork\backend\bin\Debug\net8.0\Aliyun.OSS.Core.dll
 E:\C\test3\WHU-STU-CHAT\backend\bin\Debug\net8.0\Aliyun.OSS.Core.dll
 C:\Users\noteles\Desktop\sccch\WHU-STU-CHAT\backend\bin\Debug\net8.0\Aliyun.OSS.Core.dll
+C:\Users\noteles\Desktop\scch\WHU-STU-CHAT\backend\bin\Debug\net8.0\Aliyun.OSS.Core.dll

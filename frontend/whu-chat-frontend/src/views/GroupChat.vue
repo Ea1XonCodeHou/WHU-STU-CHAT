@@ -100,7 +100,10 @@
             <div v-else class="user-message" :class="{'self-message': message.senderId === userId}">
               <!-- 头像 -->
               <div class="message-avatar" v-if="message.senderId !== userId" @click.stop="showUserCard(message.senderId)">
-                <div class="avatar default-avatar">
+                <div class="avatar" v-if="message.senderAvatar">
+                  <img :src="message.senderAvatar" alt="用户头像" />
+                </div>
+                <div class="avatar default-avatar" v-else>
                   {{ message?.senderName?.charAt(0)?.toUpperCase() || '?' }}
                 </div>
               </div>
@@ -113,7 +116,7 @@
                 </div>
                 
                 <!-- 文本消息 -->
-                <div v-if="message.messageType === 'text'" class="message-text">
+                <div v-if="message.messageType === 'text'" class="message-text" :class="{'unknown-user': message.senderName === '未知用户'}">
                   {{ message.content }}
                 </div>
                 
@@ -141,7 +144,10 @@
               
               <!-- 右侧头像(自己的消息) -->
               <div class="message-avatar self-avatar" v-if="message.senderId === userId">
-                <div class="avatar default-avatar">
+                <div class="avatar" v-if="userAvatar">
+                  <img :src="userAvatar" alt="用户头像" />
+                </div>
+                <div class="avatar default-avatar" v-else>
                   {{ username?.charAt(0)?.toUpperCase() || '?' }}
                 </div>
               </div>
@@ -468,7 +474,14 @@ export default {
       try {
         const response = await axios.get(`${window.apiBaseUrl}/api/User/${userId}`);
         if (response.data && response.data.code === 200) {
-          return response.data.data;
+          const userInfo = response.data.data;
+          // 处理头像URL
+          if (userInfo.avatar) {
+            userInfo.avatar = userInfo.avatar.startsWith('http') 
+              ? userInfo.avatar 
+              : `${window.apiBaseUrl}${userInfo.avatar}`;
+          }
+          return userInfo;
         }
         return null;
       } catch (error) {
@@ -506,6 +519,7 @@ export default {
           sendTime: message.createTime,
           senderId: message.senderId,
           senderName: senderInfo?.username || '未知用户',
+          senderAvatar: senderInfo?.avatar || null,
           groupId: message.groupId,
           messageType: isImageMessage ? 'image' : (message.messageType || 'text'),
           fileUrl: isImageMessage ? getFullImageUrl(message.content) : getFullImageUrl(message.fileUrl),
@@ -535,24 +549,44 @@ export default {
           const userInfos = await Promise.all(
             senderIds.map(async (id) => {
               const userInfo = await getUserInfo(id);
-              return { id, username: userInfo?.username || '未知用户' };
+              return { 
+                id, 
+                username: userInfo?.username || '未知用户',
+                avatar: userInfo?.avatar || null
+              };
             })
           );
           
           // 将后端消息格式转换为前端需要的格式
           const formattedMessages = historyMessages.map(msg => {
             const senderInfo = userInfos.find(u => u.id === msg.senderId);
+            
+            // 检查是否是图片消息
+            const isImageMessage = msg.content && (
+              msg.content.startsWith('/temp/uploads/') || 
+              msg.content.startsWith('http') && 
+              (msg.content.endsWith('.jpg') || msg.content.endsWith('.jpeg') || msg.content.endsWith('.png') || msg.content.endsWith('.gif'))
+            );
+            
+            // 处理图片URL
+            const getFullImageUrl = (url) => {
+              if (!url) return null;
+              if (url.startsWith('http')) return url;
+              return `${window.apiBaseUrl}${url}`;
+            };
+            
             return {
               messageId: msg.messageId,
               content: msg.content,
               sendTime: msg.createTime,
               senderId: msg.senderId,
               senderName: senderInfo?.username || '未知用户',
+              senderAvatar: senderInfo?.avatar || null,
               groupId: msg.groupId,
-              messageType: msg.messageType || 'text',
-              fileUrl: msg.fileUrl,
-              fileName: msg.fileName,
-              fileSize: msg.fileSize
+              messageType: isImageMessage ? 'image' : (msg.messageType || 'text'),
+              fileUrl: isImageMessage ? getFullImageUrl(msg.content) : getFullImageUrl(msg.fileUrl),
+              fileName: msg.fileName || (isImageMessage ? msg.content.split('/').pop() : null),
+              fileSize: msg.fileSize || 0
             };
           }).sort((a, b) => new Date(a.sendTime) - new Date(b.sendTime));
           messages.value = formattedMessages;
@@ -623,7 +657,11 @@ export default {
           const userInfos = await Promise.all(
             senderIds.map(async (id) => {
               const userInfo = await getUserInfo(id);
-              return { id, username: userInfo?.username || '未知用户' };
+              return { 
+                id, 
+                username: userInfo?.username || '未知用户',
+                avatar: userInfo?.avatar || null
+              };
             })
           );
           
@@ -651,6 +689,7 @@ export default {
               sendTime: msg.createTime,
               senderId: msg.senderId,
               senderName: senderInfo?.username || '未知用户',
+              senderAvatar: senderInfo?.avatar || null,
               groupId: msg.groupId,
               messageType: isImageMessage ? 'image' : (msg.messageType || 'text'),
               fileUrl: isImageMessage ? getFullImageUrl(msg.content) : getFullImageUrl(msg.fileUrl),
@@ -1409,6 +1448,8 @@ export default {
 .system-message {
   text-align: center;
   margin: 10px 0;
+  color: #999;
+  font-size: 12px;
 }
 
 .system-message-content {
@@ -1420,6 +1461,27 @@ export default {
   border-radius: 20px;
   font-size: 13px;
   color: #666;
+}
+
+.message-text.unknown-user {
+  text-align: center;
+  color: #999;
+  font-size: 12px;
+  background-color: transparent;
+  box-shadow: none;
+  padding: 4px 8px;
+}
+
+.message-text.unknown-user::before {
+  content: "来自";
+  margin-right: 4px;
+  color: #999;
+}
+
+.message-text.unknown-user::after {
+  content: "的消息";
+  margin-left: 4px;
+  color: #999;
 }
 
 .user-message {

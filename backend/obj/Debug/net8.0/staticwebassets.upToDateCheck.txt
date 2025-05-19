@@ -1,5 +1,11 @@
+wwwroot\images\mock.png
 wwwroot\temp\uploads\1ab147be-9186-4f02-9236-94e217b32af7.docx
+wwwroot\temp\uploads\1abe79c3-9b1d-4019-803d-eaed3a92c317.jpg
+wwwroot\temp\uploads\2d585f10-a9d4-47e4-ba52-0db545f1535f.jpg
+wwwroot\temp\uploads\3ab3a224-b0b2-4b72-9f1b-8934cf82ec52.jpg
+wwwroot\temp\uploads\4336aae9-8bff-4f09-85cc-1c928fad14f3.jpg
 wwwroot\temp\uploads\5adc7b9d-65d5-4433-b4f0-d291d798d5b2.png
+wwwroot\temp\uploads\65a0695e-f534-4213-a099-d030485f448c.jpg
 wwwroot\temp\uploads\73fe7ae8-2ce0-4876-b129-403d86dac642.png
 wwwroot\temp\uploads\7820a1d1-525a-4ba5-90b8-b247e29daa6b.jpg
 wwwroot\temp\uploads\7f8e9665-a517-4b29-9b8c-cb0ada2005fe.png

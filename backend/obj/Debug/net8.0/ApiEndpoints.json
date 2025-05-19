@@ -696,6 +696,64 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "backend.Controllers.MembershipController",
+    "Method": "CreateSubscription",
+    "RelativePath": "api/Membership",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "backend.DTOs.CreateSubscriptionRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.MembershipController",
+    "Method": "CancelSubscription",
+    "RelativePath": "api/Membership/cancel/{subscriptionId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "subscriptionId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.MembershipController",
+    "Method": "GetCurrentSubscription",
+    "RelativePath": "api/Membership/current",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "backend.Controllers.MembershipController",
+    "Method": "MockPayment",
+    "RelativePath": "api/Membership/mock-payment",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "backend.DTOs.CreateSubscriptionRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "backend.Controllers.NotificationController",
     "Method": "AcceptFriend",
     "RelativePath": "api/Notification/accept-friend",

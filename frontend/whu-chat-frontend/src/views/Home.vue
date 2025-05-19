@@ -335,7 +335,8 @@
             <div class="members">
               <div v-for="member in filteredMembers" :key="member.userId" class="member-item">
                 <div class="member-avatar">
-                  <div class="avatar-placeholder">{{ member.username.charAt(0).toUpperCase() }}</div>
+                  <img v-if="member.avatar" :src="member.avatar" :alt="member.username" class="avatar-image">
+                  <div v-else class="avatar-placeholder">{{ member.username.charAt(0).toUpperCase() }}</div>
                 </div>
                 <div class="member-info">
                   <span class="member-name">{{ member.username }}</span>
@@ -2409,6 +2410,13 @@ export default {
   width: 40px;
   height: 40px;
   margin-right: 12px;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .member-info {

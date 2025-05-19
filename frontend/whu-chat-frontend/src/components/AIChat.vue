@@ -228,12 +228,33 @@
         </button>
       </div>
       <div class="sidebar-content">
+        <!-- 会员状态显示 -->
+        <div class="membership-status">
+          <div class="membership-badge" :class="{
+            'level-normal': userMembershipLevel === 'normal',
+            'level-vip': userMembershipLevel === 'vip',
+            'level-svip': userMembershipLevel === 'svip'
+          }">
+            {{ userMembershipLevel === 'normal' ? '普通用户' : userMembershipLevel === 'vip' ? 'VIP会员' : 'SVIP会员' }}
+          </div>
+          <button 
+            v-if="userMembershipLevel === 'normal'" 
+            class="upgrade-link"
+            @click="showMembershipBenefits"
+          >
+            升级会员
+          </button>
+        </div>
+        
         <div class="model-list">
           <div 
             v-for="(model, index) in availableModels" 
             :key="index" 
             class="model-item"
-            :class="{ 'model-selected': model.id === currentModel.id, 'model-locked': model.isPro && !userIsPro }"
+            :class="{ 
+              'model-selected': model.id === currentModel.id, 
+              'model-locked': !isModelAvailable(model) 
+            }"
             @click="selectModel(model)"
           >
             <div class="model-item-avatar" :style="{ backgroundColor: model.color }">
@@ -242,7 +263,8 @@
             <div class="model-item-details">
               <div class="model-item-name">
                 {{ model.name }}
-                <span class="model-item-tag" v-if="model.isPro">PRO</span>
+                <span v-if="model.id === 'gpt-3.5'" class="model-item-tag vip-tag">VIP</span>
+                <span v-else-if="model.isPro" class="model-item-tag svip-tag">SVIP</span>
               </div>
               <div class="model-item-desc">{{ model.shortDescription }}</div>
             </div>
@@ -250,14 +272,14 @@
               <svg v-if="model.id === currentModel.id" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M5 13l4 4L19 7" />
               </svg>
-              <svg v-else-if="model.isPro && !userIsPro" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <svg v-else-if="!isModelAvailable(model)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
           </div>
         </div>
       </div>
-      <div class="sidebar-footer" v-if="!userIsPro">
+      <div class="sidebar-footer" v-if="userMembershipLevel === 'normal'">
         <div class="upgrade-card">
           <div class="upgrade-title">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
@@ -296,7 +318,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
-            会员权益未解锁
+            会员特权
           </h3>
           <button class="icon-button" @click="showUpgradeModal = false">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
@@ -311,40 +333,78 @@
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
             </div>
-            <h4>升级会员，解锁更多高级功能</h4>
-            <ul class="upgrade-features">
-              <li>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M5 13l4 4L19 7" />
-                </svg>
-                使用全部高级AI模型
-              </li>
-              <li>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M5 13l4 4L19 7" />
-                </svg>
-                上传文件与AI交互分析
-              </li>
-              <li>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M5 13l4 4L19 7" />
-                </svg>
-                无限次AI对话，无需等待
-              </li>
-              <li>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M5 13l4 4L19 7" />
-                </svg>
-                提前体验新功能
-              </li>
-            </ul>
-            <p class="upgrade-notice">支付功能暂未完成，敬请期待！</p>
+            <h4>选择适合您的会员等级</h4>
+            
+            <div class="membership-plans">
+              <div class="membership-plan" :class="{ 'current-plan': userMembershipLevel === 'vip' }">
+                <div class="plan-name">VIP会员</div>
+                <div class="plan-price">¥9.9/月</div>
+                <ul class="plan-features">
+                  <li>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    使用GPT-3.5模型
+                  </li>
+                  <li>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    每天100次对话额度
+                  </li>
+                  <li>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    基础文件上传分析
+                  </li>
+                </ul>
+                <button class="plan-button" @click="userMembershipLevel === 'vip' ? null : $router.push('/member-benefits')">
+                  {{ userMembershipLevel === 'vip' ? '当前等级' : '立即开通' }}
+                </button>
+              </div>
+              
+              <div class="membership-plan" :class="{ 'current-plan': userMembershipLevel === 'svip' }">
+                <div class="plan-tag">推荐</div>
+                <div class="plan-name">SVIP会员</div>
+                <div class="plan-price">¥19.9/月</div>
+                <ul class="plan-features">
+                  <li>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    使用所有高级AI模型
+                  </li>
+                  <li>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    无限次AI对话
+                  </li>
+                  <li>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    高级文件和图像分析
+                  </li>
+                  <li>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    优先使用最新功能
+                  </li>
+                </ul>
+                <button class="plan-button premium-button" @click="userMembershipLevel === 'svip' ? null : $router.push('/member-benefits')">
+                  {{ userMembershipLevel === 'svip' ? '当前等级' : '立即开通' }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
           <button class="modal-cancel" @click="showUpgradeModal = false">稍后再说</button>
-          <button class="modal-confirm modal-upgrade-btn" disabled>
-            即将上线
+          <button class="modal-confirm modal-upgrade-btn" @click="$router.push('/member-benefits')">
+            前往会员中心
           </button>
         </div>
       </div>
@@ -382,7 +442,7 @@
 </template>
 
 <script>
-import { ref, onMounted, nextTick, watch } from 'vue';
+import { ref, onMounted, nextTick, watch, computed } from 'vue';
 import axios from 'axios';
 import { useRoute } from 'vue-router';
 
@@ -416,8 +476,44 @@ export default {
     const userId = ref(props.userId || Number(route.query.userId) || Number(localStorage.getItem('userId')));
     const username = ref(props.username || route.query.username || localStorage.getItem('username'));
     
-    // 用户是否为会员（目前设置为false，因为支付功能未完成）
-    const userIsPro = ref(false);
+    // 用户会员等级 ("normal", "vip", "svip")
+    const userMembershipLevel = ref('normal');
+    
+    // 基于会员等级的计算属性
+    const userIsPro = computed(() => userMembershipLevel.value !== 'normal');
+    const userIsSVIP = computed(() => userMembershipLevel.value === 'svip');
+    
+    // 检查模型是否可用
+    const isModelAvailable = (model) => {
+      if (!model.isPro) return true; // 基础模型对所有用户开放
+      if (model.id === 'gpt-3.5' && (userMembershipLevel.value === 'vip' || userMembershipLevel.value === 'svip')) return true;
+      if (userMembershipLevel.value === 'svip') return true; // SVIP用户可以使用所有模型
+      return false;
+    };
+    
+    // 获取用户会员信息
+    const fetchUserMembership = async () => {
+      try {
+        const response = await axios.get(
+          `${window.apiBaseUrl || 'http://localhost:5067'}/api/membership/current?userId=${userId.value}`
+        );
+        
+        if (response.data) {
+          // 根据后端返回的会员信息设置用户等级
+          if (response.data.level === 2) {
+            userMembershipLevel.value = 'svip';
+          } else if (response.data.level === 1) {
+            userMembershipLevel.value = 'vip';
+          } else {
+            userMembershipLevel.value = 'normal';
+          }
+          console.log('用户会员等级:', userMembershipLevel.value);
+        }
+      } catch (error) {
+        console.error('获取会员信息失败:', error);
+        userMembershipLevel.value = 'normal'; // 默认为普通用户
+      }
+    };
     
     // 聊天历史记录
     const chatHistory = ref([]);
@@ -495,10 +591,16 @@ export default {
     
     // 选择模型
     const selectModel = (model) => {
-      // 如果是付费模型且用户不是会员，显示升级提示
-      if (model.isPro && !userIsPro.value) {
-        showUpgradeModal.value = true;
-        return;
+      // 检查模型是否可用
+      if (!isModelAvailable(model)) {
+        // 显示升级提示，根据模型要求的等级显示不同的提示
+        if (model.id === 'gpt-3.5' && userMembershipLevel.value === 'normal') {
+          showUpgradeModal.value = true;
+          return;
+        } else if (userMembershipLevel.value !== 'svip') {
+          showUpgradeModal.value = true;
+          return;
+        }
       }
       
       // 设置当前模型
@@ -653,6 +755,11 @@ export default {
     // 附加文件（因为用户不是会员，所以显示提示）
     const attachFile = () => {
       showAdvancedFeatureModal.value = true;
+    };
+    
+    // 显示会员权益提示
+    const showMembershipBenefits = () => {
+      showUpgradeModal.value = true;
     };
     
     // 显示升级提示
@@ -839,6 +946,9 @@ export default {
       // 加载聊天历史列表
       loadChatHistoryList();
       
+      // 获取用户会员信息
+      fetchUserMembership();
+      
       // 自动聚焦输入框
       if (inputField.value) {
         inputField.value.focus();
@@ -861,6 +971,8 @@ export default {
       availableModels,
       currentModel,
       userIsPro,
+      userIsSVIP,
+      userMembershipLevel,
       suggestions,
       useQuestion,
       sendMessage,
@@ -881,7 +993,10 @@ export default {
       regenerateResponse,
       showAdvancedFeatures,
       attachFile,
-      showUpgrade
+      showUpgrade,
+      isModelAvailable,
+      showMembershipBenefits,
+      fetchUserMembership
     };
   }
 };
@@ -1096,7 +1211,6 @@ export default {
   font-size: 10px;
   font-weight: 500;
   color: white;
-  background-color: #f43f5e;
   padding: 2px 6px;
   border-radius: 12px;
   margin-left: 6px;
@@ -1814,7 +1928,8 @@ textarea {
 }
 
 .modal-upgrade {
-  width: 480px;
+  width: 600px;
+  max-width: 90%;
 }
 
 .upgrade-content {
@@ -1977,5 +2092,169 @@ textarea {
     max-width: 95%;
     padding: 12px;
   }
+}
+
+/* 会员状态显示 */
+.membership-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.membership-badge {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.level-normal {
+  background-color: #e5e7eb;
+  color: #6b7280;
+}
+
+.level-vip {
+  background-color: #8b5cf6;
+  color: white;
+}
+
+.level-svip {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: white;
+}
+
+.upgrade-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6366f1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.upgrade-link:hover {
+  text-decoration: underline;
+}
+
+/* 会员标签样式 */
+.model-item-tag {
+  font-size: 10px;
+  font-weight: 500;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 12px;
+  margin-left: 6px;
+}
+
+.vip-tag {
+  background-color: #8b5cf6;
+}
+
+.svip-tag {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+}
+
+/* 会员计划样式 */
+.membership-plans {
+  display: flex;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.membership-plan {
+  flex: 1;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.membership-plan:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.current-plan {
+  border-color: #8b5cf6;
+  background-color: #f5f3ff;
+}
+
+.plan-tag {
+  position: absolute;
+  top: -10px;
+  right: 16px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.plan-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.plan-price {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #4f46e5;
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+}
+
+.plan-features li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.plan-features li svg {
+  stroke: #10b981;
+  flex-shrink: 0;
+}
+
+.plan-button {
+  width: 100%;
+  padding: 8px 0;
+  border: 1px solid #6366f1;
+  background-color: white;
+  color: #6366f1;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.plan-button:hover {
+  background-color: #eef2ff;
+}
+
+.premium-button {
+  background-color: #6366f1;
+  color: white;
+}
+
+.premium-button:hover {
+  background-color: #4f46e5;
 }
 </style> 

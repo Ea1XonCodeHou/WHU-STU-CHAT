@@ -3,6 +3,9 @@ using backend.Services;
 using backend.Utils;
 using MySql.Data.MySqlClient;
 using System.IO;
+// using Microsoft.AspNetCore.Authentication.JwtBearer;
+// using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,23 @@ builder.Services.AddSwaggerGen();
 
 // 添加SignalR服务
 builder.Services.AddSignalR();
+
+// 添加身份验证服务
+// builder.Services.AddAuthentication("Bearer")
+//     .AddJwtBearer("Bearer", options =>
+//     {
+//         options.RequireHttpsMetadata = false;
+//         options.SaveToken = true;
+//         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+//         {
+//             ValidateIssuerSigningKey = true,
+//             IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+//                 System.Text.Encoding.ASCII.GetBytes("whu-chat-super-secret-key-for-jwt-auth-2024")),
+//             ValidateIssuer = false,
+//             ValidateAudience = false,
+//             ClockSkew = TimeSpan.Zero
+//         };
+//     });
 
 // 配置CORS策略
 builder.Services.AddCors(options =>
@@ -33,6 +53,7 @@ builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IDiscussionService, DiscussionService>(); // 添加讨论区服务
 builder.Services.AddScoped<IFriendshipService, FriendshipService>(); // 添加好友关系服务
+builder.Services.AddScoped<IMembershipService, MembershipService>(); // 添加会员服务
 builder.Services.AddScoped<AliOSSHelper>(); // 添加阿里云OSS助手服务
 
 // 为AI服务添加HttpClient
@@ -73,6 +94,8 @@ app.UseCors("CorsPolicy");
 // 配置静态文件服务
 app.UseStaticFiles();
 
+// 添加身份验证中间件
+// app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

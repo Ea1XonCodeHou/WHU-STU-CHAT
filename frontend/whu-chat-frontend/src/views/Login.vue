@@ -121,20 +121,33 @@
 
 <script>
 import axios from 'axios';
+import { useStore } from 'vuex';
 
 export default {
   name: 'LoginView',
   data() {
+    // 从localStorage加载记住的用户名
+    const rememberedUser = localStorage.getItem('rememberedUser') || '';
+    
     return {
-      username: '',
+      username: rememberedUser,
       password: '',
-      rememberMe: false,
+      rememberMe: !!rememberedUser,
       showPassword: false,
       isLoading: false,
       activeField: null,
       errorMessage: '',
-      successMessage: ''
-    }
+      successMessage: '',
+      isResetting: false,
+      resetEmail: '',
+      resetErrorMessage: '',
+      resetSuccessMessage: '',
+      isResetLoading: false
+    };
+  },
+  setup() {
+    const store = useStore();
+    return { store };
   },
   mounted() {
     document.title = "WHU-Chat - 武汉大学学生互助平台 - 登录";
@@ -175,7 +188,21 @@ export default {
           // 调试日志
           console.log('登录成功，用户数据：', data.data);
           
-          // 登录成功，存储用户信息
+          // 登录成功，存储用户信息到Vuex
+          try {
+            if (this.store && this.store.dispatch) {
+              this.store.dispatch('user/loginUser', {
+                userData: data.data.userInfo,
+                token: data.data.token
+              });
+            } else {
+              console.warn('Vuex不可用，回退到localStorage');
+            }
+          } catch (storeError) {
+            console.error('使用Vuex存储用户数据失败', storeError);
+          }
+          
+          // 确保关键信息存入localStorage作为备份
           localStorage.setItem('token', data.data.token);
           localStorage.setItem('userId', data.data.userInfo.id);
           localStorage.setItem('username', data.data.userInfo.username);
@@ -183,6 +210,9 @@ export default {
           localStorage.setItem('userEmail', data.data.userInfo.email || '');
           localStorage.setItem('userAvatar', data.data.userInfo.avatar || '');
           localStorage.setItem('lastLoginTime', new Date().toISOString());
+          
+          // 合并所有用户数据到userInfo对象
+          localStorage.setItem('userInfo', JSON.stringify(data.data.userInfo));
           
           // 将token添加到axios全局默认请求头中
           axios.defaults.headers.common['Authorization'] = `Bearer ${data.data.token}`;
@@ -202,14 +232,32 @@ export default {
             this.$router.push('/home');
           }, 1000);
         } else {
-          // 登录失败，显示错误信息
-          this.errorMessage = data.msg || '登录失败，请检查用户名和密码';
+          // 登录失败
+          this.errorMessage = data.message || '登录失败，请检查用户名和密码';
         }
       })
       .catch(error => {
         this.isLoading = false;
-        console.error('登录请求出错:', error);
-        this.errorMessage = '网络错误，请稍后再试';
+        
+        // 根据错误类型显示不同信息
+        if (error.response) {
+          // 服务器返回错误状态码
+          if (error.response.status === 401) {
+            this.errorMessage = '用户名或密码错误';
+          } else if (error.response.status === 429) {
+            this.errorMessage = '登录尝试过于频繁，请稍后再试';
+          } else {
+            this.errorMessage = `登录失败: ${error.response.data.message || '服务器错误'}`;
+          }
+        } else if (error.request) {
+          // 请求发送但没有收到响应
+          this.errorMessage = '无法连接到服务器，请检查网络连接';
+        } else {
+          // 请求设置时出错
+          this.errorMessage = `请求错误: ${error.message}`;
+        }
+        
+        console.error('登录错误:', error);
       });
     },
     togglePasswordVisibility() {

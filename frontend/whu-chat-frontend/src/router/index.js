@@ -2,9 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import ChatRoom from '../views/ChatRoom.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
-
 import GroupChat from '../views/GroupChat.vue'
-
 import Home from '../views/Home.vue'
 import AIChat from '@/components/AIChat.vue'
 import Discussion from '../views/Discussion.vue'

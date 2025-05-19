@@ -2,6 +2,7 @@ import axios from 'axios';
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
+import store from "./store"; // 导入Vuex store
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
 import './style.css';
@@ -95,7 +96,11 @@ window.getFullAvatarUrl = getFullAvatarUrl;
 
 const app = createApp(App);
 app.use(router);
+app.use(store); // 注册Vuex store
 app.use(ElementPlus); // 注册ElementPlus
+
+// 初始化从localStorage加载用户信息到Vuex
+store.dispatch('user/initializeStore');
 
 // 将axios挂载到全局
 app.config.globalProperties.$axios = axios;

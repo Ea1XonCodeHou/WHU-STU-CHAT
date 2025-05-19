@@ -156,6 +156,44 @@
       </div>
     </div>
     
+    <!-- 支付扫码弹窗 -->
+    <div class="payment-qrcode-modal" v-if="showQRCodeModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>{{ paymentMethod === 'wechat' ? '微信支付' : '支付宝' }}扫码支付</h2>
+          <button class="close-btn" @click="cancelPayment">×</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="payment-info">
+            <div class="payment-amount">¥{{ selectedPlan === 1 ? '9.9' : '19.9' }}</div>
+            <div class="payment-title">{{ selectedPlan === 1 ? 'VIP会员' : 'SVIP会员' }}月度订阅</div>
+          </div>
+          
+          <div class="qrcode-container">
+            <img src="https://eaxon-bucket.oss-cn-wuhan-lr.aliyuncs.com/mock.png" alt="支付二维码" class="qrcode-image">
+            <div class="qrcode-mask" v-if="paymentStatus === 'processing'">
+              <div class="qrcode-status">
+                <div class="spinner"></div>
+                <p>支付处理中...</p>
+              </div>
+            </div>
+            <div class="qrcode-mask success" v-if="paymentStatus === 'success'">
+              <div class="qrcode-status">
+                <div class="success-icon">✓</div>
+                <p>支付成功!</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="qrcode-tips">
+            <p>请使用{{ paymentMethod === 'wechat' ? '微信' : '支付宝' }}扫描二维码完成支付</p>
+            <p class="countdown" v-if="paymentCountdown > 0">二维码有效期: {{ Math.floor(paymentCountdown / 60) }}:{{ (paymentCountdown % 60).toString().padStart(2, '0') }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <!-- 服务条款弹窗 -->
     <div class="terms-modal" v-if="showTerms">
       <div class="modal-content">
@@ -191,7 +229,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import axios from 'axios';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
@@ -202,16 +240,59 @@ export default {
     const store = useStore();
     const router = useRouter();
     
-    // 用户状态
-    const userInfo = computed(() => store.state.user?.userInfo || {});
+    // 用户状态 - 增加安全检查
+    const userInfo = computed(() => {
+      try {
+        // 首先尝试从Vuex获取
+        if (store && store.getters && store.getters['user/userInfo']) {
+          return store.getters['user/userInfo'];
+        }
+        
+        // 如果Vuex不可用，尝试从本地存储获取
+        const userDataStr = localStorage.getItem('userInfo');
+        if (userDataStr) {
+          try {
+            return JSON.parse(userDataStr);
+          } catch (e) {
+            console.error('解析本地存储的用户数据失败', e);
+          }
+        }
+        
+        // 如果都失败了，从单独的localStorage项中重建
+        return {
+          id: localStorage.getItem('userId'),
+          username: localStorage.getItem('username'),
+          avatar: localStorage.getItem('userAvatar'),
+          email: localStorage.getItem('userEmail'),
+          phone: localStorage.getItem('userPhone'),
+          level: 0
+        };
+      } catch (error) {
+        console.error('获取用户信息失败', error);
+        return {
+          id: localStorage.getItem('userId'),
+          username: localStorage.getItem('username') || '访客',
+          level: 0
+        };
+      }
+    });
+    
+    // 初始化用户会员级别和到期日期
     const userLevel = ref(0);
     const memberExpireDate = ref(null);
     
     // 支付相关状态
     const showPaymentModal = ref(false);
+    const showQRCodeModal = ref(false);
     const showTerms = ref(false);
     const selectedPlan = ref(0);
     const paymentMethod = ref('wechat');
+    const paymentStatus = ref('waiting'); // waiting, processing, success, failed
+    const paymentCountdown = ref(300); // 5分钟二维码有效期
+    
+    // 计时器
+    let countdownTimer = null;
+    let paymentCheckTimer = null;
     
     // 计算会员等级相关信息
     const levelText = computed(() => {
@@ -241,22 +322,85 @@ export default {
     // 获取用户会员信息
     const fetchMemberInfo = async () => {
       try {
-        // 模拟获取用户会员信息，实际项目中需要从API获取
-        // 这里仅为展示，假设从用户数据中获取
-        if (userInfo.value && userInfo.value.userId) {
+        // 从API获取用户会员信息
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.warn('未找到登录令牌，尝试从本地获取用户信息');
+          // 尝试从Vuex或本地存储获取用户信息
           userLevel.value = userInfo.value.level || 0;
           
-          // 模拟会员过期时间
+          // 如果有会员，设置一个临时的过期时间
           if (userLevel.value > 0) {
-            // 假设会员有效期为当前日期后的30天
             const today = new Date();
             const expireDate = new Date();
             expireDate.setDate(today.getDate() + 30);
             memberExpireDate.value = expireDate;
           }
+          return;
+        }
+        
+        try {
+          // 调用会员API获取订阅信息
+          const response = await axios.get('/api/membership/current', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (response.data) {
+            // 如果有活跃订阅
+            userLevel.value = response.data.level;
+            memberExpireDate.value = new Date(response.data.endDate);
+            
+            // 更新Vuex存储
+            if (store && store.dispatch) {
+              store.dispatch('user/updateUserLevel', response.data.level);
+            } else {
+              // 如果Vuex不可用，更新本地存储
+              updateLocalStorageUserLevel(response.data.level);
+            }
+          } else {
+            // 从用户信息获取level
+            userLevel.value = userInfo.value.level || 0;
+            
+            if (userLevel.value > 0) {
+              // 假设会员有效期为当前日期后的30天
+              const today = new Date();
+              const expireDate = new Date();
+              expireDate.setDate(today.getDate() + 30);
+              memberExpireDate.value = expireDate;
+            }
+          }
+        } catch (apiError) {
+          console.error('API请求失败', apiError);
+          throw apiError;
         }
       } catch (error) {
         console.error('获取会员信息失败', error);
+        // 从本地用户信息获取level作为备用
+        userLevel.value = userInfo.value.level || 0;
+        
+        // 添加调试信息帮助排查问题
+        console.log('当前用户信息状态:', {
+          userInfoExists: !!userInfo.value,
+          userInfoKeys: Object.keys(userInfo.value || {}),
+          userLevel: userLevel.value,
+          storeExists: !!store,
+          storeGettersExists: store && !!store.getters,
+          userGettersExists: store && store.getters && !!store.getters['user/userInfo']
+        });
+      }
+    };
+    
+    // 更新本地存储的用户级别
+    const updateLocalStorageUserLevel = (level) => {
+      try {
+        const userDataStr = localStorage.getItem('userInfo');
+        if (userDataStr) {
+          const userData = JSON.parse(userDataStr);
+          userData.level = level;
+          localStorage.setItem('userInfo', JSON.stringify(userData));
+        }
+      } catch (error) {
+        console.error('更新本地存储中的用户级别失败', error);
       }
     };
     
@@ -273,37 +417,129 @@ export default {
       showPaymentModal.value = true;
     };
     
-    // 处理购买流程
-    const processPurchase = async () => {
-      try {
-        // 这里应该调用后端API处理支付流程
-        // 仅作模拟，实际应对接支付API
-        console.log(`处理${selectedPlan.value === 1 ? 'VIP' : 'SVIP'}会员购买，支付方式: ${paymentMethod.value}`);
-        
-        // 模拟支付成功
-        setTimeout(() => {
-          // 更新用户会员状态
-          userLevel.value = selectedPlan.value;
-          
-          // 设置过期时间
-          const today = new Date();
-          const expireDate = new Date();
-          expireDate.setDate(today.getDate() + 30);
-          memberExpireDate.value = expireDate;
-          
-          // 关闭支付弹窗
-          showPaymentModal.value = false;
-          
-          // 显示成功提示
-          alert('恭喜您！会员开通成功！');
-        }, 1500);
-      } catch (error) {
-        console.error('处理支付失败', error);
-        alert('支付处理失败，请稍后重试');
-      }
+    // 显示支付二维码
+    const showQRCode = () => {
+      showPaymentModal.value = false;
+      showQRCodeModal.value = true;
+      paymentStatus.value = 'waiting';
+      paymentCountdown.value = 300; // 重置为5分钟
+      
+      // 开始倒计时
+      startCountdown();
+      
+      // 5秒后自动进入支付中状态
+      setTimeout(() => {
+        if (paymentStatus.value === 'waiting') {
+          simulatePayment();
+        }
+      }, 5000);
     };
     
+    // 开始倒计时
+    const startCountdown = () => {
+      // 清除之前的定时器
+      if (countdownTimer) clearInterval(countdownTimer);
+      
+      countdownTimer = setInterval(() => {
+        if (paymentCountdown.value > 0) {
+          paymentCountdown.value--;
+        } else {
+          // 二维码过期
+          clearInterval(countdownTimer);
+          if (paymentStatus.value === 'waiting' || paymentStatus.value === 'processing') {
+            paymentStatus.value = 'failed';
+            alert('支付超时，请重新操作');
+            showQRCodeModal.value = false;
+          }
+        }
+      }, 1000);
+    };
+    
+    // 模拟支付处理 
+    const simulatePayment = async () => {
+      paymentStatus.value = 'processing';
+      
+      // 模拟支付处理
+      setTimeout(async () => {
+        try {
+          // 创建订阅对象
+          const subscription = {
+            userId: parseInt(userInfo.value.id) || parseInt(localStorage.getItem('userId')),
+            level: selectedPlan.value,
+            paymentMethod: paymentMethod.value
+          };
+          
+          // 调用后端API创建订阅
+          const token = localStorage.getItem('token');
+          if (!token) {
+            throw new Error('用户未登录');
+          }
+          
+          // 使用mock-payment端点，替换原来的subscribe
+          const response = await axios.post('/api/membership/mock-payment', subscription, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (response.data && response.data.success) {
+            // 支付成功
+            paymentStatus.value = 'success';
+            
+            // 更新用户会员级别
+            userLevel.value = selectedPlan.value;
+            
+            // 设置会员过期时间
+            const today = new Date();
+            const expireDate = new Date();
+            expireDate.setDate(today.getDate() + 30); // 30天后
+            memberExpireDate.value = expireDate;
+            
+            // 更新Vuex状态
+            if (store && store.dispatch) {
+              store.dispatch('user/updateUserLevel', selectedPlan.value);
+            } else {
+              // 如果Vuex不可用，更新本地存储
+              updateLocalStorageUserLevel(selectedPlan.value);
+            }
+            
+            // 3秒后关闭支付窗口
+            setTimeout(() => {
+              showQRCodeModal.value = false;
+            }, 3000);
+          } else {
+            throw new Error(response.data.message || '支付处理失败');
+          }
+        } catch (error) {
+          console.error('处理支付失败', error);
+          paymentStatus.value = 'failed';
+          alert('支付处理失败，请稍后重试');
+          showQRCodeModal.value = false;
+        }
+      }, 5000); // 模拟5秒后支付完成
+    };
+    
+    // 取消支付
+    const cancelPayment = () => {
+      // 清除定时器
+      if (countdownTimer) clearInterval(countdownTimer);
+      
+      showQRCodeModal.value = false;
+      paymentStatus.value = 'waiting';
+    };
+    
+    // 处理购买流程
+    const processPurchase = () => {
+      // 显示二维码支付页面
+      showQRCode();
+    };
+    
+    // 组件销毁时清除定时器
+    onUnmounted(() => {
+      if (countdownTimer) clearInterval(countdownTimer);
+      if (paymentCheckTimer) clearInterval(paymentCheckTimer);
+    });
+    
     onMounted(() => {
+      // 在组件挂载后获取会员信息
       fetchMemberInfo();
     });
     
@@ -314,12 +550,16 @@ export default {
       levelClass,
       levelIcon,
       showPaymentModal,
+      showQRCodeModal,
       showTerms,
       selectedPlan,
       paymentMethod,
+      paymentStatus,
+      paymentCountdown,
       formatDate,
       selectPlan,
-      processPurchase
+      processPurchase,
+      cancelPayment
     };
   }
 };
@@ -661,7 +901,7 @@ export default {
 }
 
 /* 支付弹窗 */
-.payment-modal, .terms-modal {
+.payment-modal, .terms-modal, .payment-qrcode-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -774,7 +1014,9 @@ export default {
   background-image: url('data:image/svg+xml;base64,PHN2ZyBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEyMjggMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjI0MTUiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNNTMwLjg5MjggNzAzLjEyOTZhNDEuNDcyIDQxLjQ3MiAwIDAgMS0zNS43Mzc2LTE5LjgxNDRsLTIuNzEzNi01LjU4MDhMMjc4LjI3MiAzOTQuNzUyYTE4LjczOTIgMTguNzM5MiAwIDAgMS0yLjA0OC04LjE0MDhhMTkuOTY4IDE5Ljk2OCAwIDAgMSAyMC40OC0xOS4zNTM2YzQuNjA4IDAgOC44NTc2IDEuNDMzNiAxMi4yODggMy44NEw1NDMuMzk1MiA1MTEuMTc3NmE2NC40MDk2IDY0LjQwOTYgMCAwIDAgNTQuNTI4IDUuOTM5MkwxMTE2LjI2MjQgMjA0LjhDMTAwNC45NTM2IDgwLjg5NiA4MjEuNzYgMCA2MTQuNCAwIDI3NS4wNDY0IDAgMCAyMTYuNTc2IDAgNDgzLjYzNTJjMCAxNDUuNzE1MiA4Mi43MzkyIDI3Ni44ODk2IDIxMi4yNzUyIDM2NS41MTY4YTM4LjE5NTIgMzguMTk1MiAwIDAgMSAxNy4yMDMyIDMxLjQ4OGE0NC40OTI4IDQ0LjQ5MjggMCAwIDEtMi4xNTA0IDEyLjM5MDRsLTI3LjY5OTIgOTcuNDg0OGMtMS4zMzEyIDQuNjA4LTMuMzI4IDkuMzY5Ni0zLjMyOCAxNC4xMzEyIDAgMTAuNzUyIDkuMjE2IDE5LjM1MzYgMjAuNDggMTkuMzUzNiA0LjQwMzIgMCA4LjAzODQtMS41MzYgMTEuNzc2LTMuNTg0bDEzNC41NTM2LTczLjMxODRjMTAuMTM3Ni01LjUyOTYgMjAuNzg3Mi04Ljk2IDMyLjYxNDQtOC45NiA2LjI5NzYgMCAxMi4yODggMC45MjE2IDE4LjA3MzYgMi41MDg4IDYyLjcyIDE3LjA0OTYgMTMwLjQ1NzYgMjYuNTcyOCAyMDAuNTUwNCAyNi41NzI4Qzk1My43MDI0IDk2Ny4xNjggMTIyOC44IDc1MC41OTIgMTIyOC44IDQ4My42MzUyYzAgLTgwLjk0NzItMjUuNDQ2NC0xNTcuMTMyOC03MC4wNDE2LTIyNC4xMDI0bC02MDQuOTc5MiA0MzYuOTkyLTQuNDU0NCAyLjQwNjRhNDIuMTM3NiA0Mi4xMzc2IDAgMCAxLTE4LjQzMiA0LjE5ODR6IiBmaWxsPSIjMTVCQTExIiBwLWlkPSIyNDE2Ij48L3BhdGg+PC9zdmc+');
 }
 
-.alipay-icon {  background-image: url('data:image/svg+xml;utf8,<svg t="1747371207079" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3409" width="200" height="200"><path d="M230.771014 576.556522c-12.614493 9.646377-25.228986 23.744928-28.93913 42.295652-5.194203 24.486957-0.742029 55.652174 22.26087 80.13913 28.93913 28.93913 72.718841 37.101449 92.011594 38.585508 51.2 3.710145 106.110145-22.26087 147.663768-50.457971 16.324638-11.130435 43.77971-34.133333 70.492754-69.750725-59.362319-30.423188-133.565217-64.556522-212.22029-61.588406-41.553623 1.484058-70.492754 9.646377-91.269566 20.776812zM983.188406 712.347826c25.971014-61.588406 40.811594-129.113043 40.811594-200.347826 0-281.971014-230.028986-512-512-512S0 230.028986 0 512s230.028986 512 512 512c170.666667 0 321.298551-83.849275 414.794203-212.22029C838.492754 768.742029 693.797101 696.023188 604.011594 652.985507c-42.295652 48.973913-105.368116 97.205797-176.602898 117.982609-44.521739 13.356522-85.333333 18.550725-126.886957 9.646377-42.295652-8.904348-72.718841-28.197101-90.527536-47.489855-8.904348-10.388406-19.292754-22.26087-27.455073-37.843479 0.742029 0.742029 0.742029 2.226087 0.742029 2.968116 0 0-4.452174-7.42029-7.420289-19.292753-1.484058-5.936232-2.968116-11.872464-3.710145-17.808696-0.742029-4.452174-0.742029-8.904348 0-12.614493-0.742029-7.42029 0-15.582609 1.484058-23.744927 4.452174-20.776812 12.614493-43.77971 35.617391-65.298551 48.973913-48.231884 115.014493-50.457971 149.147826-50.457971 50.457971 0.742029 138.017391 22.26087 212.22029 48.973913 20.776812-43.77971 34.133333-89.785507 42.295652-121.692754H304.973913v-33.391304h158.052174v-66.782609H272.324638v-34.133333h190.701449v-66.782609c0-8.904348 2.226087-16.324638 16.324638-16.324637h74.944927v83.107246h207.026087v33.391304H554.295652v66.782609H719.768116S702.701449 494.933333 651.501449 586.202899c115.014493 40.811594 277.518841 104.626087 331.686957 126.144927z m0 0" fill="%2306B4FD" p-id="3410"></path></svg>');}
+.alipay-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg t="1747371207079" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3409" width="200" height="200"><path d="M230.771014 576.556522c-12.614493 9.646377-25.228986 23.744928-28.93913 42.295652-5.194203 24.486957-0.742029 55.652174 22.26087 80.13913 28.93913 28.93913 72.718841 37.101449 92.011594 38.585508 51.2 3.710145 106.110145-22.26087 147.663768-50.457971 16.324638-11.130435 43.77971-34.133333 70.492754-69.750725-59.362319-30.423188-133.565217-64.556522-212.22029-61.588406-41.553623 1.484058-70.492754 9.646377-91.269566 20.776812zM983.188406 712.347826c25.971014-61.588406 40.811594-129.113043 40.811594-200.347826 0-281.971014-230.028986-512-512-512S0 230.028986 0 512s230.028986 512 512 512c170.666667 0 321.298551-83.849275 414.794203-212.22029C838.492754 768.742029 693.797101 696.023188 604.011594 652.985507c-42.295652 48.973913-105.368116 97.205797-176.602898 117.982609-44.521739 13.356522-85.333333 18.550725-126.886957 9.646377-42.295652-8.904348-72.718841-28.197101-90.527536-47.489855-8.904348-10.388406-19.292754-22.26087-27.455073-37.843479 0.742029 0.742029 0.742029 2.226087 0.742029 2.968116 0 0-4.452174-7.42029-7.420289-19.292753-1.484058-5.936232-2.968116-11.872464-3.710145-17.808696-0.742029-4.452174-0.742029-8.904348 0-12.614493-0.742029-7.42029 0-15.582609 1.484058-23.744927 4.452174-20.776812 12.614493-43.77971 35.617391-65.298551 48.973913-48.231884 115.014493-50.457971 149.147826-50.457971 50.457971 0.742029 138.017391 22.26087 212.22029 48.973913 20.776812-43.77971 34.133333-89.785507 42.295652-121.692754H304.973913v-33.391304h158.052174v-66.782609H272.324638v-34.133333h190.701449v-66.782609c0-8.904348 2.226087-16.324638 16.324638-16.324637h74.944927v83.107246h207.026087v33.391304H554.295652v66.782609H719.768116S702.701449 494.933333 651.501449 586.202899c115.014493 40.811594 277.518841 104.626087 331.686957 126.144927z m0 0" fill="%2306B4FD" p-id="3410"></path></svg>');
+}
 
 .confirm-btn {
   width: 100%;
@@ -871,6 +1113,107 @@ export default {
   
   .payment-methods {
     flex-direction: column;
+  }
+}
+
+/* 支付二维码样式 */
+.payment-qrcode-modal .modal-content {
+  width: 90%;
+  max-width: 400px;
+}
+
+.payment-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.payment-amount {
+  font-size: 24px;
+  font-weight: bold;
+  color: #e91e63;
+  margin-bottom: 5px;
+}
+
+.payment-title {
+  font-size: 16px;
+  color: #666;
+}
+
+.qrcode-container {
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 20px;
+  position: relative;
+  border: 1px solid #eee;
+  padding: 10px;
+  background: #fff;
+}
+
+.qrcode-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.qrcode-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.qrcode-mask.success {
+  background: rgba(76, 175, 80, 0.7);
+}
+
+.qrcode-status {
+  text-align: center;
+  color: white;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 10px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+.success-icon {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 10px;
+  background: #4caf50;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+}
+
+.qrcode-tips {
+  text-align: center;
+  color: #666;
+  margin-top: 15px;
+}
+
+.countdown {
+  color: #ff5722;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 </style> 

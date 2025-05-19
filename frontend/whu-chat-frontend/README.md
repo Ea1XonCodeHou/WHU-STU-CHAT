@@ -18,11 +18,6 @@ WHU-STU-CHAT/
 
 ## 启动步骤
 
-### 完成音效设置
-
-1. 下载消息通知音效文件，重命名为 `notify.mp3`
-2. 将音效文件放入 `frontend/whu-chat-frontend/public/` 目录
-
 ### 启动后端
 
 ```bash

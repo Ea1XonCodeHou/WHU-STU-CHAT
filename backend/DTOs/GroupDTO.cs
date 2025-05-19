@@ -44,5 +44,11 @@ namespace backend.DTOs
         public string SenderName { get; set; }
         public string Content { get; set; }
         public DateTime CreateTime { get; set; }
+
+        // 新增字段
+        public string MessageType { get; set; } // "text", "file", "image" 等
+        public string FileUrl { get; set; }
+        public string FileName { get; set; }
+        public long? FileSize { get; set; }
     }
 }

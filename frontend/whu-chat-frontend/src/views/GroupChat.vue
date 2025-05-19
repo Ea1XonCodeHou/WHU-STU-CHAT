@@ -135,7 +135,7 @@
                 
                 <!-- 表情消息 -->
                 <div v-else-if="message.messageType === 'emoji'" class="message-emoji">
-                {{ message.content }}
+                  {{ message.content }}
                 </div>
               </div>
               
@@ -143,16 +143,16 @@
               <div class="message-avatar self-avatar" v-if="message.senderId === userId">
                 <div class="avatar default-avatar">
                   {{ username?.charAt(0)?.toUpperCase() || '?' }}
+                </div>
               </div>
+            </div>
           </div>
-        </div>
-      </div>
           
           <!-- 新消息提示 -->
           <div v-if="hasNewMessage && !isAtBottom" class="new-message-indicator" @click="scrollToBottom">
             <i class="arrow-down-icon"></i>
             <span>有新消息</span>
-    </div>
+          </div>
         </div>
       </div>
     </main>
@@ -163,6 +163,16 @@
       <div class="toolbar">
         <div class="tool-button emoji-button" @click="toggleEmojiPanel">
           <i class="emoji-icon"></i>
+        </div>
+        <div class="tool-button image-button" @click="triggerImageUpload">
+          <i class="image-icon"></i>
+          <input 
+            type="file" 
+            ref="imageInput" 
+            accept="image/*" 
+            style="display: none" 
+            @change="handleImageUpload"
+          >
         </div>
       </div>
       
@@ -187,7 +197,7 @@
       <button class="send-button" @click="sendMessage" :disabled="!isConnected || !messageText.trim()">
         <i class="send-icon"></i>
         <span>发送</span>
-        </button>
+      </button>
     </footer>
 
     <!-- 图片预览弹窗 -->
@@ -475,6 +485,20 @@ export default {
         // 获取发送者信息
         const senderInfo = await getUserInfo(message.senderId);
         
+        // 检查是否是图片消息
+        const isImageMessage = message.content && (
+          message.content.startsWith('/temp/uploads/') || 
+          message.content.startsWith('http') && 
+          (message.content.endsWith('.jpg') || message.content.endsWith('.jpeg') || message.content.endsWith('.png') || message.content.endsWith('.gif'))
+        );
+        
+        // 处理图片URL
+        const getFullImageUrl = (url) => {
+          if (!url) return null;
+          if (url.startsWith('http')) return url;
+          return `${window.apiBaseUrl}${url}`;
+        };
+        
         // 将后端消息格式转换为前端需要的格式
         const formattedMessage = {
           messageId: message.messageId,
@@ -483,7 +507,10 @@ export default {
           senderId: message.senderId,
           senderName: senderInfo?.username || '未知用户',
           groupId: message.groupId,
-          messageType: 'text' // 默认消息类型为文本
+          messageType: isImageMessage ? 'image' : (message.messageType || 'text'),
+          fileUrl: isImageMessage ? getFullImageUrl(message.content) : getFullImageUrl(message.fileUrl),
+          fileName: message.fileName || (isImageMessage ? message.content.split('/').pop() : null),
+          fileSize: message.fileSize || 0
         };
         messages.value.push(formattedMessage);
         
@@ -522,7 +549,10 @@ export default {
               senderId: msg.senderId,
               senderName: senderInfo?.username || '未知用户',
               groupId: msg.groupId,
-              messageType: 'text' // 默认消息类型为文本
+              messageType: msg.messageType || 'text',
+              fileUrl: msg.fileUrl,
+              fileName: msg.fileName,
+              fileSize: msg.fileSize
             };
           }).sort((a, b) => new Date(a.sendTime) - new Date(b.sendTime));
           messages.value = formattedMessages;
@@ -586,6 +616,8 @@ export default {
         // 获取历史消息
         const response = await axios.get(`${window.apiBaseUrl}/api/Group/${group.groupId}/messages?count=50`);
         if (response.data && response.data.code === 200) {
+          console.log('历史消息原始数据:', response.data.data);
+          
           // 获取所有发送者的用户信息
           const senderIds = [...new Set(response.data.data.map(msg => msg.senderId))];
           const userInfos = await Promise.all(
@@ -596,18 +628,42 @@ export default {
           );
           
           // 将后端消息格式转换为前端需要的格式
-          messages.value = response.data.data.map(msg => {
+          const formattedMessages = response.data.data.map(msg => {
             const senderInfo = userInfos.find(u => u.id === msg.senderId);
-                return {
+            
+            // 检查是否是图片消息
+            const isImageMessage = msg.content && (
+              msg.content.startsWith('/temp/uploads/') || 
+              msg.content.startsWith('http') && 
+              (msg.content.endsWith('.jpg') || msg.content.endsWith('.jpeg') || msg.content.endsWith('.png') || msg.content.endsWith('.gif'))
+            );
+            
+            // 处理图片URL
+            const getFullImageUrl = (url) => {
+              if (!url) return null;
+              if (url.startsWith('http')) return url;
+              return `${window.apiBaseUrl}${url}`;
+            };
+            
+            const formattedMsg = {
               messageId: msg.messageId,
               content: msg.content,
               sendTime: msg.createTime,
               senderId: msg.senderId,
               senderName: senderInfo?.username || '未知用户',
               groupId: msg.groupId,
-              messageType: 'text' // 默认消息类型为文本
+              messageType: isImageMessage ? 'image' : (msg.messageType || 'text'),
+              fileUrl: isImageMessage ? getFullImageUrl(msg.content) : getFullImageUrl(msg.fileUrl),
+              fileName: msg.fileName || (isImageMessage ? msg.content.split('/').pop() : null),
+              fileSize: msg.fileSize || 0
             };
+            console.log('格式化后的消息:', formattedMsg);
+            return formattedMsg;
           }).sort((a, b) => new Date(a.sendTime) - new Date(b.sendTime));
+          
+          messages.value = formattedMessages;
+          console.log('最终的消息列表:', messages.value);
+          
           nextTick(() => scrollToBottom());
         } else {
           throw new Error(response.data?.msg || '获取历史消息失败');
@@ -766,21 +822,28 @@ export default {
           }
         });
         
-        await connection.value.invoke(
-          'SendImageToGroup', 
-          currentGroup.value.groupId,
-          response.data.url, 
-          response.data.fileName, 
-          response.data.fileSize
-        );
-        
-        imageInput.value.value = '';
-        showNotification('图片发送成功', 'success');
+        if (response.data && response.data.url) {
+          await connection.value.invoke(
+            'SendImageToGroup', 
+            response.data.url, 
+            response.data.fileName, 
+            response.data.fileSize
+          );
+          
+          imageInput.value.value = '';
+          showNotification('图片发送成功', 'success');
+        } else {
+          throw new Error('图片上传失败：服务器返回数据格式不正确');
+        }
       } catch (error) {
         console.error('图片上传失败:', error);
-        showNotification('图片上传失败: ' + (error.response?.data || error.message), 'error');
+        showNotification('图片上传失败: ' + (error.response?.data?.message || error.message), 'error');
         imageInput.value.value = '';
       }
+    };
+    
+    const triggerImageUpload = () => {
+      imageInput.value.click();
     };
     
     const handleFileUpload = async (event) => {
@@ -1124,6 +1187,7 @@ export default {
       getMessageClass,
       shouldShowDateSeparator,
       handleGroupSearch,
+      triggerImageUpload,
     };
   }
 };
@@ -1500,19 +1564,20 @@ export default {
 .toolbar {
   display: flex;
   gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .tool-button {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background-color: #f5f7fb;
-  border: none;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  background-color: #f5f5f5;
 }
 
 .tool-button:hover {
@@ -1525,6 +1590,16 @@ export default {
 
 .tool-button.emoji-button::before {
   content: "😊";
+  font-size: 20px;
+  line-height: 1;
+}
+
+.tool-button.image-button {
+  position: relative;
+}
+
+.tool-button.image-button::before {
+  content: "📷";
   font-size: 20px;
   line-height: 1;
 }
@@ -1774,5 +1849,56 @@ export default {
 .summary-hint,
 .summary-error {
   display: none;
+}
+
+.message-image {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.message-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.image-preview-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+}
+
+.image-preview-content img {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+}
+
+.close-preview {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
 }
 </style> 

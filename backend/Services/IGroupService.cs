@@ -85,11 +85,11 @@ namespace backend.Services
         Task<List<GroupMemberDTO>> GetGroupUsersAsync(int groupId);
 
         /// <summary>
-        /// 切换群成员的管理员角色（admin/member），如果为群主（creator）则返回“群主不能卸任”
+        /// 切换群成员的管理员角色（admin/member），如果为群主（creator）则返回"群主不能卸任"
         /// </summary>
         /// <param name="groupId">群组ID</param>
         /// <param name="userId">用户ID</param>
-        /// <returns>切换结果消息，成功返回“已切换”，群主返回“群主不能卸任”，失败返回错误信息</returns>
+        /// <returns>切换结果消息，成功返回"已切换"，群主返回"群主不能卸任"，失败返回错误信息</returns>
         Task<string> ToggleAdminRoleAsync(int groupId, int userId, int operatorUserId);
 
         /// <summary>
@@ -100,6 +100,17 @@ namespace backend.Services
         /// <param name="message">消息内容</param>
         /// <returns>消息ID</returns>
         Task<int> SaveGroupMessageAsync(int groupId, int userId, string message);
+
+        /// <summary>
+        /// 保存群组图片消息
+        /// </summary>
+        /// <param name="groupId">群组ID</param>
+        /// <param name="userId">发送者ID</param>
+        /// <param name="imageUrl">图片URL</param>
+        /// <param name="fileName">文件名</param>
+        /// <param name="fileSize">文件大小</param>
+        /// <returns>消息ID</returns>
+        Task<int> SaveGroupImageMessageAsync(int groupId, int userId, string imageUrl, string fileName, long fileSize);
 
         /// <summary>
         /// 获取群组历史消息

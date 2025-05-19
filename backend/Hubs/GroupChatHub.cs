@@ -114,21 +114,72 @@ namespace backend.Hubs
                 var messageDto = new GroupMessageDTO
                 {
                     MessageId = messageId,
+                    GroupId = userConnection.RoomId,
                     SenderId = userConnection.UserId,
                     SenderName = userConnection.Username,
                     Content = message,
-                    GroupId = userConnection.RoomId,
-                    CreateTime = DateTime.Now,
+                    CreateTime = DateTime.UtcNow,
+                    MessageType = "text"
                 };
 
-                // 将消息发送给群组所有成员
+                // 发送消息给群组所有成员
                 await Clients.Group($"Group_{userConnection.RoomId}").SendAsync("ReceiveMessage", messageDto);
-                _logger.LogInformation($"消息已发送给群组 {userConnection.RoomId}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"发送消息时发生错误: {ex.Message}");
                 await Clients.Caller.SendAsync("Error", "发送消息失败: " + ex.Message);
+            }
+        }
+
+        public async Task SendImageToGroup(string imageUrl, string fileName, long fileSize)
+        {
+            try
+            {
+                if (!_connections.TryGetValue(Context.ConnectionId, out var userConnection))
+                {
+                    await Clients.Caller.SendAsync("Error", "用户未加入群组");
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(imageUrl))
+                {
+                    return;
+                }
+
+                _logger.LogInformation($"收到用户 {userConnection.Username}({userConnection.UserId}) 的图片消息");
+
+                // 保存图片消息到数据库
+                int messageId = await _groupService.SaveGroupImageMessageAsync(userConnection.RoomId, userConnection.UserId, imageUrl, fileName, fileSize);
+                if (messageId <= 0)
+                {
+                    _logger.LogWarning("保存图片消息失败");
+                    await Clients.Caller.SendAsync("Error", "保存图片消息失败，请重试");
+                    return;
+                }
+
+                // 构建消息对象
+                var messageDto = new GroupMessageDTO
+                {
+                    MessageId = messageId,
+                    GroupId = userConnection.RoomId,
+                    SenderId = userConnection.UserId,
+                    SenderName = userConnection.Username,
+                    Content = imageUrl,
+                    CreateTime = DateTime.UtcNow,
+                    MessageType = "image",
+                    FileUrl = imageUrl,
+                    FileName = fileName,
+                    FileSize = fileSize
+                };
+
+                // 发送消息给群组所有成员
+                await Clients.Group($"Group_{userConnection.RoomId}").SendAsync("ReceiveMessage", messageDto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"发送图片消息时发生错误: {ex.Message}");
+                await Clients.Caller.SendAsync("Error", "发送图片消息失败: " + ex.Message);
             }
         }
 

@@ -1,110 +1,26 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\",
+  "WorkspaceRootPath": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|e:\\vs2022projects-csharp\\teamwork\\backend\\utils\\aliosshelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:utils\\aliosshelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|e:\\vs2022projects-csharp\\teamwork\\backend\\services\\groupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\services\\groupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:services\\groupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\services\\igroupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\services\\igroupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:services\\igroupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\controllers\\groupcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:controllers\\groupcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\services\\discussionservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:services\\discussionservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\controllers\\discussioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:controllers\\discussioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\models\\post.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:models\\post.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\dtos\\uservo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:dtos\\uservo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\dtos\\notificationdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:dtos\\notificationdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\dtos\\messagedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:dtos\\messagedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\hubs\\groupchathub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:hubs\\groupchathub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\services\\friendshipservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:services\\friendshipservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\build_errors.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:build_errors.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\dtos\\adduserbyusernamedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:dtos\\adduserbyusernamedto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\errors.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:errors.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\build_output.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:build_output.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:controllers\\usercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\controllers\\chatcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:controllers\\chatcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\controllers\\aicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:controllers\\aicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\controllers\\notificationcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:controllers\\notificationcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\dtos\\groupdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\dtos\\groupdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:dtos\\groupdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\dtos\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:dtos\\userdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\hubs\\chathub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:hubs\\chathub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -114,7 +30,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 27,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -127,337 +43,62 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "AliOSSHelper.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Utils\\AliOSSHelper.cs",
-              "RelativeDocumentMoniker": "Utils\\AliOSSHelper.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Utils\\AliOSSHelper.cs",
-              "RelativeToolTip": "Utils\\AliOSSHelper.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-19T06:48:56.282Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "DiscussionController.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Controllers\\DiscussionController.cs",
-              "RelativeDocumentMoniker": "Controllers\\DiscussionController.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Controllers\\DiscussionController.cs",
-              "RelativeToolTip": "Controllers\\DiscussionController.cs",
-              "ViewState": "AQIAAPUAAAAAAAAAAAAuwAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-16T03:36:00.548Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "Post.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Models\\Post.cs",
-              "RelativeDocumentMoniker": "Models\\Post.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Models\\Post.cs",
-              "RelativeToolTip": "Models\\Post.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-16T03:35:55.08Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "DiscussionService.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Services\\DiscussionService.cs",
-              "RelativeDocumentMoniker": "Services\\DiscussionService.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Services\\DiscussionService.cs",
-              "RelativeToolTip": "Services\\DiscussionService.cs",
-              "ViewState": "AQIAADwBAAAAAAAAAAAkwAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-16T03:32:29.645Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 17,
-              "Title": "errors.txt",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\errors.txt",
-              "RelativeDocumentMoniker": "errors.txt",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\errors.txt",
-              "RelativeToolTip": "errors.txt",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
-              "WhenOpened": "2025-05-16T03:24:25.872Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 18,
-              "Title": "build_output.txt",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\build_output.txt",
-              "RelativeDocumentMoniker": "build_output.txt",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\build_output.txt",
-              "RelativeToolTip": "build_output.txt",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
-              "WhenOpened": "2025-05-16T03:24:19.39Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 14,
-              "Title": "build_errors.txt",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\build_errors.txt",
-              "RelativeDocumentMoniker": "build_errors.txt",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\build_errors.txt",
-              "RelativeToolTip": "build_errors.txt",
-              "ViewState": "AQIAAGAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
-              "WhenOpened": "2025-05-16T03:24:18.769Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\appsettings.json",
-              "RelativeDocumentMoniker": "appsettings.json",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\appsettings.json",
-              "RelativeToolTip": "appsettings.json",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAoAAAAvAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-05-16T03:23:53.246Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 15,
-              "Title": "appsettings.Development.json",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\appsettings.Development.json",
-              "RelativeDocumentMoniker": "appsettings.Development.json",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\appsettings.Development.json",
-              "RelativeToolTip": "appsettings.Development.json",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-05-16T03:23:51.304Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 19,
-              "Title": "UserController.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Controllers\\UserController.cs",
-              "RelativeDocumentMoniker": "Controllers\\UserController.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Controllers\\UserController.cs",
-              "RelativeToolTip": "Controllers\\UserController.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-16T03:23:42.102Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 20,
-              "Title": "ChatController.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Controllers\\ChatController.cs",
-              "RelativeDocumentMoniker": "Controllers\\ChatController.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Controllers\\ChatController.cs",
-              "RelativeToolTip": "Controllers\\ChatController.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-16T03:23:41.163Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 21,
-              "Title": "AIController.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Controllers\\AIController.cs",
-              "RelativeDocumentMoniker": "Controllers\\AIController.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Controllers\\AIController.cs",
-              "RelativeToolTip": "Controllers\\AIController.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-16T03:23:40.469Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "UserVO.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\UserVO.cs",
-              "RelativeDocumentMoniker": "DTOs\\UserVO.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\UserVO.cs",
-              "RelativeToolTip": "DTOs\\UserVO.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-16T03:23:06.145Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 22,
-              "Title": "NotificationController.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Controllers\\NotificationController.cs",
-              "RelativeDocumentMoniker": "Controllers\\NotificationController.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Controllers\\NotificationController.cs",
-              "RelativeToolTip": "Controllers\\NotificationController.cs",
-              "ViewState": "AQIAABYAAAAAAAAAAAAkwAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T14:13:24.117Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 25,
-              "Title": "ChatHub.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Hubs\\ChatHub.cs",
-              "RelativeDocumentMoniker": "Hubs\\ChatHub.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Hubs\\ChatHub.cs",
-              "RelativeToolTip": "Hubs\\ChatHub.cs",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T13:01:16.015Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 16,
-              "Title": "AddUserByUsernameDTO.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\AddUserByUsernameDTO.cs",
-              "RelativeDocumentMoniker": "DTOs\\AddUserByUsernameDTO.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\AddUserByUsernameDTO.cs",
-              "RelativeToolTip": "DTOs\\AddUserByUsernameDTO.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T12:07:08.277Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "FriendshipService.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Services\\FriendshipService.cs",
-              "RelativeDocumentMoniker": "Services\\FriendshipService.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Services\\FriendshipService.cs",
-              "RelativeToolTip": "Services\\FriendshipService.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T11:36:26.71Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "GroupChatHub.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Hubs\\GroupChatHub.cs",
-              "RelativeDocumentMoniker": "Hubs\\GroupChatHub.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Hubs\\GroupChatHub.cs",
-              "RelativeToolTip": "Hubs\\GroupChatHub.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T11:08:51.938Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "GroupController.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Controllers\\GroupController.cs",
-              "RelativeDocumentMoniker": "Controllers\\GroupController.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Controllers\\GroupController.cs",
-              "RelativeToolTip": "Controllers\\GroupController.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T11:07:18.706Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 24,
-              "Title": "UserDTO.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\UserDTO.cs",
-              "RelativeDocumentMoniker": "DTOs\\UserDTO.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\UserDTO.cs",
-              "RelativeToolTip": "DTOs\\UserDTO.cs",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T11:07:09.504Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "NotificationDTO.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\NotificationDTO.cs",
-              "RelativeDocumentMoniker": "DTOs\\NotificationDTO.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\NotificationDTO.cs",
-              "RelativeToolTip": "DTOs\\NotificationDTO.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T11:06:59.461Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "MessageDTO.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\MessageDTO.cs",
-              "RelativeDocumentMoniker": "DTOs\\MessageDTO.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\MessageDTO.cs",
-              "RelativeToolTip": "DTOs\\MessageDTO.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T11:06:57.815Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 23,
-              "Title": "GroupDTO.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\GroupDTO.cs",
-              "RelativeDocumentMoniker": "DTOs\\GroupDTO.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\GroupDTO.cs",
-              "RelativeToolTip": "DTOs\\GroupDTO.cs",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T11:06:56.953Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
               "Title": "IGroupService.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Services\\IGroupService.cs",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\IGroupService.cs",
               "RelativeDocumentMoniker": "Services\\IGroupService.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Services\\IGroupService.cs",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\IGroupService.cs",
               "RelativeToolTip": "Services\\IGroupService.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "ViewState": "AgIAAGAAAAAAAAAAAAAowHIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T11:06:40.21Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "GroupService.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Services\\GroupService.cs",
-              "RelativeDocumentMoniker": "Services\\GroupService.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Services\\GroupService.cs",
-              "RelativeToolTip": "Services\\GroupService.cs",
-              "ViewState": "AQIAAAYBAAAAAAAAAAAkwNAAAAAVAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T11:06:37.104Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-19T09:30:36.803Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Program.cs",
-              "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Program.cs",
-              "RelativeToolTip": "Program.cs",
-              "ViewState": "AQIAAEIAAAAAAAAAAADwv1MAAAAAAAAA",
+              "Title": "GroupService.cs",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\GroupService.cs",
+              "RelativeDocumentMoniker": "Services\\GroupService.cs",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\GroupService.cs",
+              "RelativeToolTip": "Services\\GroupService.cs",
+              "ViewState": "AgIAAPwBAAAAAAAAAAAswAQCAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-14T10:56:03Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-19T09:30:36.031Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "GroupDTO.cs",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\DTOs\\GroupDTO.cs",
+              "RelativeDocumentMoniker": "DTOs\\GroupDTO.cs",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\DTOs\\GroupDTO.cs",
+              "RelativeToolTip": "DTOs\\GroupDTO.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAAA4wC0AAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-19T09:17:34.32Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAABXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-19T09:17:23.322Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAEIAAAAAAAAAAADwv0oAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-14T10:56:03Z"
             }
           ]
         }

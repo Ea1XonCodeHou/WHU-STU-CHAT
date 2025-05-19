@@ -457,6 +457,36 @@ namespace backend.Services
             }
         }
 
+        public async Task<int> SaveGroupImageMessageAsync(int groupId, int userId, string imageUrl, string fileName, long fileSize)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    var command = new MySqlCommand(
+                        @"INSERT INTO GroupMessages (GroupId, SenderId, Content, CreateTime, MessageType, FileUrl, FileName, FileSize) 
+                          VALUES (@GroupId, @SenderId, @Content, @CreateTime, @MessageType, @FileUrl, @FileName, @FileSize); 
+                          SELECT LAST_INSERT_ID();",
+                        connection);
+                    command.Parameters.AddWithValue("@GroupId", groupId);
+                    command.Parameters.AddWithValue("@SenderId", userId);
+                    command.Parameters.AddWithValue("@Content", imageUrl);
+                    command.Parameters.AddWithValue("@CreateTime", DateTime.UtcNow);
+                    command.Parameters.AddWithValue("@MessageType", "image");
+                    command.Parameters.AddWithValue("@FileUrl", imageUrl);
+                    command.Parameters.AddWithValue("@FileName", fileName);
+                    command.Parameters.AddWithValue("@FileSize", fileSize);
+                    var messageId = Convert.ToInt32(await command.ExecuteScalarAsync());
+                    return messageId;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"保存群组图片消息失败: {ex.Message}");
+            }
+        }
+
         
         public async Task<List<GroupMessageDTO>> GetGroupMessagesAsync(int groupId, int count)
         {

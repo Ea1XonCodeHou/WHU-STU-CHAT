@@ -85,22 +85,22 @@
           <div class="expandable-section">
             <div class="section-toggle" @click="showOnlineFriends = !showOnlineFriends">
               <i :class="showOnlineFriends ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"></i>
-              <span>在线好友 ({{ onlineFriends.length }})</span>
+              <span>好友列表 ({{ friendsList.length }})</span>
             </div>
             <transition name="slide-fade">
               <div class="friend-list" v-if="showOnlineFriends">
-                <div v-for="friend in filteredFriends" :key="friend.id" 
+                <div v-for="friend in friendsList" :key="friend.id" 
                      class="friend-item" @click="openPrivateChat(friend)">
                   <div class="friend-avatar">
-                    <img v-if="friend.avatar" :src="friend.avatar" :alt="friend.username">
+                    <img v-if="friend.avatar" :src="friend.avatar" :alt="friend.username" class="avatar-image">
                     <div v-else class="avatar-placeholder">{{ friend.username.charAt(0).toUpperCase() }}</div>
-                    <div class="friend-status online"></div>
+                    <div class="friend-status" :class="friend.status"></div>
                   </div>
                   <div class="friend-name">{{ friend.username }}</div>
                 </div>
-                <div class="empty-list" v-if="filteredFriends.length === 0">
+                <div class="empty-list" v-if="friendsList.length === 0">
                   <i class="fa-solid fa-user-slash"></i>
-                  <span>暂无在线好友</span>
+                  <span>暂无好友</span>
                 </div>
               </div>
             </transition>
@@ -195,7 +195,7 @@
             <div v-for="friend in filteredFriends" :key="friend.id" 
                  class="friend-card" @click="openPrivateChat(friend)">
               <div class="friend-avatar">
-                <img v-if="friend.avatar" :src="friend.avatar" :alt="friend.username">
+                <img v-if="friend.avatar" :src="friend.avatar" :alt="friend.username" class="avatar-image">
                 <div v-else class="avatar-placeholder">{{ friend.username.charAt(0).toUpperCase() }}</div>
                 <div class="friend-status" :class="friend.status"></div>
               </div>
@@ -735,32 +735,31 @@ export default {
     // 加载好友列表
     const fetchFriends = async () => {
       try {
-        // 获取好友列表，确保URL前缀正确
-        const apiBaseUrl = window.apiBaseUrl || ''; // 使用全局配置的API URL或空字符串
+        const apiBaseUrl = window.apiBaseUrl || '';
         const friendsResponse = await axios.get(`${apiBaseUrl}/api/user/${userId.value}/friends`);
         if (friendsResponse.data.code === 200) {
-          // 确保每个好友对象有正确的属性
           friendsList.value = friendsResponse.data.data.map(friend => {
-            // 处理头像URL
             let avatarUrl = friend.avatar || '';
-            if (avatarUrl && !avatarUrl.startsWith('http')) {
-              avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
-              avatarUrl = `${apiBaseUrl}${avatarUrl}`;
+            if (avatarUrl) {
+              if (!avatarUrl.startsWith('http')) {
+                avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
+                avatarUrl = `${apiBaseUrl}${avatarUrl}`;
+              }
+              // 添加时间戳防止缓存
+              avatarUrl = `${avatarUrl}?t=${new Date().getTime()}`;
             }
             
             return {
-              id: friend.userId || friend.id, // 确保id字段存在
+              id: friend.userId || friend.id,
               userId: friend.userId || friend.id,
               username: friend.username,
-              avatar: avatarUrl, // 使用处理后的头像URL
+              avatar: avatarUrl,
               status: friend.status || 'offline',
               signature: friend.signature || ''
             };
           });
           
           console.log('获取的好友列表:', friendsList.value);
-          
-          // 立即更新在线状态
           await updateFriendsOnlineStatus();
         }
       } catch (error) {
@@ -822,7 +821,9 @@ export default {
     ]);
     
     // 计算属性
-    const onlineFriends = computed(() => friendsList.value);
+    const onlineFriends = computed(() => {
+      return friendsList.value; // 返回所有好友，不进行在线过滤
+    });
     
     const filteredFriends = computed(() => {
       if (!friendSearch.value) return friendsList.value;
@@ -1729,8 +1730,8 @@ export default {
 }
 
 .add-button {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.1);
   display: flex;
@@ -1738,6 +1739,16 @@ export default {
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
+  position: relative;
+}
+
+.add-button i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  line-height: 1;
 }
 
 .add-button:hover {
@@ -1842,13 +1853,27 @@ export default {
   width: 32px;
   height: 32px;
   margin-right: 10px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #f0f0f0;
 }
 
-.friend-avatar img {
+.avatar-image {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
   object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background-color: #4776E6;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
 }
 
 .friend-status {

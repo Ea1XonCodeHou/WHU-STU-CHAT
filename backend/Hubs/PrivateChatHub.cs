@@ -241,6 +241,64 @@ namespace backend.Hubs
             }
         }
         
+        // 发送图片消息
+        public async Task SendImageToPrivate(int receiverId, string imageUrl, string fileName, long fileSize)
+        {
+            try
+            {
+                // 从request中获取用户ID
+                if (!Context.GetHttpContext().Request.Query.TryGetValue("userId", out var userIdValue) ||
+                    !int.TryParse(userIdValue, out int senderId))
+                {
+                    await Clients.Caller.SendAsync("Error", "无法识别用户ID");
+                    return;
+                }
+                
+                _logger.LogInformation($"用户 {senderId} 正在发送图片给用户 {receiverId}: {fileName}");
+                
+                // 创建消息对象
+                var message = new MessageDTO
+                {
+                    SenderId = senderId,
+                    ReceiverId = receiverId,
+                    Content = imageUrl,
+                    MessageType = "image",
+                    FileUrl = imageUrl,
+                    FileName = fileName,
+                    FileSize = fileSize,
+                    SendTime = DateTime.Now
+                };
+                
+                // 创建私聊组名称
+                string chatGroupName = senderId < receiverId 
+                    ? $"private_{senderId}_{receiverId}" 
+                    : $"private_{receiverId}_{senderId}";
+                
+                // 保存消息到数据库
+                int messageId = await _chatService.SavePrivateMessageAsync(message);
+                if (messageId <= 0)
+                {
+                    await Clients.Caller.SendAsync("Error", "保存图片消息失败");
+                    return;
+                }
+                
+                // 补充消息信息
+                message.MessageId = messageId;
+                var senderInfo = await _userService.GetUserByIdAsync(senderId);
+                message.SenderName = senderInfo?.Username ?? "未知用户";
+                
+                // 发送消息到私聊组
+                await Clients.Group(chatGroupName).SendAsync("ReceivePrivateMessage", message);
+                
+                _logger.LogInformation($"图片消息已发送到组 {chatGroupName}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"发送图片消息时出错: {ex.Message}");
+                await Clients.Caller.SendAsync("Error", "发送图片消息失败: " + ex.Message);
+            }
+        }
+        
         // 断开连接处理
         public override async Task OnDisconnectedAsync(Exception exception)
         {

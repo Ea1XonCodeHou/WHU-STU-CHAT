@@ -121,7 +121,7 @@
 
 <script>
 import axios from 'axios';
-import { useStore } from 'vuex';
+import { useStore } from 'vuex/dist/vuex.esm-bundler.js';
 
 export default {
   name: 'LoginView',

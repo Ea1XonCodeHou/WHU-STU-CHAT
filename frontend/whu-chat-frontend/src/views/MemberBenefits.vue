@@ -231,7 +231,7 @@
 <script>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import axios from 'axios';
-import { useStore } from 'vuex';
+import { useStore } from 'vuex/dist/vuex.esm-bundler.js';
 import { useRouter } from 'vue-router';
 
 export default {

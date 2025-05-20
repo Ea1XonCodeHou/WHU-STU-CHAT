@@ -111,7 +111,7 @@
                 </div>
                 
                 <div v-else-if="message.messageType === 'image'" class="message-image">
-                  <img :src="message.fileUrl" alt="图片消息" @click="previewImage(message.fileUrl)" />
+                  <img :src="formatMessageUrl(message.fileUrl)" alt="图片消息" @click="previewImage(message.fileUrl)" />
                   <div class="image-info">{{ message.fileName || '图片' }} ({{ formatFileSize(message.fileSize) }})</div>
                 </div>
                 
@@ -148,6 +148,16 @@
         <div class="tool-button emoji-button" @click="toggleEmojiPanel">
           <i class="fas fa-smile"></i>
         </div>
+        <div class="tool-button image-button" @click="triggerImageUpload">
+          <i class="fas fa-image"></i>
+          <input 
+            type="file" 
+            ref="imageInput" 
+            accept="image/*" 
+            style="display: none" 
+            @change="handleImageUpload"
+          >
+        </div>
         <div class="tool-button file-button">
           <input
             type="file"
@@ -179,6 +189,36 @@
         <i class="fas fa-paper-plane"></i>
       </button>
     </footer>
+
+    <!-- 图片预览弹窗 -->
+    <div v-if="previewImageUrl" class="image-preview-modal" @click="closeImagePreview">
+      <div class="image-preview-content">
+        <img :src="formatMessageUrl(previewImageUrl)" alt="图片预览" />
+        <button class="close-preview" @click.stop="closeImagePreview">×</button>
+      </div>
+    </div>
+
+    <!-- 用户名片弹窗 -->
+    <div v-if="showUserCard" class="user-card-modal">
+      <div class="user-card-content">
+        <div class="user-card-header">
+          <h3>{{ friendInfo.username }}</h3>
+          <button class="close-card" @click="closeUserCard">×</button>
+        </div>
+        <div class="user-card-body">
+          <div class="user-info">
+            <div class="avatar-container">
+              <img :src="friendInfo.avatar" alt="用户头像" />
+            </div>
+            <div class="user-details">
+              <div class="username">{{ friendInfo.username }}</div>
+              <div class="status-text">{{ friendInfo.status === 'online' ? '在线' : '离线' }}</div>
+              <div v-if="friendInfo.signature" class="signature">{{ friendInfo.signature }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -227,6 +267,10 @@ export default {
                       '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥']);
     
     const fileInput = ref(null);
+    const imageInput = ref(null);
+    
+    // 图片预览
+    const previewImageUrl = ref(null);
     
     // 加载好友列表
     const loadFriends = async () => {
@@ -480,6 +524,11 @@ export default {
               } else if (message.senderId === userId.value) {
                 message.senderAvatar = userAvatar.value;
                 message.senderName = username.value;
+              }
+              
+              // 处理图片消息的URL
+              if (message.messageType === 'image' && message.fileUrl) {
+                message.fileUrl = formatMessageUrl(message.fileUrl);
               }
               
               // 如果还是没有头像，尝试加载用户信息
@@ -783,8 +832,68 @@ export default {
       }
     };
     
-    const previewImage = (imageUrl) => {
-      // 实现图片预览逻辑
+    // 图片预览相关方法
+    const previewImage = (url) => {
+      previewImageUrl.value = url;
+    };
+    
+    const closeImagePreview = () => {
+      previewImageUrl.value = null;
+    };
+    
+    const triggerImageUpload = () => {
+      imageInput.value.click();
+    };
+    
+    const handleImageUpload = async (event) => {
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
+      
+      const file = event.target.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      try {
+        showNotification('图片上传中...', 'info');
+        
+        const response = await axios.post(`${window.apiBaseUrl}/api/file/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
+        if (response.data && response.data.url) {
+          // 确保URL是完整的
+          const imageUrl = response.data.url.startsWith('http') 
+            ? response.data.url 
+            : `${window.apiBaseUrl}${response.data.url.startsWith('/') ? '' : '/'}${response.data.url}`;
+            
+          await connection.value.invoke(
+            'SendImageToPrivate', 
+            currentFriendId.value,
+            imageUrl, 
+            response.data.fileName, 
+            response.data.fileSize
+          );
+          
+          imageInput.value.value = '';
+          showNotification('图片发送成功', 'success');
+        } else {
+          throw new Error('图片上传失败：服务器返回数据格式不正确');
+        }
+      } catch (error) {
+        console.error('图片上传失败:', error);
+        showNotification('图片上传失败: ' + (error.response?.data?.message || error.message), 'error');
+        imageInput.value.value = '';
+      }
+    };
+    
+    // 修改消息显示部分
+    const formatMessageUrl = (url) => {
+      if (!url) return '';
+      if (url.startsWith('http')) return url;
+      return `${window.apiBaseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
     };
     
     onMounted(async () => {
@@ -838,6 +947,7 @@ export default {
       showEmojiPanel,
       emojis,
       fileInput,
+      imageInput,
       handleFriendSearch,
       selectFriend,
       sendMessage,
@@ -854,6 +964,11 @@ export default {
       handleFileUpload,
       downloadFile,
       previewImage,
+      previewImageUrl,
+      closeImagePreview,
+      triggerImageUpload,
+      handleImageUpload,
+      formatMessageUrl,
     };
   }
 };
@@ -1289,10 +1404,26 @@ export default {
   margin-right: 10px;
   cursor: pointer;
   transition: color 0.3s;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #f5f5f5;
 }
 
 .tool-button:hover {
   color: #1890ff;
+  background-color: #e6f7ff;
+}
+
+.tool-button i {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .emoji-panel {
@@ -1377,6 +1508,60 @@ button:disabled {
   
   .message-body {
     max-width: 85%;
+  }
+}
+
+/* 图片预览弹窗 */
+.image-preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.image-preview-content {
+  position: relative;
+  max-width: 90%;
+  max-height: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.image-preview-content img {
+  max-width: 100%;
+  max-height: 80vh;
+  display: block;
+}
+
+.close-preview {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 30px;
+  cursor: pointer;
+  padding: 5px;
+  line-height: 1;
+}
+
+.close-preview:hover {
+  opacity: 0.8;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 </style>

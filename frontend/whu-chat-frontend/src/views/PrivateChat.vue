@@ -199,7 +199,7 @@
     </div>
 
     <!-- 用户名片弹窗 -->
-    <div v-if="showUserCard" class="user-card-modal">
+    <div v-if="showingUserCard" class="user-card-modal">
       <div class="user-card-content">
         <div class="user-card-header">
           <h3>{{ friendInfo.username }}</h3>
@@ -227,9 +227,13 @@ import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import * as signalR from '@microsoft/signalr';
+import UserCard from '@/components/UserCard.vue';
 
 export default {
   name: 'PrivateChat',
+  components: {
+    UserCard
+  },
   setup() {
     const route = useRoute();
     const router = useRouter();
@@ -271,6 +275,55 @@ export default {
     
     // 图片预览
     const previewImageUrl = ref(null);
+    
+    // 用户名片相关
+    const showingUserCard = ref(false);
+    const selectedUserId = ref(null);
+    const friendsList = ref([]);
+
+    // 加载好友列表
+    const loadFriendsList = async () => {
+      try {
+        const response = await axios.get(`${window.apiBaseUrl}/api/group/user/${userId.value}/private`);
+        if (response.data && response.data.code === 200) {
+          friendsList.value = response.data.data.map(group => {
+            // 查找对方用户ID（好友ID）
+            const otherMember = group.members?.find(m => m.id !== userId.value);
+            return otherMember ? otherMember.id : null;
+          }).filter(id => id !== null);
+        }
+      } catch (error) {
+        console.error('获取好友列表失败:', error);
+      }
+    };
+    
+    // 判断用户是否是好友
+    const isUserFriend = (userId) => {
+      return friendsList.value.includes(userId);
+    };
+    
+    // 显示用户名片
+    const showUserCard = (userId) => {
+      // 不要显示自己的名片
+      if (userId === parseInt(localStorage.getItem('userId'))) {
+        return;
+      }
+      
+      selectedUserId.value = userId;
+      showingUserCard.value = true;
+    };
+    
+    // 关闭用户名片
+    const closeUserCard = () => {
+      showingUserCard.value = false;
+      selectedUserId.value = null;
+    };
+    
+    // 处理好友请求发送后的回调
+    const handleFriendRequestSent = () => {
+      closeUserCard();
+      showNotification('好友请求已发送', 'success');
+    };
     
     // 加载好友列表
     const loadFriends = async () => {
@@ -969,6 +1022,14 @@ export default {
       triggerImageUpload,
       handleImageUpload,
       formatMessageUrl,
+      showingUserCard,
+      selectedUserId,
+      friendsList,
+      loadFriendsList,
+      isUserFriend,
+      showUserCard,
+      closeUserCard,
+      handleFriendRequestSent,
     };
   }
 };

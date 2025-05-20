@@ -92,7 +92,7 @@
                 <div v-for="friend in friendsList" :key="friend.id" 
                      class="friend-item" @click="openPrivateChat(friend)">
                   <div class="friend-avatar">
-                    <img v-if="friend.avatar" :src="friend.avatar" :alt="friend.username" class="avatar-image">
+                    <img v-if="friend.avatar && friend.avatar.length > 0" :src="friend.avatar" :alt="friend.username" class="avatar-image">
                     <div v-else class="avatar-placeholder">{{ friend.username.charAt(0).toUpperCase() }}</div>
                     <div class="friend-status" :class="friend.status"></div>
                   </div>
@@ -195,7 +195,7 @@
             <div v-for="friend in filteredFriends" :key="friend.id" 
                  class="friend-card" @click="openPrivateChat(friend)">
               <div class="friend-avatar">
-                <img v-if="friend.avatar" :src="friend.avatar" :alt="friend.username" class="avatar-image">
+                <img v-if="friend.avatar && friend.avatar.length > 0" :src="friend.avatar" :alt="friend.username" class="avatar-image">
                 <div v-else class="avatar-placeholder">{{ friend.username.charAt(0).toUpperCase() }}</div>
                 <div class="friend-status" :class="friend.status"></div>
               </div>
@@ -335,7 +335,7 @@
             <div class="members">
               <div v-for="member in filteredMembers" :key="member.userId" class="member-item">
                 <div class="member-avatar">
-                  <img v-if="member.avatar" :src="member.avatar" :alt="member.username" class="avatar-image">
+                  <img v-if="member.avatar && member.avatar.length > 0" :src="member.avatar" :alt="member.username" class="avatar-image">
                   <div v-else class="avatar-placeholder">{{ member.username.charAt(0).toUpperCase() }}</div>
                 </div>
                 <div class="member-info">
@@ -567,8 +567,17 @@ export default {
     // 用户信息
     const userId = ref(localStorage.getItem('userId') || '');
     const username = ref(localStorage.getItem('username') || '');
-    const userAvatar = ref(localStorage.getItem('userAvatar') || '');
     const userSignature = ref(localStorage.getItem('userSignature') || '');
+    
+    // 处理用户头像URL
+    let avatarUrl = localStorage.getItem('userAvatar') || '';
+    if (avatarUrl && !avatarUrl.startsWith('http')) {
+      const apiBaseUrl = window.apiBaseUrl || 'http://localhost:5067';
+      avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
+      avatarUrl = `${apiBaseUrl}${avatarUrl}`;
+    }
+    const userAvatar = ref(avatarUrl);
+    console.log('处理后的当前用户头像URL:', userAvatar.value);
     
     // UI 状态
     const activeSection = ref('chatrooms');
@@ -738,28 +747,29 @@ export default {
         const apiBaseUrl = window.apiBaseUrl || '';
         const friendsResponse = await axios.get(`${apiBaseUrl}/api/user/${userId.value}/friends`);
         if (friendsResponse.data.code === 200) {
+          console.log('API返回的原始好友数据:', friendsResponse.data.data);
+          
           friendsList.value = friendsResponse.data.data.map(friend => {
-            let avatarUrl = friend.avatar || '';
-            if (avatarUrl) {
-              if (!avatarUrl.startsWith('http')) {
+            // 直接采用PrivateChat.vue中的处理方式
+            let avatarUrl = friend.avatarUrl || '';  // 修改这里，使用 avatarUrl 而不是 avatar
+            if (avatarUrl && !avatarUrl.startsWith('http')) {
                 avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
                 avatarUrl = `${apiBaseUrl}${avatarUrl}`;
-              }
-              // 添加时间戳防止缓存
-              avatarUrl = `${avatarUrl}?t=${new Date().getTime()}`;
             }
             
+            console.log('处理后的头像 URL:', avatarUrl); // 添加日志
+            
             return {
-              id: friend.userId || friend.id,
-              userId: friend.userId || friend.id,
-              username: friend.username,
-              avatar: avatarUrl,
-              status: friend.status || 'offline',
-              signature: friend.signature || ''
+                id: friend.userId || friend.id,
+                userId: friend.userId || friend.id,
+                username: friend.username,
+                avatar: avatarUrl,
+                status: friend.status || 'offline',
+                signature: friend.signature || ''
             };
           });
           
-          console.log('获取的好友列表:', friendsList.value);
+          console.log('完整处理后的好友列表:', friendsList.value);
           await updateFriendsOnlineStatus();
         }
       } catch (error) {
@@ -990,15 +1000,24 @@ export default {
         const membersResponse = await axios.get(`/api/group/${group.groupId}/users`);
         if (membersResponse.data.code === 200) {
           console.log('群组成员原始数据:', membersResponse.data.data);
-          groupMembers.value = membersResponse.data.data.map(member => ({
-            ...member,
-            userId: member.userId,
-            username: member.username,
-            avatar: member.avatar,
-            role: member.role,
-            joinTime: member.joinTime,
-            lastActive: member.lastActive
-          }));
+          groupMembers.value = membersResponse.data.data.map(member => {
+            // 处理成员头像URL - 使用与PrivateChat相同的方式
+            let avatarUrl = member.avatar || '';
+            if (avatarUrl && !avatarUrl.startsWith('http')) {
+              avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
+              avatarUrl = `${window.apiBaseUrl}${avatarUrl}`;
+            }
+            
+            return {
+              ...member,
+              userId: member.userId,
+              username: member.username,
+              avatar: avatarUrl,
+              role: member.role,
+              joinTime: member.joinTime,
+              lastActive: member.lastActive
+            };
+          });
           console.log('处理后的成员数据:', groupMembers.value);
           console.log('当前用户权限:', isCurrentUserAdmin.value);
         }
@@ -1216,7 +1235,19 @@ export default {
     const handleProfileUpdated = (profileData) => {
       // 更新本地状态
       username.value = profileData.username || username.value;
-      userAvatar.value = getFullAvatarUrl(profileData.avatar) || userAvatar.value;
+      
+      // 处理头像URL
+      if (profileData.avatar) {
+        let newAvatarUrl = profileData.avatar;
+        if (!newAvatarUrl.startsWith('http')) {
+          const apiBaseUrl = window.apiBaseUrl || 'http://localhost:5067';
+          newAvatarUrl = newAvatarUrl.startsWith('/') ? newAvatarUrl : `/${newAvatarUrl}`;
+          newAvatarUrl = `${apiBaseUrl}${newAvatarUrl}`;
+        }
+        userAvatar.value = newAvatarUrl;
+        console.log('更新后的用户头像URL:', userAvatar.value);
+      }
+      
       userSignature.value = profileData.signature || userSignature.value;
       
       // 关闭个人资料弹窗
@@ -1265,6 +1296,13 @@ export default {
       }
       
       document.title = 'WHU-Chat | 主页';
+      
+      // 确保设置正确的 API 基础 URL
+      if (!window.apiBaseUrl) {
+        window.apiBaseUrl = 'http://localhost:5067'; // 设置默认的 API 基础 URL
+      }
+      
+      console.log('当前 API 基础 URL:', window.apiBaseUrl); // 添加日志
       
       // 自动加载数据
       fetchFriends(); // 加载好友列表
@@ -1862,6 +1900,7 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .avatar-placeholder {
@@ -1874,6 +1913,7 @@ export default {
   justify-content: center;
   font-weight: bold;
   font-size: 14px;
+  border-radius: 50%;
 }
 
 .friend-status {

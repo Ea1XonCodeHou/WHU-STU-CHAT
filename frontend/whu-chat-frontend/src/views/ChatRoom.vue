@@ -119,12 +119,16 @@
             </div>
             <div class="user-list">
               <div v-for="user in onlineUsers" :key="user.id" class="user-item" @click="showUserCard(user.id)">
-                <div class="user-avatar">
+                <div class="user-avatar" :class="{ 'vip-avatar': user.memberLevel === 1, 'svip-avatar': user.memberLevel === 2 }">
                   <img v-if="user.avatarUrl" :src="processAvatarUrl(user.avatarUrl)" alt="用户头像" class="avatar-image" />
                   <div v-else class="default-avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
                 </div>
                 <div class="user-details">
-                  <div class="user-name">{{ user.username }}</div>
+                  <div class="user-name">
+                    {{ user.username }}
+                    <span v-if="user.memberLevel === 1" class="vip-tag">VIP</span>
+                    <span v-else-if="user.memberLevel === 2" class="svip-tag">SVIP</span>
+                  </div>
                   <div class="user-status" :class="user.status">{{ user.status === 'online' ? '在线' : '离线' }}</div>
                 </div>
               </div>
@@ -405,6 +409,7 @@ export default {
     
     // 自动总结相关
     const autoSummaryActive = ref(true);
+    const summaryEnabled = ref(true); // 是否启用总结功能
     const lastMessageTime = ref(Date.now());
     const autoSummaryInterval = ref(null);
     const summaryDebounceTimeout = ref(null);
@@ -415,10 +420,19 @@ export default {
     const processAvatarUrl = (avatarUrl) => {
       if (!avatarUrl) return null;
       
-      if (!avatarUrl.startsWith('http')) {
-        avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
-        avatarUrl = `${window.apiBaseUrl}${avatarUrl}`;
+      // 如果是阿里云OSS的URL，直接返回
+      if (avatarUrl.includes('aliyuncs.com')) {
+        return avatarUrl;
       }
+      
+      // 如果已经是完整的http URL，直接返回
+      if (avatarUrl.startsWith('http')) {
+        return avatarUrl;
+      }
+      
+      // 处理相对路径
+      avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
+      avatarUrl = `${window.apiBaseUrl}${avatarUrl}`;
       
       return avatarUrl;
     };
@@ -470,15 +484,25 @@ export default {
         if (response.data && response.data.code === 200) {
           const userData = response.data.data;
           if (userData && userData.avatar) {
-            const processedUrl = processAvatarUrl(userData.avatar);
+            // 使用avatarUrl字段或avatar字段
+            const avatarUrl = userData.avatarUrl || userData.avatar;
+            const processedUrl = processAvatarUrl(avatarUrl);
             userAvatarCache.value[userId] = processedUrl;
+            
             // 强制更新组件
             nextTick(() => {
               const index = onlineUsers.value.findIndex(user => user.id === userId);
               if (index !== -1) {
-                onlineUsers.value[index] = { ...onlineUsers.value[index] };
+                // 更新在线用户的头像URL和会员等级
+                onlineUsers.value[index] = { 
+                  ...onlineUsers.value[index],
+                  avatarUrl: processedUrl,
+                  memberLevel: userData.memberLevel || 0
+                };
               }
             });
+            
+            console.log(`用户 ${userId} 的头像已更新为: ${processedUrl}`);
           } else {
             // 即使没有头像也存储null，避免重复请求
             userAvatarCache.value[userId] = null;
@@ -545,14 +569,55 @@ export default {
       startConnection();
     };
     
+    // 加载聊天室信息
+    const loadRoomInfo = async () => {
+      try {
+        const response = await axios.get(`${window.apiBaseUrl}/api/chat/room/${roomId.value}`);
+        if (response.data && response.data.code === 200) {
+          const roomData = response.data.data;
+          roomName.value = roomData.roomName;
+          if (roomData.activeUserCount > 0 && onlineUsers.value.length === 0) {
+            // 如果数据库中有在线用户但当前列表为空，刷新在线用户列表
+            await loadRoomOnlineUsers();
+          }
+        } else {
+          console.error('获取聊天室信息失败:', response.data?.msg || '未知错误');
+        }
+      } catch (error) {
+        console.error('加载聊天室信息失败:', error);
+      }
+    };
+    
+    // 加载聊天室在线用户
+    const loadRoomOnlineUsers = async () => {
+      try {
+        const response = await axios.get(`${window.apiBaseUrl}/api/chat/room/${roomId.value}/users`);
+        if (response.data && response.data.code === 200) {
+          // 更新在线用户列表
+          onlineUsers.value = response.data.data;
+          
+          // 异步加载用户头像和会员等级
+          onlineUsers.value.forEach(user => {
+            if (!user.avatarUrl || user.memberLevel === undefined) {
+              fetchUserAvatar(user.id);
+            }
+          });
+        } else {
+          console.error('获取聊天室在线用户失败:', response.data?.msg || '未知错误');
+        }
+      } catch (error) {
+        console.error('加载聊天室在线用户失败:', error);
+      }
+    };
+    
     // 注册SignalR处理函数
     const registerSignalRHandlers = () => {
-      // 接收新消息
+      // 接收聊天消息
       connection.value.on('ReceiveMessage', (message) => {
-        console.log('收到新消息:', message);
+        console.log('收到消息:', message);
         
-        // 处理消息中的图片URL
-        if (message.fileUrl) {
+        // 如果是图片消息，处理图片URL
+        if (message.messageType === 'image' && message.fileUrl) {
           message.fileUrl = getFullImageUrl(message.fileUrl);
         }
         
@@ -620,9 +685,23 @@ export default {
       });
       
       // 更新在线用户列表
-      connection.value.on('UpdateOnlineUsers', (users) => {
+      connection.value.on('UpdateOnlineUsers', async (users) => {
         console.log('更新在线用户列表:', users);
-        onlineUsers.value = users;
+        
+        // 使用服务器推送的用户列表更新，但从数据库获取补充信息
+        if (users && users.length > 0) {
+          onlineUsers.value = users;
+          
+          // 更新用户头像和会员等级（异步）
+          for (const user of users) {
+            if (!user.avatarUrl || user.memberLevel === undefined) {
+              fetchUserAvatar(user.id);
+            }
+          }
+        } else {
+          // 如果为空，尝试从API获取用户列表
+          await loadRoomOnlineUsers();
+        }
       });
       
       // 接收错误消息
@@ -643,6 +722,9 @@ export default {
         
         // 连接成功后加入聊天室
         joinChatRoom();
+        
+        // 加载聊天室信息
+        await loadRoomInfo();
       } catch (error) {
         console.error('连接SignalR失败:', error);
         connectionStatus.value = '连接失败';
@@ -934,6 +1016,18 @@ export default {
       showEmojiPanel.value = !showEmojiPanel.value;
     };
     
+    // 点击外部区域关闭表情面板
+    const handleClickOutside = (event) => {
+      const emojiButton = document.querySelector('.emoji-button');
+      const emojiPanel = document.querySelector('.emoji-panel');
+      
+      if (emojiButton && emojiPanel && 
+          !emojiButton.contains(event.target) && 
+          !emojiPanel.contains(event.target)) {
+        showEmojiPanel.value = false;
+      }
+    };
+    
     // 图片预览
     const previewImage = (url) => {
       previewImageUrl.value = url;
@@ -1183,6 +1277,16 @@ export default {
       }, 5000); // 5秒后检查是否需要总结
     };
     
+    // 检查是否需要更新总结
+    const checkForSummaryUpdate = () => {
+      const now = Date.now();
+      // 如果距离上次总结已经过了5分钟，或者有至少10条新消息，则更新总结
+      if ((now - lastSummaryTime.value > 300000 || messageCountSinceLastSummary.value >= 10) && 
+          messages.value.length > 0) {
+        requestChatSummary(true);
+      }
+    };
+    
     // 格式化总结内容
     const formattedSummary = computed(() => {
       if (!chatSummary.value) return '';
@@ -1280,43 +1384,25 @@ export default {
     
     // 组件挂载时
     onMounted(() => {
-      // 如果用户未登录，重定向到登录页
-      if (!userId.value || !username.value) {
-        router.push('/login');
-        return;
-      }
-      
-      // 确保API基础URL已设置
-      if (!window.apiBaseUrl) {
-        window.apiBaseUrl = 'http://localhost:5067';
-        console.log('初始化设置apiBaseUrl:', window.apiBaseUrl);
-      }
-      
-      // 创建SignalR连接
+      roomId.value = parseInt(props.id);
+      // 初始化连接
       createConnection();
       
-      // 监听滚动事件
-      if (messagesContainer.value) {
-        messagesContainer.value.addEventListener('scroll', checkScrollPosition);
-      }
+      // 添加事件监听器
+      document.addEventListener('click', handleClickOutside);
+      messagesContainer.value?.addEventListener('scroll', checkScrollPosition);
       
-      // 点击其他地方隐藏表情面板
-      document.addEventListener('click', (event) => {
-        const emojiButton = document.querySelector('.emoji-button');
-        const emojiPanel = document.querySelector('.emoji-panel');
-        
-        if (emojiButton && emojiPanel && 
-            !emojiButton.contains(event.target) && 
-            !emojiPanel.contains(event.target)) {
-          showEmojiPanel.value = false;
+      // 定时更新AI总结
+      autoSummaryInterval.value = setInterval(() => {
+        if (messages.value.length > 0 && summaryEnabled.value && !summarizing.value) {
+          checkForSummaryUpdate();
         }
-      });
+      }, 60000); // 每分钟检查一次
       
-      // 设置自动总结
-      setupAutoSummary();
-      
-      // 加载好友列表
-      loadFriendsList();
+      // 如果没有实时连接，尝试直接从API获取聊天室信息
+      if (!isConnected.value) {
+        loadRoomInfo();
+      }
     });
     
     // 组件卸载前
@@ -1409,6 +1495,7 @@ export default {
       chatSummary,
       summaryError,
       autoSummaryActive,
+      summaryEnabled,
       
       // 用户名片相关
       showingUserCard,
@@ -1731,19 +1818,26 @@ export default {
   text-align: right;
 }
 
+/* 文本消息 */
 .message-text {
-  background: #fff;
-  color: #333;
-  padding: 10px 16px;
-  border-radius: 16px;
-  font-size: 15px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-  word-break: break-all;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-size: 14px;
+  word-break: break-word;
+  line-height: 1.5;
+  position: relative;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.user-message:not(.self-message) .message-text {
+  border-top-left-radius: 0;
 }
 
 .user-message.self-message .message-text {
-  background: #1890ff;
-  color: #fff;
+  background-color: #1677ff;
+  color: white;
+  border-top-right-radius: 0;
 }
 
 .message-info {
@@ -1766,29 +1860,6 @@ export default {
 
 .self-message .message-time {
   text-align: right;
-}
-
-/* 文本消息 */
-.message-text {
-  padding: 10px 15px;
-  border-radius: 6px;
-  font-size: 14px;
-  word-break: break-word;
-  line-height: 1.5;
-  position: relative;
-}
-
-.other-message-container .message-text {
-  background-color: #ffffff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  border-top-left-radius: 0;
-}
-
-.self-message-container .message-text {
-  background-color: #1677ff;
-  color: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  border-top-right-radius: 0;
 }
 
 /* 图片消息 */
@@ -2934,12 +3005,12 @@ export default {
 
 /* 调整自己的消息样式 */
 .self-message {
-  flex-direction: row;
+  flex-direction: row-reverse;
 }
 
 .self-message .message-content {
-  margin-left: 10px;
-  margin-right: 0;
+  align-items: flex-end;
+  text-align: right;
 }
 
 .message-avatar {
@@ -2954,8 +3025,32 @@ export default {
 }
 
 .self-avatar {
-  margin-left: 0;
-  margin-right: 10px;
+  margin-left: 10px;
+  margin-right: 0;
+}
+
+.vip-avatar {
+  border: 2px solid #ffd700;
+}
+
+.svip-avatar {
+  border: 2px solid #ff4500;
+}
+
+.vip-tag, .svip-tag {
+  font-size: 12px;
+  color: #fff;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-left: 5px;
+}
+
+.vip-tag {
+  background-color: #ffd700;
+}
+
+.svip-tag {
+  background-color: #ff4500;
 }
 
 </style>  

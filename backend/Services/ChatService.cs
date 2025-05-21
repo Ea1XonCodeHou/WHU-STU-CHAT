@@ -311,13 +311,72 @@ namespace backend.Services
             
             try
             {
-                // 等待从缓存中获取房间用户信息
+                // 首先从内存缓存中获取用户
                 if (_onlineUsers.TryGetValue(roomId, out var roomUsers))
                 {
                     users.AddRange(roomUsers.Values);
                 }
                 
-                // 如果房间没有用户，则从数据库中获取最近活跃的10个用户
+                // 从数据库中获取在线用户列表
+                // 即使内存缓存有用户，我们也从数据库获取，保证数据一致性
+                using (var connection = new MySqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+                    
+                    // 先获取聊天室的OnlineUserIds
+                    var commandRoom = new MySqlCommand(
+                        "SELECT OnlineUserIds FROM chatrooms WHERE RoomId = @RoomId",
+                        connection);
+                    commandRoom.Parameters.AddWithValue("@RoomId", roomId);
+                    
+                    var onlineUserIdsStr = await commandRoom.ExecuteScalarAsync() as string;
+                    
+                    // 如果有在线用户ID
+                    if (!string.IsNullOrEmpty(onlineUserIdsStr))
+                    {
+                        var onlineUserIds = onlineUserIdsStr
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(id => Convert.ToInt32(id))
+                            .ToList();
+                        
+                        if (onlineUserIds.Count > 0)
+                        {
+                            // 查询这些用户的信息
+                            string userIdParams = string.Join(",", onlineUserIds);
+                            var commandUsers = new MySqlCommand(
+                                $@"SELECT u.UserId, u.Username, u.Avatar, u.Level 
+                                   FROM Users u 
+                                   WHERE u.UserId IN ({userIdParams})",
+                                connection);
+                            
+                            using (var reader = await commandUsers.ExecuteReaderAsync())
+                            {
+                                while (await reader.ReadAsync())
+                                {
+                                    // 检查该用户是否已在列表中（内存缓存可能已包含）
+                                    int userId = reader.GetInt32(reader.GetOrdinal("UserId"));
+                                    if (!users.Any(u => u.Id == userId))
+                                    {
+                                        var user = new UserDTO
+                                        {
+                                            Id = userId,
+                                            Username = reader.GetString(reader.GetOrdinal("Username")),
+                                            Status = "online",
+                                            LastActive = DateTime.Now,
+                                            AvatarUrl = reader.IsDBNull(reader.GetOrdinal("Avatar")) ? 
+                                                       null : reader.GetString(reader.GetOrdinal("Avatar")),
+                                            MemberLevel = reader.IsDBNull(reader.GetOrdinal("Level")) ? 
+                                                       0 : reader.GetInt32(reader.GetOrdinal("Level"))
+                                        };
+                                        users.Add(user);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // 如果仍然没有用户，则从数据库中获取最近活跃的10个用户
                 if (users.Count == 0)
                 {
                     using (var connection = new MySqlConnection(_connectionString))
@@ -326,11 +385,11 @@ namespace backend.Services
 
                         // 自定义SQL查询，确保ORDER BY子句中包含SELECT子句
                         var command = new MySqlCommand(
-                            @"SELECT DISTINCT u.UserId, u.Username, u.Avatar, MAX(m.CreateTime) as LastActivity
+                            @"SELECT DISTINCT u.UserId, u.Username, u.Avatar, u.Level, MAX(m.CreateTime) as LastActivity
                               FROM Users u
                               JOIN roommessages m ON u.UserId = m.SenderId
                               WHERE m.RoomId = @RoomId
-                              GROUP BY u.UserId, u.Username, u.Avatar
+                              GROUP BY u.UserId, u.Username, u.Avatar, u.Level
                               ORDER BY LastActivity DESC
                               LIMIT 10",
                             connection);
@@ -347,7 +406,9 @@ namespace backend.Services
                                     Status = "offline",
                                     LastActive = reader.GetDateTime(reader.GetOrdinal("LastActivity")),
                                     AvatarUrl = reader.IsDBNull(reader.GetOrdinal("Avatar")) ? 
-                                                null : reader.GetString(reader.GetOrdinal("Avatar"))
+                                                null : reader.GetString(reader.GetOrdinal("Avatar")),
+                                    MemberLevel = reader.IsDBNull(reader.GetOrdinal("Level")) ? 
+                                                0 : reader.GetInt32(reader.GetOrdinal("Level"))
                                 };
                                 users.Add(user);
                             }
@@ -409,8 +470,57 @@ namespace backend.Services
         /// </summary>
         public void AddUserToRoom(int roomId, UserDTO user)
         {
-            var roomUsers = _onlineUsers.GetOrAdd(roomId, new ConcurrentDictionary<int, UserDTO>());
-            roomUsers[user.Id] = user;
+            try
+            {
+                var roomUsers = _onlineUsers.GetOrAdd(roomId, new ConcurrentDictionary<int, UserDTO>());
+                roomUsers[user.Id] = user;
+                
+                // 更新数据库中的ActiveUserCount和OnlineUserIds
+                Task.Run(async () => {
+                    using (var connection = new MySqlConnection(_connectionString))
+                    {
+                        await connection.OpenAsync();
+                        
+                        // 获取当前的在线用户ID列表
+                        var command = new MySqlCommand(
+                            "SELECT OnlineUserIds FROM chatrooms WHERE RoomId = @RoomId", 
+                            connection);
+                        command.Parameters.AddWithValue("@RoomId", roomId);
+                        
+                        var onlineUserIdsStr = await command.ExecuteScalarAsync() as string;
+                        List<int> onlineUserIds = new List<int>();
+                        
+                        if (!string.IsNullOrEmpty(onlineUserIdsStr))
+                        {
+                            onlineUserIds = onlineUserIdsStr
+                                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                .Select(id => Convert.ToInt32(id))
+                                .ToList();
+                        }
+                        
+                        // 如果用户ID不在列表中，则添加
+                        if (!onlineUserIds.Contains(user.Id))
+                        {
+                            onlineUserIds.Add(user.Id);
+                            
+                            // 更新数据库
+                            var updateCommand = new MySqlCommand(
+                                "UPDATE chatrooms SET ActiveUserCount = @ActiveUserCount, OnlineUserIds = @OnlineUserIds, UpdateTime = @UpdateTime WHERE RoomId = @RoomId", 
+                                connection);
+                            updateCommand.Parameters.AddWithValue("@ActiveUserCount", onlineUserIds.Count);
+                            updateCommand.Parameters.AddWithValue("@OnlineUserIds", string.Join(",", onlineUserIds));
+                            updateCommand.Parameters.AddWithValue("@UpdateTime", DateTime.Now);
+                            updateCommand.Parameters.AddWithValue("@RoomId", roomId);
+                            
+                            await updateCommand.ExecuteNonQueryAsync();
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"添加用户到聊天室失败: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -418,15 +528,64 @@ namespace backend.Services
         /// </summary>
         public void RemoveUserFromRoom(int roomId, int userId)
         {
-            if (_onlineUsers.TryGetValue(roomId, out var roomUsers))
+            try
             {
-                roomUsers.TryRemove(userId, out _);
-                
-                // 如果房间没有用户了，可以选择移除整个房间记录
-                if (roomUsers.IsEmpty)
+                if (_onlineUsers.TryGetValue(roomId, out var roomUsers))
                 {
-                    _onlineUsers.TryRemove(roomId, out _);
+                    roomUsers.TryRemove(userId, out _);
+                    
+                    // 如果房间没有用户了，可以选择移除整个房间记录
+                    if (roomUsers.IsEmpty)
+                    {
+                        _onlineUsers.TryRemove(roomId, out _);
+                    }
+                    
+                    // 更新数据库中的ActiveUserCount和OnlineUserIds
+                    Task.Run(async () => {
+                        using (var connection = new MySqlConnection(_connectionString))
+                        {
+                            await connection.OpenAsync();
+                            
+                            // 获取当前的在线用户ID列表
+                            var command = new MySqlCommand(
+                                "SELECT OnlineUserIds FROM chatrooms WHERE RoomId = @RoomId", 
+                                connection);
+                            command.Parameters.AddWithValue("@RoomId", roomId);
+                            
+                            var onlineUserIdsStr = await command.ExecuteScalarAsync() as string;
+                            List<int> onlineUserIds = new List<int>();
+                            
+                            if (!string.IsNullOrEmpty(onlineUserIdsStr))
+                            {
+                                onlineUserIds = onlineUserIdsStr
+                                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(id => Convert.ToInt32(id))
+                                    .ToList();
+                            }
+                            
+                            // 如果用户ID在列表中，则移除
+                            if (onlineUserIds.Contains(userId))
+                            {
+                                onlineUserIds.Remove(userId);
+                                
+                                // 更新数据库
+                                var updateCommand = new MySqlCommand(
+                                    "UPDATE chatrooms SET ActiveUserCount = @ActiveUserCount, OnlineUserIds = @OnlineUserIds, UpdateTime = @UpdateTime WHERE RoomId = @RoomId", 
+                                    connection);
+                                updateCommand.Parameters.AddWithValue("@ActiveUserCount", onlineUserIds.Count);
+                                updateCommand.Parameters.AddWithValue("@OnlineUserIds", string.Join(",", onlineUserIds));
+                                updateCommand.Parameters.AddWithValue("@UpdateTime", DateTime.Now);
+                                updateCommand.Parameters.AddWithValue("@RoomId", roomId);
+                                
+                                await updateCommand.ExecuteNonQueryAsync();
+                            }
+                        }
+                    });
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"从聊天室移除用户失败: {ex.Message}");
             }
         }
         

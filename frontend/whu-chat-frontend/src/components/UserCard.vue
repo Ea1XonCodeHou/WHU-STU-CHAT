@@ -6,7 +6,7 @@
         <button class="close-button" @click="closeCard">×</button>
       </div>
       <div class="user-card-content">
-        <div class="user-avatar">
+        <div class="user-avatar" :class="{ 'vip-avatar': user.memberLevel === 1, 'svip-avatar': user.memberLevel === 2 }">
           <img v-if="user.avatar" :src="user.avatar" :alt="user.username">
           <div v-else class="avatar-placeholder">{{ user.username ? user.username.charAt(0).toUpperCase() : '?' }}</div>
           <div class="status-indicator" :class="user.status || 'offline'"></div>
@@ -16,10 +16,22 @@
           <div class="username">{{ user.username }}</div>
           <div class="status">{{ user.status === 'online' ? '在线' : '离线' }}</div>
           <div class="signature" v-if="user.signature">{{ user.signature }}</div>
+          <div class="member-level" v-if="user.memberLevel > 0">
+            <span v-if="user.memberLevel === 1" class="vip-badge">VIP</span>
+            <span v-else-if="user.memberLevel === 2" class="svip-badge">SVIP</span>
+          </div>
           <div class="user-stats">
             <div class="stat-item">
               <span class="stat-label">用户ID</span>
               <span class="stat-value">{{ user.id }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">会员等级</span>
+              <span class="stat-value">
+                <span v-if="user.memberLevel === 0">普通用户</span>
+                <span v-else-if="user.memberLevel === 1" class="vip-text">VIP会员</span>
+                <span v-else-if="user.memberLevel === 2" class="svip-text">SVIP会员</span>
+              </span>
             </div>
             <div class="stat-item">
               <span class="stat-label">最后活跃</span>
@@ -125,6 +137,11 @@ export default {
         const response = await axios.get(`/api/user/${props.userId}`);
         if (response.data && response.data.code === 200) {
           user.value = response.data.data;
+          
+          // 如果没有memberLevel字段，设置默认值
+          if (user.value.memberLevel === undefined) {
+            user.value.memberLevel = 0;
+          }
           
           // 查询好友关系状态
           await checkFriendshipStatus();
@@ -558,5 +575,79 @@ export default {
 
 .confirm-button:hover {
   box-shadow: 0 2px 8px rgba(71, 118, 230, 0.3);
+}
+
+/* VIP头像特效 */
+.vip-avatar {
+  border: 3px solid transparent;
+  background-image: linear-gradient(white, white), 
+                    linear-gradient(90deg, #ffd700, #ffcc00);
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+  animation: vip-border-pulse 3s infinite;
+}
+
+/* SVIP头像特效 */
+.svip-avatar {
+  border: 4px solid transparent;
+  background-image: linear-gradient(white, white), 
+                    linear-gradient(45deg, #ff4757, #8e54e9, #4776e6, #00cec9);
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  box-shadow: 0 0 20px rgba(142, 84, 233, 0.7);
+  animation: svip-border-rotate 5s linear infinite;
+}
+
+@keyframes vip-border-pulse {
+  0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+  50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.8); }
+  100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
+}
+
+@keyframes svip-border-rotate {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+/* VIP/SVIP徽章 */
+.member-level {
+  margin: 10px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.vip-badge, .svip-badge {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.vip-badge {
+  background: linear-gradient(135deg, #ffd700, #ffcc00);
+  color: #845600;
+  box-shadow: 0 2px 5px rgba(255, 215, 0, 0.5);
+}
+
+.svip-badge {
+  background: linear-gradient(135deg, #ff4757, #8e54e9);
+  color: white;
+  box-shadow: 0 2px 8px rgba(142, 84, 233, 0.6);
+}
+
+.vip-text {
+  color: #ffd700;
+  font-weight: bold;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+.svip-text {
+  background: linear-gradient(90deg, #ff4757, #8e54e9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: bold;
+  padding: 0 2px;
 }
 </style> 

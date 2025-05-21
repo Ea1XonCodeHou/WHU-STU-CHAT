@@ -244,11 +244,11 @@ namespace backend.Services
                     string sql;
                     if (statusFieldExists)
                     {
-                        sql = "SELECT UserId, Username, Email, Phone, Avatar, Signature, Status FROM Users WHERE UserId = @UserId";
+                        sql = "SELECT UserId, Username, Email, Phone, Avatar, Signature, Status, Level FROM Users WHERE UserId = @UserId";
                     }
                     else
                     {
-                        sql = "SELECT UserId, Username, Email, Phone, Avatar, Signature FROM Users WHERE UserId = @UserId";
+                        sql = "SELECT UserId, Username, Email, Phone, Avatar, Signature, Level FROM Users WHERE UserId = @UserId";
                     }
 
                     var command = new MySqlCommand(sql, connection);
@@ -266,7 +266,8 @@ namespace backend.Services
                                 Phone = reader.IsDBNull(reader.GetOrdinal("Phone")) ? null : reader.GetString(reader.GetOrdinal("Phone")),
                                 Avatar = reader.IsDBNull(reader.GetOrdinal("Avatar")) ? null : reader.GetString(reader.GetOrdinal("Avatar")),
                                 Signature = reader.IsDBNull(reader.GetOrdinal("Signature")) ? null : reader.GetString(reader.GetOrdinal("Signature")),
-                                Status = "offline" // 默认状态为离线
+                                Status = "offline", // 默认状态为离线
+                                MemberLevel = reader.IsDBNull(reader.GetOrdinal("Level")) ? 0 : reader.GetInt32(reader.GetOrdinal("Level"))
                             };
 
                             // 如果存在Status字段，则读取实际状态
@@ -361,7 +362,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 var command = new MySqlCommand(
-                    "SELECT UserId, Username, Status, Avatar, Signature FROM Users WHERE Username = @Username",
+                    "SELECT UserId, Username, Status, Avatar, Signature, Level FROM Users WHERE Username = @Username",
                     connection);
                 command.Parameters.AddWithValue("@Username", username);
                 using (var reader = await command.ExecuteReaderAsync())
@@ -374,7 +375,8 @@ namespace backend.Services
                             Username = reader.GetString(1),
                             Status = reader.IsDBNull(2) ? "offline" : reader.GetString(2),
                             AvatarUrl = reader.IsDBNull(3) ? null : reader.GetString(3),
-                            Signature = reader.IsDBNull(4) ? null : reader.GetString(4)
+                            Signature = reader.IsDBNull(4) ? null : reader.GetString(4),
+                            MemberLevel = reader.IsDBNull(5) ? 0 : reader.GetInt32(5)
                         };
                     }
                 }
@@ -387,7 +389,7 @@ namespace backend.Services
             {
                 await connection.OpenAsync();
                 var command = new MySqlCommand(
-                    "SELECT UserId, Username, Status, Avatar, Signature FROM Users WHERE UserId = @UserId",
+                    "SELECT UserId, Username, Status, Avatar, Signature, Level FROM Users WHERE UserId = @UserId",
                     connection);
                 command.Parameters.AddWithValue("@UserId", userId);
                 using (var reader = await command.ExecuteReaderAsync())
@@ -400,7 +402,8 @@ namespace backend.Services
                             Username = reader.GetString(1),
                             Status = reader.IsDBNull(2) ? "offline" : reader.GetString(2),
                             AvatarUrl = reader.IsDBNull(3) ? null : reader.GetString(3),
-                            Signature = reader.IsDBNull(4) ? null : reader.GetString(4)
+                            Signature = reader.IsDBNull(4) ? null : reader.GetString(4),
+                            MemberLevel = reader.IsDBNull(5) ? 0 : reader.GetInt32(5)
                         };
                     }
                 }

@@ -1299,7 +1299,7 @@ export default {
     };
     
     // 页面加载时的初始化
-    onMounted(() => {
+    onMounted(async () => {
       const token = localStorage.getItem('token');
       if (!token) {
         router.push('/login');
@@ -1320,11 +1320,17 @@ export default {
       fetchGroups(); // 加载群组列表
       updateUnreadNotifications(); // 初始加载未读通知数量
       
+      // 加载聊天室信息
+      await loadChatRoomsInfo();
+      
       // 设置定时更新状态
       statusUpdateInterval = setInterval(updateFriendsOnlineStatus, 30000); // 每30秒更新一次
       
       // 设置定时更新未读通知数量
       const notificationInterval = setInterval(updateUnreadNotifications, 30000); // 每30秒更新一次
+      
+      // 设置定时更新聊天室信息
+      const chatRoomsInterval = setInterval(loadChatRoomsInfo, 60000); // 每60秒更新一次
       
       // 在组件卸载时清除定时器
       onBeforeUnmount(() => {
@@ -1333,6 +1339,9 @@ export default {
         }
         if (notificationInterval) {
           clearInterval(notificationInterval);
+        }
+        if (chatRoomsInterval) {
+          clearInterval(chatRoomsInterval);
         }
       });
     });
@@ -1458,6 +1467,54 @@ export default {
     
     const isValidDate = (date) => {
       return date instanceof Date && !isNaN(date);
+    };
+    
+    // 加载通知列表
+    const loadNotifications = async () => {
+      try {
+        const apiBaseUrl = window.apiBaseUrl || '';
+        const response = await axios.get(`${apiBaseUrl}/api/notification/user/${userId.value}`);
+        
+        if (response.data && response.data.code === 200) {
+          notifications.value = response.data.data;
+          
+          // 计算未读通知数
+          unreadNotifications.value = notifications.value.filter(n => !n.isRead).length;
+        }
+      } catch (error) {
+        console.error('获取通知列表失败:', error);
+      }
+    };
+    
+    // 加载聊天室列表
+    const loadChatRoomsInfo = async () => {
+      try {
+        const apiBaseUrl = window.apiBaseUrl || '';
+        
+        // 获取所有聊天室的信息
+        for (let i = 0; i < chatRooms.value.length; i++) {
+          const roomId = chatRooms.value[i].id;
+          
+          try {
+            const response = await axios.get(`${apiBaseUrl}/api/chat/room/${roomId}`);
+            if (response.data && response.data.code === 200) {
+              const roomData = response.data.data;
+              
+              // 更新聊天室信息
+              chatRooms.value[i].onlineCount = roomData.activeUserCount;
+              
+              // 如果有描述，也更新
+              if (roomData.description) {
+                chatRooms.value[i].description = roomData.description;
+              }
+            }
+          } catch (error) {
+            console.error(`获取聊天室${roomId}信息失败:`, error);
+          }
+        }
+      } catch (error) {
+        console.error('加载聊天室信息失败:', error);
+      }
     };
     
     return {

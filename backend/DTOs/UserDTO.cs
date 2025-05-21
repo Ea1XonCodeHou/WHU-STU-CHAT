@@ -89,6 +89,11 @@ namespace backend.DTOs
         /// 头像URL
         /// </summary>
         public string? AvatarUrl { get; set; }
+        
+        /// <summary>
+        /// 会员等级 (0=普通用户, 1=VIP, 2=SVIP)
+        /// </summary>
+        public int MemberLevel { get; set; } = 0;
 
         /// <summary>
         /// 状态（在线/离线）

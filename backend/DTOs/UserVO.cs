@@ -41,6 +41,11 @@ namespace backend.DTOs
         /// 在线状态
         /// </summary>
         public string? Status { get; set; }
+        
+        /// <summary>
+        /// 会员等级 (0=普通用户, 1=VIP, 2=SVIP)
+        /// </summary>
+        public int MemberLevel { get; set; } = 0;
     }
 
     /// <summary>

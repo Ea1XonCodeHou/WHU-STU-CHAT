@@ -1,0 +1,74 @@
+/* 全局头像样式 */
+.avatar-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-image.small {
+  width: 32px;
+  height: 32px;
+}
+
+.avatar-image.large {
+  width: 64px;
+  height: 64px;
+}
+
+.default-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #1890ff;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.default-avatar.small {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+.default-avatar.large {
+  width: 64px;
+  height: 64px;
+  font-size: 24px;
+}
+
+/* 头像容器样式 */
+.avatar-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* 头像加载状态 */
+.avatar-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+/* 头像悬停效果 */
+.avatar-image:hover,
+.default-avatar:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+} 

@@ -52,9 +52,10 @@
             
             <!-- 用户消息 -->
             <div v-else class="user-message" :class="{'self-message': message.senderId === userId}">
-              <!-- 头像 -->
+              <!-- 其他用户的头像 -->
               <div class="message-avatar" v-if="message.senderId !== userId" @click.stop="showUserCard(message.senderId)">
-                <div class="avatar default-avatar">
+                <img v-if="getUserAvatar(message.senderId)" :src="getUserAvatar(message.senderId)" alt="用户头像" class="avatar-image" />
+                <div v-else class="default-avatar">
                   {{ message.senderName.charAt(0).toUpperCase() }}
                 </div>
               </div>
@@ -66,18 +67,16 @@
                   <span class="message-time">{{ formatTime(message.sendTime) }}</span>
                 </div>
                 
-                <!-- 文本消息 -->
+                <!-- 消息类型内容 -->
                 <div v-if="message.messageType === 'text'" class="message-text">
                   {{ message.content }}
                 </div>
                 
-                <!-- 图片消息 -->
                 <div v-else-if="message.messageType === 'image'" class="message-image">
                   <img :src="message.fileUrl" alt="图片消息" @click="previewImage(message.fileUrl)" />
                   <div class="image-info">{{ message.fileName }} ({{ formatFileSize(message.fileSize) }})</div>
                 </div>
                 
-                <!-- 文件消息 -->
                 <div v-else-if="message.messageType === 'file'" class="message-file" @click="downloadFile(message.fileUrl, message.fileName)">
                   <div class="file-icon"></div>
                   <div class="file-info">
@@ -87,15 +86,15 @@
                   <div class="download-icon"></div>
                 </div>
                 
-                <!-- 表情消息 -->
                 <div v-else-if="message.messageType === 'emoji'" class="message-emoji">
                   {{ message.content }}
                 </div>
               </div>
               
-              <!-- 右侧头像(自己的消息) -->
+              <!-- 自己的头像 -->
               <div class="message-avatar self-avatar" v-if="message.senderId === userId">
-                <div class="avatar default-avatar">
+                <img v-if="userAvatar" :src="userAvatar" alt="用户头像" class="avatar-image" />
+                <div v-else class="default-avatar">
                   {{ username.charAt(0).toUpperCase() }}
                 </div>
               </div>
@@ -121,7 +120,7 @@
             <div class="user-list">
               <div v-for="user in onlineUsers" :key="user.id" class="user-item" @click="showUserCard(user.id)">
                 <div class="user-avatar">
-                  <img v-if="user.avatarUrl" :src="user.avatarUrl" alt="用户头像" />
+                  <img v-if="user.avatarUrl" :src="processAvatarUrl(user.avatarUrl)" alt="用户头像" class="avatar-image" />
                   <div v-else class="default-avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
                 </div>
                 <div class="user-details">
@@ -253,6 +252,12 @@ export default {
     const username = ref(localStorage.getItem('username') || '访客');
     const userAvatar = ref(localStorage.getItem('userAvatar') || '');
     
+    // 处理头像URL
+    if (userAvatar.value && !userAvatar.value.startsWith('http')) {
+      userAvatar.value = userAvatar.value.startsWith('/') ? userAvatar.value : `/${userAvatar.value}`;
+      userAvatar.value = `${window.apiBaseUrl}${userAvatar.value}`;
+    }
+    
     // 聊天室信息
     const roomId = computed(() => parseInt(props.id));
     const roomName = ref('公共聊天室');
@@ -357,7 +362,70 @@ export default {
     const summaryDebounceTimeout = ref(null);
     const lastSummaryTime = ref(0);
     const messageCountSinceLastSummary = ref(0);
-
+    
+    // 用户头像缓存，用于提高性能
+    const userAvatarCache = ref({});
+    
+    // 处理头像URL
+    const processAvatarUrl = (avatarUrl) => {
+      if (!avatarUrl) return null;
+      
+      if (!avatarUrl.startsWith('http')) {
+        avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
+        avatarUrl = `${window.apiBaseUrl}${avatarUrl}`;
+      }
+      
+      return avatarUrl;
+    };
+    
+    // 获取用户头像
+    const getUserAvatar = (userId) => {
+      // 如果是当前用户，直接返回userAvatar
+      if (userId === parseInt(localStorage.getItem('userId'))) {
+        return userAvatar.value;
+      }
+      
+      // 如果缓存中有，直接返回
+      if (userAvatarCache.value[userId]) {
+        return userAvatarCache.value[userId];
+      }
+      
+      // 从在线用户列表中查找
+      const user = onlineUsers.value.find(user => user.id === userId);
+      if (user && user.avatarUrl) {
+        const processedUrl = processAvatarUrl(user.avatarUrl);
+        userAvatarCache.value[userId] = processedUrl;
+        return processedUrl;
+      }
+      
+      // 如果找不到，尝试从服务器获取
+      fetchUserAvatar(userId);
+      return null;
+    };
+    
+    // 从服务器获取用户头像
+    const fetchUserAvatar = async (userId) => {
+      try {
+        const response = await axios.get(`${window.apiBaseUrl}/api/user/${userId}`);
+        if (response.data && response.data.code === 200) {
+          const userData = response.data.data;
+          if (userData.avatar) {
+            const processedUrl = processAvatarUrl(userData.avatar);
+            userAvatarCache.value[userId] = processedUrl;
+            // 强制更新组件
+            nextTick(() => {
+              const index = onlineUsers.value.findIndex(user => user.id === userId);
+              if (index !== -1) {
+                onlineUsers.value[index] = { ...onlineUsers.value[index] };
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.error('获取用户头像失败:', error);
+      }
+    };
+    
     // 创建SignalR连接
     const createConnection = () => {
       // 定义API基础URL为一个常量，便于统一修改
@@ -1108,6 +1176,10 @@ export default {
       isUserFriend,
       handleFriendRequestSent,
       
+      // 头像处理
+      processAvatarUrl,
+      getUserAvatar,
+      
       // 方法
       sendMessage,
       insertEmoji,
@@ -1149,9 +1221,11 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 10px 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #e5e5e5;
+  height: 60px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   z-index: 10;
 }
 
@@ -1362,27 +1436,53 @@ export default {
 .user-message {
   display: flex;
   margin-bottom: 20px;
+  align-items: flex-start;
 }
 
-.self-message-container .user-message {
+.self-message {
   flex-direction: row-reverse;
 }
 
 .message-avatar {
   width: 40px;
   height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
   margin: 0 10px;
   flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.self-avatar {
+  margin-left: 10px;
+  margin-right: 0;
 }
 
 .message-content {
   max-width: 60%;
-  display: flex;
-  flex-direction: column;
 }
 
-.self-message-container .message-content {
+.self-message .message-content {
   align-items: flex-end;
+}
+
+.default-avatar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1677ff, #69c0ff);
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
 }
 
 .message-info {
@@ -1402,7 +1502,7 @@ export default {
   color: #bbb;
 }
 
-.self-message-container .message-time {
+.self-message .message-time {
   text-align: right;
 }
 
@@ -2546,5 +2646,41 @@ export default {
 .chat-actions {
   display: flex;
   gap: 0.5rem;
+}
+
+/* 修改头像样式 */
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* 调整自己的消息样式 */
+.self-message {
+  flex-direction: row-reverse;
+}
+
+.self-message .message-content {
+  margin-right: 10px;
+  margin-left: 0;
+}
+
+.message-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.self-avatar {
+  margin-left: 10px;
+  margin-right: 0;
 }
 </style> 

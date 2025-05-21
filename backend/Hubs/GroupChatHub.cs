@@ -66,7 +66,7 @@ namespace backend.Hubs
                     SenderName = "系统",
                     Content = $"{username} 加入了群组",
                     CreateTime = DateTime.Now,
-                    
+                    MessageType = "system"
                 };
                 await Clients.Group($"Group_{groupId}").SendAsync("ReceiveMessage", joinMessage);
 

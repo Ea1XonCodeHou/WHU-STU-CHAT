@@ -503,6 +503,25 @@ export default {
       connection.value.on('ReceiveMessage', async (message) => {
         console.log('收到新消息:', message);
         
+        // 如果是系统消息，直接添加
+        if (message.messageType === 'system') {
+          messages.value.push({
+            messageId: message.messageId,
+            content: message.content,
+            sendTime: message.createTime,
+            senderId: message.senderId,
+            senderName: message.senderName,
+            messageType: 'system'
+          });
+          
+          if (isAtBottom.value) {
+            nextTick(() => scrollToBottom());
+          } else {
+            hasNewMessage.value = true;
+          }
+          return;
+        }
+        
         // 获取发送者信息
         const senderInfo = await getUserInfo(message.senderId);
         

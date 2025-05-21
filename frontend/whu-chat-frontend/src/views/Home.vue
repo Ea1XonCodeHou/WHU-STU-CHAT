@@ -35,11 +35,7 @@
 
       <!-- 导航菜单 -->
       <div class="nav-menu">
-        <div class="search-box">
-          <i class="fa-solid fa-search"></i>
-          <input type="text" placeholder="搜索..." v-model="searchQuery">
-          <i class="fa-solid fa-times" v-if="searchQuery" @click="searchQuery = ''"></i>
-        </div>
+        <!-- 移除搜索框 -->
         
         <div class="menu-section">
           <div class="section-header">

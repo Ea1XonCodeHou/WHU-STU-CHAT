@@ -553,6 +553,19 @@ export default {
             } else if (message.senderId === userId.value) {
               message.senderAvatar = userAvatar.value;
             }
+            
+            // 处理表情消息
+            if (message.messageType === 'emoji' && message.content) {
+              try {
+                // 尝试使用JSON解析，如果失败则使用原始内容
+                const decodedEmoji = JSON.parse(`"${message.content}"`);
+                message.content = decodedEmoji;
+              } catch (e) {
+                console.warn('实时表情解码失败:', e);
+                // 保持原样
+              }
+            }
+            
             messages.value.push(message);
             nextTick(() => scrollToBottom());
           }
@@ -582,6 +595,19 @@ export default {
               // 处理图片消息的URL
               if (message.messageType === 'image' && message.fileUrl) {
                 message.fileUrl = formatMessageUrl(message.fileUrl);
+              }
+
+              // 确保表情消息正确显示
+              if (message.messageType === 'emoji' && message.content) {
+                // 确保表情内容正确解码
+                try {
+                  // 尝试使用JSON解析，如果失败则使用原始内容
+                  const decodedEmoji = JSON.parse(`"${message.content}"`);
+                  message.content = decodedEmoji;
+                } catch (e) {
+                  console.warn('表情解码失败:', e);
+                  // 保持原样
+                }
               }
               
               // 如果还是没有头像，尝试加载用户信息
@@ -667,6 +693,8 @@ export default {
         // 检查是否是表情消息
         if (emojis.value.includes(newMessage.value.trim())) {
           message.messageType = 'emoji';
+          // 确保表情符号以UTF-8格式正确存储
+          message.content = newMessage.value.trim();
         }
         
         await connection.value.invoke('SendPrivateMessage', message);

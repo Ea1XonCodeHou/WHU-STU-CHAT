@@ -311,10 +311,17 @@ namespace backend.Services
             
             try
             {
+                _logger.LogInformation($"获取聊天室 {roomId} 的在线用户");
+                
                 // 首先从内存缓存中获取用户
-                if (_onlineUsers.TryGetValue(roomId, out var roomUsers))
+                if (_onlineUsers.TryGetValue(roomId, out var roomUsers) && roomUsers.Count > 0)
                 {
+                    _logger.LogInformation($"从内存缓存中找到 {roomUsers.Count} 个用户");
                     users.AddRange(roomUsers.Values);
+                }
+                else
+                {
+                    _logger.LogInformation($"内存缓存中没有找到聊天室 {roomId} 的用户或为空");
                 }
                 
                 // 从数据库中获取在线用户列表
@@ -325,53 +332,82 @@ namespace backend.Services
                     
                     // 先获取聊天室的OnlineUserIds
                     var commandRoom = new MySqlCommand(
-                        "SELECT OnlineUserIds FROM chatrooms WHERE RoomId = @RoomId",
+                        "SELECT OnlineUserIds, ActiveUserCount FROM chatrooms WHERE RoomId = @RoomId",
                         connection);
                     commandRoom.Parameters.AddWithValue("@RoomId", roomId);
                     
-                    var onlineUserIdsStr = await commandRoom.ExecuteScalarAsync() as string;
-                    
-                    // 如果有在线用户ID
-                    if (!string.IsNullOrEmpty(onlineUserIdsStr))
+                    using (var reader = await commandRoom.ExecuteReaderAsync())
                     {
-                        var onlineUserIds = onlineUserIdsStr
-                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                            .Select(id => Convert.ToInt32(id))
-                            .ToList();
-                        
-                        if (onlineUserIds.Count > 0)
+                        if (await reader.ReadAsync())
                         {
-                            // 查询这些用户的信息
-                            string userIdParams = string.Join(",", onlineUserIds);
-                            var commandUsers = new MySqlCommand(
-                                $@"SELECT u.UserId, u.Username, u.Avatar, u.Level 
-                                   FROM Users u 
-                                   WHERE u.UserId IN ({userIdParams})",
-                                connection);
+                            string onlineUserIdsStr = reader.IsDBNull(reader.GetOrdinal("OnlineUserIds")) ? 
+                                                     null : reader.GetString(reader.GetOrdinal("OnlineUserIds"));
+                            int activeUserCount = reader.GetInt32(reader.GetOrdinal("ActiveUserCount"));
                             
-                            using (var reader = await commandUsers.ExecuteReaderAsync())
+                            _logger.LogInformation($"数据库中聊天室 {roomId} 的ActiveUserCount={activeUserCount}, OnlineUserIds={onlineUserIdsStr ?? "null"}");
+                            
+                            // 如果有在线用户ID
+                            if (!string.IsNullOrEmpty(onlineUserIdsStr))
                             {
-                                while (await reader.ReadAsync())
+                                var onlineUserIds = onlineUserIdsStr
+                                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(id => Convert.ToInt32(id))
+                                    .ToList();
+                                
+                                if (onlineUserIds.Count > 0)
                                 {
-                                    // 检查该用户是否已在列表中（内存缓存可能已包含）
-                                    int userId = reader.GetInt32(reader.GetOrdinal("UserId"));
-                                    if (!users.Any(u => u.Id == userId))
+                                    // 如果数据库中的用户数与内存缓存不匹配，则重新从数据库获取
+                                    if (onlineUserIds.Count != users.Count)
                                     {
-                                        var user = new UserDTO
+                                        _logger.LogInformation($"数据库中有 {onlineUserIds.Count} 个用户，而缓存中有 {users.Count} 个用户，需要重新查询");
+                                        users.Clear(); // 清空已有用户列表，重新获取
+                                        
+                                        // 重新查询这些用户的信息
+                                        reader.Close(); // 关闭当前reader
+                                        
+                                        string userIdParams = string.Join(",", onlineUserIds);
+                                        var commandUsers = new MySqlCommand(
+                                            $@"SELECT u.UserId, u.Username, u.Avatar, u.Level 
+                                               FROM Users u 
+                                               WHERE u.UserId IN ({userIdParams})",
+                                            connection);
+                                        
+                                        using (var userReader = await commandUsers.ExecuteReaderAsync())
                                         {
-                                            Id = userId,
-                                            Username = reader.GetString(reader.GetOrdinal("Username")),
-                                            Status = "online",
-                                            LastActive = DateTime.Now,
-                                            AvatarUrl = reader.IsDBNull(reader.GetOrdinal("Avatar")) ? 
-                                                       null : reader.GetString(reader.GetOrdinal("Avatar")),
-                                            MemberLevel = reader.IsDBNull(reader.GetOrdinal("Level")) ? 
-                                                       0 : reader.GetInt32(reader.GetOrdinal("Level"))
-                                        };
-                                        users.Add(user);
+                                            while (await userReader.ReadAsync())
+                                            {
+                                                int userId = userReader.GetInt32(userReader.GetOrdinal("UserId"));
+                                                var user = new UserDTO
+                                                {
+                                                    Id = userId,
+                                                    Username = userReader.GetString(userReader.GetOrdinal("Username")),
+                                                    Status = "online",
+                                                    LastActive = DateTime.Now,
+                                                    AvatarUrl = userReader.IsDBNull(userReader.GetOrdinal("Avatar")) ? 
+                                                               null : userReader.GetString(userReader.GetOrdinal("Avatar")),
+                                                    MemberLevel = userReader.IsDBNull(userReader.GetOrdinal("Level")) ? 
+                                                               0 : userReader.GetInt32(userReader.GetOrdinal("Level"))
+                                                };
+                                                users.Add(user);
+                                                
+                                                // 更新内存缓存
+                                                if (!_onlineUsers.TryGetValue(roomId, out var _))
+                                                {
+                                                    _onlineUsers[roomId] = new ConcurrentDictionary<int, UserDTO>();
+                                                }
+                                                _onlineUsers[roomId][userId] = user;
+                                            }
+                                        }
+                                        
+                                        _logger.LogInformation($"从数据库中获取到 {users.Count} 个用户，并更新了内存缓存");
+                                        return users;
                                     }
                                 }
                             }
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"数据库中没有找到聊天室 {roomId}");
                         }
                     }
                 }
@@ -379,6 +415,7 @@ namespace backend.Services
                 // 如果仍然没有用户，则从数据库中获取最近活跃的10个用户
                 if (users.Count == 0)
                 {
+                    _logger.LogInformation($"没有找到在线用户，尝试获取最近活跃的用户");
                     using (var connection = new MySqlConnection(_connectionString))
                     {
                         await connection.OpenAsync();
@@ -413,6 +450,8 @@ namespace backend.Services
                                 users.Add(user);
                             }
                         }
+                        
+                        _logger.LogInformation($"从数据库中获取到 {users.Count} 个最近活跃的用户");
                     }
                 }
                 

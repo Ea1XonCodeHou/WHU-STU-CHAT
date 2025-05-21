@@ -725,6 +725,9 @@ export default {
         
         // 加载聊天室信息
         await loadRoomInfo();
+        
+        // 启动定时刷新功能
+        startAutoRefreshMessages();
       } catch (error) {
         console.error('连接SignalR失败:', error);
         connectionStatus.value = '连接失败';
@@ -1438,6 +1441,9 @@ export default {
       if (uploadClickTimeout) {
         clearTimeout(uploadClickTimeout);
       }
+      
+      // 停止自动刷新
+      stopAutoRefreshMessages();
     });
     
     // 监听消息列表变化
@@ -1449,6 +1455,39 @@ export default {
     
     // 使用防抖变量
     let scrollPositionDebounce = null;
+    
+    // 自动刷新消息定时器ID
+    let autoRefreshTimerId = null;
+    
+    // 开始自动刷新消息和在线用户
+    const startAutoRefreshMessages = () => {
+      // 清除可能存在的旧定时器
+      if (autoRefreshTimerId) {
+        clearInterval(autoRefreshTimerId);
+      }
+      
+      // 设置新的定时器，每10秒刷新一次
+      autoRefreshTimerId = setInterval(async () => {
+        if (isConnected.value) {
+          // 获取最新的聊天室信息和在线用户
+          await loadRoomInfo();
+          // 查询最新消息（这里通过SignalR Hub直接请求）
+          try {
+            await connection.value.invoke('RequestLatestMessages', roomId.value, 20);
+          } catch (error) {
+            console.error('请求最新消息失败:', error);
+          }
+        }
+      }, 3000); // 10秒刷新一次
+    };
+    
+    // 停止自动刷新
+    const stopAutoRefreshMessages = () => {
+      if (autoRefreshTimerId) {
+        clearInterval(autoRefreshTimerId);
+        autoRefreshTimerId = null;
+      }
+    };
     
     return {
       // 用户信息
@@ -1531,6 +1570,8 @@ export default {
       handleImageError,
       triggerImageUpload,
       triggerFileUpload,
+      startAutoRefreshMessages,
+      stopAutoRefreshMessages,
     };
   }
 };

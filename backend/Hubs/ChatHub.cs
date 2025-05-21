@@ -312,6 +312,44 @@ namespace backend.Hubs
 
             await base.OnDisconnectedAsync(exception);
         }
+
+        // 获取最新的聊天消息
+        public async Task RequestLatestMessages(int roomId, int count)
+        {
+            try
+            {
+                _logger.LogInformation($"用户请求获取聊天室 {roomId} 的最新 {count} 条消息");
+                
+                // 验证连接
+                if (!_connections.TryGetValue(Context.ConnectionId, out var userConnection))
+                {
+                    _logger.LogWarning($"无效的连接请求获取消息: {Context.ConnectionId}");
+                    await Clients.Caller.SendAsync("Error", "未加入聊天室，不能获取消息");
+                    return;
+                }
+                
+                // 确保用户在请求的聊天室内
+                if (userConnection.RoomId != roomId)
+                {
+                    _logger.LogWarning($"用户尝试获取非当前聊天室的消息: 用户在 {userConnection.RoomId}，请求 {roomId}");
+                    await Clients.Caller.SendAsync("Error", "只能获取当前聊天室的消息");
+                    return;
+                }
+                
+                // 获取最新消息
+                var messages = await _chatService.GetRoomMessagesAsync(roomId, count);
+                _logger.LogInformation($"已获取聊天室 {roomId} 的 {messages.Count} 条最新消息");
+                
+                // 返回消息给调用者
+                await Clients.Caller.SendAsync("ReceiveHistoryMessages", messages);
+                _logger.LogInformation($"已向用户 {userConnection.Username}({userConnection.UserId}) 发送最新消息");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"获取最新消息时出错: {ex.Message}");
+                await Clients.Caller.SendAsync("Error", "获取最新消息失败: " + ex.Message);
+            }
+        }
     }
 
     // 用于存储用户连接信息的类

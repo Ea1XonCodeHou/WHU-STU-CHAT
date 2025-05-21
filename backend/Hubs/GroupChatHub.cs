@@ -280,5 +280,43 @@ namespace backend.Hubs
 
             await base.OnDisconnectedAsync(exception);
         }
+
+        // 获取最新的群组聊天消息
+        public async Task RequestGroupLatestMessages(int groupId, int count)
+        {
+            try
+            {
+                _logger.LogInformation($"用户请求获取群组 {groupId} 的最新 {count} 条消息");
+                
+                // 验证连接
+                if (!_connections.TryGetValue(Context.ConnectionId, out var userConnection))
+                {
+                    _logger.LogWarning($"无效的连接请求获取消息: {Context.ConnectionId}");
+                    await Clients.Caller.SendAsync("Error", "未加入群组，不能获取消息");
+                    return;
+                }
+                
+                // 确保用户在请求的群组内
+                if (userConnection.RoomId != groupId)
+                {
+                    _logger.LogWarning($"用户尝试获取非当前群组的消息: 用户在 {userConnection.RoomId}，请求 {groupId}");
+                    await Clients.Caller.SendAsync("Error", "只能获取当前群组的消息");
+                    return;
+                }
+                
+                // 获取最新消息
+                var messages = await _groupService.GetGroupMessagesAsync(groupId, count);
+                _logger.LogInformation($"已获取群组 {groupId} 的 {messages.Count} 条最新消息");
+                
+                // 返回消息给调用者
+                await Clients.Caller.SendAsync("ReceiveGroupHistory", messages);
+                _logger.LogInformation($"已向用户 {userConnection.Username}({userConnection.UserId}) 发送最新消息");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"获取最新群组消息时出错: {ex.Message}");
+                await Clients.Caller.SendAsync("Error", "获取最新群组消息失败: " + ex.Message);
+            }
+        }
     }
 }

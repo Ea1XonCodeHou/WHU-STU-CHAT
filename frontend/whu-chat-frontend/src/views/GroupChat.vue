@@ -618,14 +618,75 @@ export default {
         connectionStatus.value = '已连接';
         console.log('SignalR连接已建立');
         
-    // 加载用户群组列表
-        loadUserGroups();
+        // 连接成功后加入群组
+        await joinGroup();
+        
+        // 启动自动刷新功能
+        startAutoRefreshMessages();
       } catch (error) {
-        console.error('连接SignalR失败:', error);
+        console.error('连接GroupChat SignalR失败:', error);
         connectionStatus.value = '连接失败';
         isConnected.value = false;
         
+        // 5秒后重试
         setTimeout(startConnection, 5000);
+      }
+    };
+    
+    // 自动刷新消息定时器ID
+    let autoRefreshTimerId = null;
+    
+    // 开始自动刷新消息和群组信息
+    const startAutoRefreshMessages = () => {
+      // 清除可能存在的旧定时器
+      if (autoRefreshTimerId) {
+        clearInterval(autoRefreshTimerId);
+      }
+      
+      // 设置新的定时器，每10秒刷新一次
+      autoRefreshTimerId = setInterval(async () => {
+        if (isConnected.value && currentGroup.value) {
+          // 获取最新的群组信息
+          await loadGroupInfo(currentGroup.value.groupId);
+          
+          // 查询最新消息
+          try {
+            await connection.value.invoke('RequestGroupLatestMessages', currentGroup.value.groupId, 20);
+          } catch (error) {
+            console.error('请求最新群组消息失败:', error);
+          }
+        }
+      }, 3000); // 10秒刷新一次
+    };
+    
+    // 停止自动刷新
+    const stopAutoRefreshMessages = () => {
+      if (autoRefreshTimerId) {
+        clearInterval(autoRefreshTimerId);
+        autoRefreshTimerId = null;
+      }
+    };
+    
+    // 加载群组信息
+    const loadGroupInfo = async (groupId) => {
+      try {
+        const response = await axios.get(`${window.apiBaseUrl}/api/group/${groupId}`);
+        if (response.data && response.data.code === 200) {
+          // 更新群组信息
+          const groupInfo = response.data.data;
+          // 找到当前组并更新信息
+          const index = groups.value.findIndex(g => g.groupId === groupId);
+          if (index !== -1) {
+            groups.value[index] = {...groups.value[index], ...groupInfo};
+          }
+          
+          // 如果是当前选中的群组，更新当前群组信息
+          if (currentGroup.value && currentGroup.value.groupId === groupId) {
+            currentGroup.value = {...currentGroup.value, ...groupInfo};
+          }
+        }
+      } catch (error) {
+        console.error('加载群组信息失败:', error);
       }
     };
     
@@ -1175,6 +1236,8 @@ export default {
       if (notification.value.timeout) {
         clearTimeout(notification.value.timeout);
       }
+      
+      stopAutoRefreshMessages();
     });
     
     // 监听消息列表变化
@@ -1272,6 +1335,9 @@ export default {
       filteredMessages,
       isSystemOrGroupEvent,
       isJoinOrLeaveMessage,
+      startAutoRefreshMessages,
+      stopAutoRefreshMessages,
+      loadGroupInfo
     };
   }
 };

@@ -1530,42 +1530,42 @@ export default {
   font-weight: 500;
 }
 
-.avatar {
+.avatar, .default-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  overflow: hidden;
-  margin-right: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.default-avatar {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   background: linear-gradient(135deg, #1677ff, #69c0ff);
   color: white;
   font-weight: bold;
   font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .leave-button {
-  padding: 6px 12px;
+  padding: 6px 16px;
   background-color: #ff4d4f;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 18px;
   cursor: pointer;
   font-size: 14px;
+  margin-left: 8px;
   transition: background-color 0.3s ease;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
 .leave-button:hover {
   background-color: #ff7875;
 }
@@ -1734,6 +1734,11 @@ export default {
 .default-avatar {
   width: 100%;
   height: 100%;
+  min-width: 36px;
+  min-height: 36px;
+  max-width: 36px;
+  max-height: 36px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1741,6 +1746,9 @@ export default {
   color: white;
   font-weight: bold;
   font-size: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  user-select: none;
+  overflow: hidden;
 }
 
 .message-info {

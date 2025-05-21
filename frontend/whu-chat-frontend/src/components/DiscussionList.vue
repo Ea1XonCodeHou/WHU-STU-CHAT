@@ -3,6 +3,13 @@
     <div class="header">
       <h3>讨论区</h3>
       <div class="header-actions">
+        <div class="user-avatar-container">
+          <img v-if="userAvatar && showAvatar" :src="userAvatar" alt="用户头像" class="user-avatar" @error="onAvatarError" />
+          <div v-else class="user-avatar-placeholder">{{ userInitial }}</div>
+        </div>
+        <button class="exit-button" @click="exitDiscussion">
+          <i class="fas fa-sign-out-alt"></i> 退出
+        </button>
       </div>
     </div>
 
@@ -166,6 +173,21 @@ export default {
       isHot: false
     });
     
+    // 用户头像和首字母
+    const userAvatar = ref(localStorage.getItem('userAvatar') || '');
+    const username = localStorage.getItem('username') || '';
+    const userInitial = username ? username.charAt(0).toUpperCase() : '?';
+    // 头像加载状态
+    const showAvatar = ref(!!userAvatar);
+    const onAvatarError = () => {
+      showAvatar.value = false;
+    };
+    
+    // 退出按钮逻辑
+    const exitDiscussion = () => {
+      window.location.href = '/home';
+    };
+    
     // 用于存储本地筛选结果
     const filterDiscussions = () => {
       if (!searchQuery.value) {
@@ -283,7 +305,12 @@ export default {
       selectDiscussion,
       createDiscussion,
       refreshDiscussions,
-      selectedDiscussionId: ref(props.selectedDiscussionId)
+      selectedDiscussionId: ref(props.selectedDiscussionId),
+      userAvatar,
+      userInitial,
+      showAvatar,
+      onAvatarError,
+      exitDiscussion
     };
   }
 };
@@ -313,7 +340,58 @@ export default {
 
 .header-actions {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-avatar-container {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.user-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.user-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+  color: #fff;
+  font-weight: bold;
+  font-size: 18px;
+  border-radius: 50%;
+}
+
+.exit-button {
+  background: #ff5252;
+  color: #fff;
+  border: none;
+  border-radius: 18px;
+  padding: 6px 16px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.exit-button:hover {
+  background: #ff1744;
 }
 
 .refresh-button {

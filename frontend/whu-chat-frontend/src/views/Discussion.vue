@@ -239,7 +239,7 @@ export default {
   background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
   color: white;
   border-radius: 50px;
-  padding: 10px 20px;
+  padding: 12px 24px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -247,10 +247,20 @@ export default {
   cursor: pointer;
   transition: transform 0.2s;
   z-index: 100;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  outline: none;
+  white-space: nowrap;
+}
+
+.back-to-home i {
+  font-size: 16px;
 }
 
 .back-to-home:hover {
   transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(71, 118, 230, 0.4);
 }
 
 /* 响应式设计 */

@@ -169,7 +169,7 @@ namespace backend.Services
 
                     // Step 2: 从 ChatGroups 表中查询这些 GroupId 对应的 GroupDTO，且 IsPrivate = 0
                     var getGroupsCommand = new MySqlCommand(
-                        $"SELECT GroupId, GroupName, UpdateTime, MemberCount FROM ChatGroups WHERE GroupId IN ({string.Join(",", groupIds)}) AND IsPrivate = 0",
+                        $"SELECT GroupId, GroupName, CreateTime, UpdateTime, MemberCount FROM ChatGroups WHERE GroupId IN ({string.Join(",", groupIds)}) AND IsPrivate = 0",
                         connection);
 
                     var groups = new List<GroupDTO>();
@@ -181,8 +181,9 @@ namespace backend.Services
                             {
                                 GroupId = reader.GetInt32(0),
                                 GroupName = reader.GetString(1),
-                                UpdateTime = reader.GetDateTime(2),
-                                MemberCount = reader.GetInt32(3)
+                                CreateTime = reader.GetDateTime(2),
+                                UpdateTime = reader.GetDateTime(3),
+                                MemberCount = reader.GetInt32(4)
                             });
                         }
                     }
@@ -217,6 +218,8 @@ namespace backend.Services
                     Description = group.Description,
                     CreatorId = group.CreatorId,
                     MemberCount = group.MemberCount,
+                    CreateTime = group.CreateTime,
+                    UpdateTime = group.UpdateTime,
                     Members = members
                 };
                 return detail;

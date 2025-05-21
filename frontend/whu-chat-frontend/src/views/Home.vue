@@ -288,7 +288,7 @@
             </div>
             <div class="info-item">
               <i class="fa-solid fa-calendar"></i>
-              <span>创建于 {{ new Date(selectedGroup.createTime).toLocaleString() }}</span>
+              <span>创建于 {{ selectedGroup.createTime ? new Date(selectedGroup.createTime).toLocaleString() : '-' }}</span>
             </div>
           </div>
 
@@ -1456,6 +1456,10 @@ export default {
     
     const friendRequestMessage = ref('');
     
+    const isValidDate = (date) => {
+      return date instanceof Date && !isNaN(date);
+    };
+    
     return {
       // 用户信息
       userId,
@@ -1545,6 +1549,9 @@ export default {
       rejectFriend,
       updateUnreadNotifications,
       friendRequestMessage,
+      
+      // 新增返回项
+      isValidDate,
     };
   }
 };

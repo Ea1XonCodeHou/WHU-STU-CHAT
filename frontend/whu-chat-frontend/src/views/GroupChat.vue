@@ -78,7 +78,7 @@
             <p>还没有任何消息，开始聊天吧！</p>
           </div>
 
-          <div v-for="(message, index) in messages" :key="message.messageId || index" 
+          <div v-for="(message, index) in filteredMessages" :key="message.messageId || index" 
                class="message-item" 
                :class="getMessageClass(message)">
             
@@ -87,13 +87,13 @@
               <span>{{ formatDate(message.sendTime) }}</span>
             </div>
             
-            <!-- 系统消息 -->
-            <div v-if="message.messageType === 'system'" class="system-message">
+            <!-- 系统消息（包括加入/离开群组） -->
+            <div v-if="isSystemOrGroupEvent(message)" class="system-message" :class="{'join-leave-message': isJoinOrLeaveMessage(message)}">
               <div class="system-message-content">
                 <i class="system-icon"></i>
                 <span>{{ message.content }}</span>
               </div>
-              <div class="message-time">{{ formatTime(message.sendTime) }}</div>
+              <div class="message-time" v-if="!isJoinOrLeaveMessage(message)">{{ formatTime(message.sendTime) }}</div>
             </div>
             
             <!-- 用户消息 -->
@@ -107,19 +107,16 @@
                   {{ message?.senderName?.charAt(0)?.toUpperCase() || '?' }}
                 </div>
               </div>
-              
               <!-- 消息内容 -->
               <div class="message-content">
                 <div class="message-info">
                   <span class="message-sender" v-if="message.senderId !== userId" @click.stop="showUserCard(message.senderId)">{{ message.senderName }}</span>
                   <span class="message-time">{{ formatTime(message.sendTime) }}</span>
                 </div>
-                
                 <!-- 文本消息 -->
-                <div v-if="message.messageType === 'text'" class="message-text" :class="{'unknown-user': message.senderName === '未知用户'}">
+                <div v-if="message.messageType === 'text'" class="message-text">
                   {{ message.content }}
                 </div>
-                
                 <!-- 图片消息 -->
                 <div v-else-if="message.messageType === 'image'" class="message-image">
                   <img 
@@ -130,7 +127,6 @@
                     loading="lazy" />
                   <div class="image-info">{{ message.fileName }} ({{ formatFileSize(message.fileSize) }})</div>
                 </div>
-                
                 <!-- 文件消息 -->
                 <div v-else-if="message.messageType === 'file'" class="message-file" @click="downloadFile(message.fileUrl, message.fileName)">
                   <div class="file-icon"></div>
@@ -140,13 +136,11 @@
                   </div>
                   <div class="download-icon"></div>
                 </div>
-                
                 <!-- 表情消息 -->
                 <div v-else-if="message.messageType === 'emoji'" class="message-emoji">
                   {{ message.content }}
                 </div>
               </div>
-              
               <!-- 右侧头像(自己的消息) -->
               <div class="self-avatar" v-if="message.senderId === userId">
                 <div class="avatar" v-if="userAvatar">
@@ -502,7 +496,6 @@ export default {
     const registerSignalRHandlers = () => {
       connection.value.on('ReceiveMessage', async (message) => {
         console.log('收到新消息:', message);
-        
         // 如果是系统消息，直接添加
         if (message.messageType === 'system') {
           messages.value.push({
@@ -513,24 +506,24 @@ export default {
             senderName: message.senderName,
             messageType: 'system'
           });
-          
           if (isAtBottom.value) {
             nextTick(() => scrollToBottom());
           } else {
             hasNewMessage.value = true;
           }
+          // 新增：如果是加入/离开群组的系统消息，不弹气泡
+          if (isJoinOrLeaveMessage(message)) {
+            return;
+          }
           return;
         }
-        
         // 获取发送者信息
         const senderInfo = await getUserInfo(message.senderId);
-        
         // 检查是否是图片消息
         const isImageMessage = message.content && (
           message.content.startsWith('http') && 
           (message.content.endsWith('.jpg') || message.content.endsWith('.jpeg') || message.content.endsWith('.png') || message.content.endsWith('.gif') || message.content.endsWith('.bmp') || message.content.endsWith('.webp'))
         );
-        
         // 将后端消息格式转换为前端需要的格式
         const formattedMessage = {
           messageId: message.messageId,
@@ -546,13 +539,15 @@ export default {
           fileSize: message.fileSize || 0
         };
         messages.value.push(formattedMessage);
-        
         if (isAtBottom.value) {
           nextTick(() => scrollToBottom());
         } else {
           hasNewMessage.value = true;
         }
-        
+        // 新增：如果是加入/离开群组的文本消息，不弹气泡
+        if (isJoinOrLeaveMessage(formattedMessage)) {
+          return;
+        }
         if (message.senderId !== userId.value && message.messageType !== 'system') {
           showNotification(`${formattedMessage.senderName}: ${message.content}`, 'info');
         }
@@ -1108,6 +1103,35 @@ export default {
       event.target.classList.add('image-load-error');
     };
     
+    // 新增：过滤重复的系统消息（如"xxx离开了群组"只显示一次）
+    const filteredMessages = computed(() => {
+      const seen = new Set();
+      return messages.value.filter(msg => {
+        // 对于离开/加入群组的系统消息，去重
+        if (isJoinOrLeaveMessage(msg)) {
+          const key = msg.content;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        }
+        // 对于未知用户的"离开了群组"文本消息也不显示
+        if (msg.senderName === '未知用户' && msg.content && msg.content.includes('离开了群组')) {
+          return false;
+        }
+        return true;
+      });
+    });
+    
+    // 新增：判断是否为系统消息或群事件
+    function isSystemOrGroupEvent(msg) {
+      return msg.messageType === 'system' || isJoinOrLeaveMessage(msg);
+    }
+    
+    // 新增：判断是否为加入/离开群组消息
+    function isJoinOrLeaveMessage(msg) {
+      return msg.content && (msg.content.includes('加入了群组') || msg.content.includes('离开了群组'));
+    }
+    
     // 组件挂载时
     onMounted(() => {
       if (!userId.value || !username.value) {
@@ -1245,6 +1269,9 @@ export default {
       triggerImageUpload,
       handleImageError,
       getFullImageUrl,
+      filteredMessages,
+      isSystemOrGroupEvent,
+      isJoinOrLeaveMessage,
     };
   }
 };
@@ -1464,21 +1491,49 @@ export default {
 }
 
 .system-message {
-  text-align: center;
-  margin: 10px 0;
-  color: #999;
-  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 8px 0;
+  padding: 4px 0;
 }
 
 .system-message-content {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 20px;
+  padding: 6px 12px;
+  background-color: #f5f5f5;
+  border-radius: 12px;
   font-size: 13px;
   color: #666;
+}
+
+.system-message.join-leave-message .system-message-content {
+  background-color: rgba(71, 118, 230, 0.1);
+  color: #4776E6;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 10px;
+}
+
+.system-icon {
+  font-size: 12px;
+  color: #999;
+}
+
+.system-message.join-leave-message .system-icon {
+  color: #4776E6;
+}
+
+.system-message .message-time {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.system-message.join-leave-message .message-time {
+  display: none;
 }
 
 .message-text.unknown-user {

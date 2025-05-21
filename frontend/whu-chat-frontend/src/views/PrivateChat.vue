@@ -1369,28 +1369,83 @@ export default {
 .messages-wrapper {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  padding: 20px 30px 20px 30px;
+  overflow-y: auto;
 }
 
 .message-item {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-.date-separator {
-  text-align: center;
-  margin: 10px 0;
-  color: #999;
-  font-size: 12px;
+.message-item.self-message {
+  align-items: flex-end;
 }
 
-.date-separator span {
-  background-color: #f5f5f5;
-  padding: 0 10px;
+.message-content {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.message-item.self-message .message-content {
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e6f7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.message-body {
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.message-item.self-message .message-body {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.message-text {
+  background: #fff;
+  color: #333;
+  padding: 10px 16px;
+  border-radius: 16px;
+  font-size: 15px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  word-break: break-all;
+}
+
+.message-item.self-message .message-text {
+  background: #1890ff;
+  color: #fff;
 }
 
 .message-header {
   display: flex;
-  padding: 0 50px;
-  margin-bottom: 5px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #666;
 }
 
 .self-message .message-header {
@@ -1399,47 +1454,10 @@ export default {
 
 .message-sender {
   font-weight: 500;
-  color: #666;
-  font-size: 14px;
 }
 
 .message-time {
-  font-size: 12px;
   color: #999;
-  margin: 0 5px;
-}
-
-.message-content {
-  display: flex;
-  align-items: flex-start;
-}
-
-.message-avatar {
-  margin-right: 10px;
-}
-
-.self-avatar {
-  margin-left: 10px;
-  margin-right: 0;
-}
-
-.message-body {
-  max-width: 70%;
-  background-color: white;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.self-message .message-body {
-  background-color: #e6f7ff;
-  margin-left: auto;
-}
-
-.message-text {
-  line-height: 1.5;
-  word-break: break-word;
-  white-space: pre-wrap;
 }
 
 .message-emoji {

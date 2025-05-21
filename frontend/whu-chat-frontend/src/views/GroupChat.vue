@@ -148,7 +148,7 @@
               </div>
               
               <!-- 右侧头像(自己的消息) -->
-              <div class="message-avatar self-avatar" v-if="message.senderId === userId">
+              <div class="self-avatar" v-if="message.senderId === userId">
                 <div class="avatar" v-if="userAvatar">
                   <img :src="userAvatar" alt="用户头像" @error="handleImageError" />
                 </div>
@@ -1485,85 +1485,70 @@ export default {
 
 .user-message {
   display: flex;
-  gap: 12px;
-  max-width: 80%;
+  align-items: flex-end;
+  gap: 10px;
 }
 
-.self-message {
+.user-message.self-message {
   flex-direction: row-reverse;
-  margin-left: auto;
 }
 
-.message-avatar {
-  width: 40px;
-  height: 40px;
-  margin: 0 10px;
-  flex-shrink: 0;
+.message-avatar, .self-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e6f7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.self-message .message-avatar {
-  order: 2;
-  margin-right: 0;
-}
-
-.self-message .message-content {
-  order: 1;
-  margin-right: 10px;
+.message-avatar img, .self-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .message-content {
-  max-width: 60%;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
 }
 
-.self-message .message-content {
+.user-message.self-message .message-content {
   align-items: flex-end;
+  text-align: right;
+}
+
+.message-text {
+  background: #fff;
+  color: #333;
+  padding: 10px 16px;
+  border-radius: 16px;
+  font-size: 15px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  word-break: break-all;
+}
+
+.user-message.self-message .message-text {
+  background: #1890ff;
+  color: #fff;
 }
 
 .message-info {
-  margin-bottom: 4px;
-  font-size: 12px;
-  color: #999;
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #666;
 }
 
 .self-message .message-info {
   flex-direction: row-reverse;
-}
-
-.message-sender {
-  font-weight: 500;
-  color: #666;
-}
-
-.message-time {
-  font-size: 11px;
-  color: #999;
-}
-
-.message-text {
-  padding: 10px 15px;
-  border-radius: 6px;
-  font-size: 14px;
-  word-break: break-word;
-  line-height: 1.5;
-  position: relative;
-}
-
-.other-message-container .message-text {
-  background-color: #e6f7ff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  border-top-left-radius: 0;
-}
-
-.self-message-container .message-text {
-  background-color: #95ec69;
-  color: #333;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  border-top-right-radius: 0;
 }
 
 .message-image img {

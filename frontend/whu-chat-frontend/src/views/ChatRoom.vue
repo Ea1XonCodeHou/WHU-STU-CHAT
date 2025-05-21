@@ -1693,79 +1693,75 @@ export default {
 /* 用户消息 */
 .user-message {
   display: flex;
-  margin-bottom: 20px;
-  align-items: flex-start;
+  align-items: flex-end;
+  gap: 10px;
 }
 
-.self-message {
+.user-message.self-message {
   flex-direction: row-reverse;
 }
 
-.message-avatar {
-  width: 40px;
-  height: 40px;
+.message-avatar, .self-avatar {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   overflow: hidden;
-  margin: 0 10px;
-  flex-shrink: 0;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.message-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.self-avatar {
-  margin-left: 10px;
-  margin-right: 0;
-}
-
-.message-content {
-  max-width: 60%;
-}
-
-.self-message .message-content {
-  align-items: flex-end;
-}
-
-.default-avatar {
-  width: 100%;
-  height: 100%;
-  min-width: 36px;
-  min-height: 36px;
-  max-width: 36px;
-  max-height: 36px;
-  border-radius: 50%;
+  background: #e6f7ff;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1677ff, #69c0ff);
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  user-select: none;
-  overflow: hidden;
+}
+
+.message-avatar img, .self-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.message-content {
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.user-message.self-message .message-content {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.message-text {
+  background: #fff;
+  color: #333;
+  padding: 10px 16px;
+  border-radius: 16px;
+  font-size: 15px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  word-break: break-all;
+}
+
+.user-message.self-message .message-text {
+  background: #1890ff;
+  color: #fff;
 }
 
 .message-info {
-  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
   font-size: 12px;
-  color: #999;
+  color: #666;
 }
 
-.message-sender {
-  font-weight: 500;
-  color: #666;
-  margin-right: 8px;
+.self-message .message-info {
+  flex-direction: row-reverse;
 }
 
 .message-time {
+  color: #999;
   font-size: 12px;
-  color: #bbb;
 }
 
 .self-message .message-time {
@@ -2938,12 +2934,12 @@ export default {
 
 /* 调整自己的消息样式 */
 .self-message {
-  flex-direction: row-reverse;
+  flex-direction: row;
 }
 
 .self-message .message-content {
-  margin-right: 10px;
-  margin-left: 0;
+  margin-left: 10px;
+  margin-right: 0;
 }
 
 .message-avatar {
@@ -2951,17 +2947,15 @@ export default {
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
+  margin: 0 10px;
   flex-shrink: 0;
-  background-color: #f0f2f5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .self-avatar {
-  margin-left: 10px;
-  margin-right: 0;
+  margin-left: 0;
+  margin-right: 10px;
 }
 
 </style>  

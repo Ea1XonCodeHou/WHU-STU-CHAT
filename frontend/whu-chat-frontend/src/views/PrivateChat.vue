@@ -111,7 +111,12 @@
                 </div>
                 
                 <div v-else-if="message.messageType === 'image'" class="message-image">
-                  <img :src="formatMessageUrl(message.fileUrl)" alt="图片消息" @click="previewImage(message.fileUrl)" />
+                  <img 
+                    :src="getFullImageUrl(message.fileUrl)" 
+                    alt="图片消息" 
+                    @click="previewImage(message.fileUrl)"
+                    @error="handleImageError" 
+                    loading="lazy" />
                   <div class="image-info">{{ message.fileName || '图片' }} ({{ formatFileSize(message.fileSize) }})</div>
                 </div>
                 
@@ -193,7 +198,10 @@
     <!-- 图片预览弹窗 -->
     <div v-if="previewImageUrl" class="image-preview-modal" @click="closeImagePreview">
       <div class="image-preview-content">
-        <img :src="formatMessageUrl(previewImageUrl)" alt="图片预览" />
+        <img 
+          :src="getFullImageUrl(previewImageUrl)" 
+          alt="图片预览" 
+          @error="handleImageError" />
         <button class="close-preview" @click.stop="closeImagePreview">×</button>
       </div>
     </div>
@@ -977,6 +985,19 @@ export default {
       return `${window.apiBaseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
     };
     
+    // 处理图片URL
+    const getFullImageUrl = (url) => {
+      if (!url) return null;
+      if (url.startsWith('http')) return url;
+      return `${window.apiBaseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+    };
+    
+    // 添加图片加载错误处理
+    const handleImageError = (event) => {
+      event.target.src = '/images/image-error.png'; // 替换为默认的错误图片
+      event.target.classList.add('image-load-error');
+    };
+    
     onMounted(async () => {
       // 先加载好友列表
       await loadFriends();
@@ -1058,6 +1079,8 @@ export default {
       showUserCard,
       closeUserCard,
       handleFriendRequestSent,
+      getFullImageUrl,
+      handleImageError,
     };
   }
 };

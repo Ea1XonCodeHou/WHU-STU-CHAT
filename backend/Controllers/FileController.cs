@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using backend.Services;
+using backend.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -13,11 +14,13 @@ namespace backend.Controllers
     {
         private readonly ILogger<FileController> _logger;
         private readonly IChatService _chatService;
+        private readonly AliOSSHelper _ossHelper;
 
-        public FileController(ILogger<FileController> logger, IChatService chatService)
+        public FileController(ILogger<FileController> logger, IChatService chatService, AliOSSHelper ossHelper)
         {
             _logger = logger;
             _chatService = chatService;
+            _ossHelper = ossHelper;
         }
 
         /// <summary>
@@ -41,17 +44,35 @@ namespace backend.Controllers
 
                 _logger.LogInformation($"接收到文件上传请求: {file.FileName}, 大小: {file.Length} 字节");
 
-                // 调用服务上传文件
-                var (fileUrl, fileName, fileSize) = await _chatService.UploadTempFileAsync(file);
+                // 检查文件类型
+                var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+                bool isValidExtension = Array.Exists(allowedExtensions, ext => ext == extension);
+                if (!isValidExtension)
+                {
+                    return BadRequest("不支持的文件类型，请上传jpg、jpeg、png、gif、bmp或webp格式的图片");
+                }
+
+                // 检查文件大小限制（10MB）
+                if (file.Length > 10 * 1024 * 1024)
+                {
+                    return BadRequest("文件大小不能超过10MB");
+                }
+
+                // 生成唯一的对象名称
+                var uniqueFileName = $"chat/{DateTime.Now:yyyy/MM/dd}/{Guid.NewGuid()}{extension}";
                 
-                _logger.LogInformation($"文件上传成功: {fileName}, URL: {fileUrl}");
+                // 上传到阿里云OSS
+                var fileUrl = await _ossHelper.UploadFileAsync(file, uniqueFileName);
+                
+                _logger.LogInformation($"文件上传成功: {file.FileName}, URL: {fileUrl}");
                 
                 // 返回文件信息
                 return Ok(new { 
                     url = fileUrl, 
-                    fileName = fileName,
-                    fileSize = fileSize,
-                    isImage = IsImageFile(fileName)
+                    fileName = file.FileName,
+                    fileSize = file.Length,
+                    isImage = IsImageFile(file.FileName)
                 });
             }
             catch (ArgumentException ex)

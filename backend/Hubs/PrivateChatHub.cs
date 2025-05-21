@@ -261,7 +261,7 @@ namespace backend.Hubs
                 {
                     SenderId = senderId,
                     ReceiverId = receiverId,
-                    Content = imageUrl,
+                    Content = fileName,
                     MessageType = "image",
                     FileUrl = imageUrl,
                     FileName = fileName,

@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "E:\\C\\test3\\WHU-STU-CHAT\\backend\\backend.csproj": {}
+    "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\backend.csproj": {}
   },
   "projects": {
-    "E:\\C\\test3\\WHU-STU-CHAT\\backend\\backend.csproj": {
+    "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\C\\test3\\WHU-STU-CHAT\\backend\\backend.csproj",
+        "projectUniqueName": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "E:\\C\\test3\\WHU-STU-CHAT\\backend\\backend.csproj",
-        "packagesPath": "C:\\Users\\Lenovo13\\.nuget\\packages\\",
-        "outputPath": "E:\\C\\test3\\WHU-STU-CHAT\\backend\\obj\\",
+        "projectPath": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\backend.csproj",
+        "packagesPath": "C:\\Users\\noteles\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Lenovo13\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\noteles\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,7 +26,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -91,7 +90,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.204/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

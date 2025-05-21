@@ -73,7 +73,7 @@
                 
                 <!-- 图片消息 -->
                 <div v-else-if="message.messageType === 'image'" class="message-image">
-                  <img :src="message.fileUrl" alt="图片消息" @click="previewImage(message.fileUrl)" />
+                  <img :src="getFullImageUrl(message.fileUrl)" alt="图片消息" @click="previewImage(message.fileUrl)" @error="handleImageError" />
                   <div class="image-info">{{ message.fileName }} ({{ formatFileSize(message.fileSize) }})</div>
                 </div>
                 
@@ -167,11 +167,11 @@
         <div class="tool-button emoji-button" @click="toggleEmojiPanel">
           <i class="emoji-icon"></i>
         </div>
-        <div class="tool-button image-button">
+        <div class="tool-button image-button" @click.stop.prevent="triggerImageUpload">
           <input type="file" accept="image/*" ref="imageInput" @change="handleImageUpload" class="file-input" />
           <i class="image-icon"></i>
         </div>
-        <div class="tool-button file-button">
+        <div class="tool-button file-button" @click.stop.prevent="triggerFileUpload">
           <input type="file" ref="fileInput" @change="handleFileUpload" class="file-input" />
           <i class="file-icon"></i>
         </div>
@@ -204,7 +204,10 @@
     <!-- 图片预览弹窗 -->
     <div v-if="previewImageUrl" class="image-preview-modal" @click="closeImagePreview">
       <div class="image-preview-content">
-        <img :src="previewImageUrl" alt="图片预览" />
+        <img 
+          :src="getFullImageUrl(previewImageUrl)" 
+          alt="图片预览" 
+          @error="handleImageError" />
         <button class="close-preview" @click.stop="closeImagePreview">×</button>
       </div>
     </div>
@@ -252,6 +255,51 @@ export default {
     const userId = ref(parseInt(localStorage.getItem('userId') || '0'));
     const username = ref(localStorage.getItem('username') || '访客');
     const userAvatar = ref(localStorage.getItem('userAvatar') || '');
+    
+    // 处理图片URL
+    const getFullImageUrl = (url) => {
+      if (!url) return null;
+      
+      // 如果已经是完整URL，直接返回
+      if (url.startsWith('http')) return url;
+      
+      // 检查是否是OSS路径
+      if (url.includes('aliyuncs.com')) return url;
+      
+      // 如果包含temp/uploads，可能是图片已迁移到其他位置
+      if (url.includes('temp/uploads')) {
+        // 尝试使用新路径格式
+        return `${window.apiBaseUrl}/api/file/get?path=${encodeURIComponent(url)}`;
+      }
+      
+      // 默认处理相对路径
+      return `${window.apiBaseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+    };
+    
+    // 添加图片加载错误处理
+    const handleImageError = (event) => {
+      console.warn('图片加载失败:', event.target.src);
+      
+      const originalSrc = event.target.src;
+      // 如果当前路径是/temp/路径但返回404，尝试替换为其他路径格式
+      if (originalSrc.includes('/temp/')) {
+        // 尝试提取文件名
+        const fileName = originalSrc.split('/').pop();
+        if (fileName) {
+          // 尝试使用备用路径
+          event.target.src = `${window.apiBaseUrl}/api/file/image/${fileName}`;
+          console.log('尝试备用图片路径:', event.target.src);
+          return;
+        }
+      }
+      
+      // 如果所有尝试都失败，使用内联SVG数据URL作为默认图片
+      event.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNmMmYyZjIiLz48cGF0aCBkPSJNNTAgMzBDNDIuMjY4IDMwIDM2IDM2LjI2OCAzNiA0NEM1NS40NjQgNDQgNjQgNTIuNTM2IDY0IDcyQzcxLjczMiA3MiA3OCA2NS43MzIgNzggNThDNzggNDIuNTM2IDY1LjQ2NCAzMCA1MCAzMFoiIGZpbGw9IiNlMWUxZTEiLz48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSIyMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYmJiIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1kYXNoYXJyYXk9IjUgNSIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzk5OSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIj7lm77niYfpl6/orqE8L3RleHQ+PC9zdmc+'; 
+      event.target.classList.add('image-load-error');
+      event.target.style.maxWidth = '100px';
+      event.target.style.maxHeight = '100px';
+      event.target.alt = '图片加载失败';
+    };
     
     // 聊天室信息
     const roomId = computed(() => parseInt(props.id));
@@ -360,8 +408,11 @@ export default {
 
     // 创建SignalR连接
     const createConnection = () => {
-      // 定义API基础URL为一个常量，便于统一修改
-      const apiBaseUrl = 'http://localhost:5067'; // 正确的API地址
+      // 获取正确的API基础URL
+      let apiBaseUrl = window.apiBaseUrl || 'http://localhost:5067';
+      
+      // 调试输出当前使用的API基础URL
+      console.log('使用API基础URL:', apiBaseUrl);
       
       // 创建新的连接
       connection.value = new signalR.HubConnectionBuilder()
@@ -370,8 +421,9 @@ export default {
         .configureLogging(signalR.LogLevel.Information)
         .build();
       
-      // 存储API基础URL以供其他函数使用
+      // 确保全局API基础URL正确设置
       window.apiBaseUrl = apiBaseUrl;
+      console.log('设置window.apiBaseUrl为:', window.apiBaseUrl);
       
       // 连接状态变化监听
       connection.value.onreconnecting(() => {
@@ -408,14 +460,30 @@ export default {
       connection.value.on('ReceiveMessage', (message) => {
         console.log('收到新消息:', message);
         
-        // 如果是系统消息，直接添加
-        messages.value.push(message);
+        // 处理消息中的图片URL
+        if (message.fileUrl) {
+          message.fileUrl = getFullImageUrl(message.fileUrl);
+        }
         
-        // 检查是否需要滚动到底部
-        if (isAtBottom.value) {
-          nextTick(() => scrollToBottom());
+        // 批量更新消息，减少重渲染次数
+        if (messageUpdateTimeout) {
+          clearTimeout(messageUpdateTimeout);
+          pendingMessages.push(message);
         } else {
-          hasNewMessage.value = true;
+          pendingMessages.push(message);
+          messageUpdateTimeout = setTimeout(() => {
+            // 一次性添加所有待处理消息
+            messages.value = [...messages.value, ...pendingMessages];
+            pendingMessages = [];
+            messageUpdateTimeout = null;
+            
+            // 检查是否需要滚动到底部
+            if (isAtBottom.value) {
+              nextTick(() => scrollToBottom());
+            } else {
+              hasNewMessage.value = true;
+            }
+          }, 100); // 100ms批处理窗口
         }
         
         // 如果是其他用户发送的消息，且不是系统消息，显示消息通知
@@ -427,14 +495,24 @@ export default {
         recordMessageActivity();
       });
       
+      // 消息批处理变量
+      let pendingMessages = [];
+      let messageUpdateTimeout = null;
+      
       // 接收历史消息
       connection.value.on('ReceiveHistoryMessages', (historyMessages) => {
         console.log('收到历史消息:', historyMessages);
         loadingHistory.value = false;
         
         if (historyMessages && historyMessages.length > 0) {
+          // 处理历史消息中的图片URL
+          const processedMessages = historyMessages.map(msg => ({
+            ...msg,
+            fileUrl: msg.fileUrl ? getFullImageUrl(msg.fileUrl) : null
+          }));
+          
           // 将历史消息添加到消息列表
-          messages.value = historyMessages.sort((a, b) => 
+          messages.value = processedMessages.sort((a, b) => 
             new Date(a.sendTime) - new Date(b.sendTime)
           );
           
@@ -546,13 +624,36 @@ export default {
         return;
       }
       
+      // 禁用上传按钮，防止重复上传
+      const imageButton = document.querySelector('.image-button');
+      if (imageButton) imageButton.classList.add('disabled');
+      
       const file = event.target.files[0];
+      
+      // 检查文件类型
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        showNotification('只支持jpg、jpeg、png、gif、bmp、webp格式的图片', 'error');
+        if (imageButton) imageButton.classList.remove('disabled');
+        return;
+      }
+      
+      // 检查文件大小（10MB）
+      const maxSize = 10 * 1024 * 1024;
+      if (file.size > maxSize) {
+        showNotification('图片大小不能超过10MB', 'error');
+        if (imageButton) imageButton.classList.remove('disabled');
+        return;
+      }
+      
       const formData = new FormData();
       formData.append('file', file);
       
       try {
         // 显示上传中提示
         showNotification('图片上传中...', 'info');
+        
+        console.log('开始上传图片到:', `${window.apiBaseUrl}/api/file/upload`);
         
         // 使用统一的API基础URL
         const response = await axios.post(`${window.apiBaseUrl}/api/file/upload`, formData, {
@@ -583,11 +684,49 @@ export default {
           console.error('错误数据:', error.response.data);
           console.error('错误头部:', error.response.headers);
         }
-        showNotification('图片上传失败: ' + (error.response?.data || error.message), 'error');
+        showNotification('图片上传失败: ' + (error.response?.data?.message || error.response?.data || error.message), 'error');
         
         // 清空文件输入框
         imageInput.value.value = '';
+      } finally {
+        // 恢复上传按钮状态
+        if (imageButton) imageButton.classList.remove('disabled');
       }
+    };
+    
+    // 防抖变量
+    let uploadClickTimeout = null;
+    
+    // 添加触发图片上传点击的辅助方法
+    const triggerImageUpload = () => {
+      if (!isConnected.value) {
+        showNotification('未连接到服务器，无法发送图片', 'error');
+        return;
+      }
+      
+      // 检查是否已有等待执行的点击
+      if (uploadClickTimeout) {
+        console.log('上传操作已触发，请稍候');
+        return;
+      }
+      
+      console.log('触发图片上传点击事件');
+      
+      // 使用防抖处理点击事件
+      uploadClickTimeout = setTimeout(() => {
+        uploadClickTimeout = null;
+        
+        // 确保输入框引用存在并处于可用状态
+        if (imageInput.value) {
+          // 直接设置value为空（重置），确保相同文件可以被再次选中
+          imageInput.value.value = '';
+          // 点击触发文件选择
+          imageInput.value.click();
+        } else {
+          console.warn('找不到图片输入框引用');
+          showNotification('上传组件未就绪，请刷新页面重试', 'error');
+        }
+      }, 300);
     };
     
     // 修改上传文件函数
@@ -595,6 +734,10 @@ export default {
       if (!event.target.files || event.target.files.length === 0) {
         return;
       }
+      
+      // 禁用上传按钮，防止重复上传
+      const fileButton = document.querySelector('.file-button');
+      if (fileButton) fileButton.classList.add('disabled');
       
       const file = event.target.files[0];
       const formData = new FormData();
@@ -633,10 +776,13 @@ export default {
           console.error('错误数据:', error.response.data);
           console.error('错误头部:', error.response.headers);
         }
-        showNotification('文件上传失败: ' + (error.response?.data || error.message), 'error');
+        showNotification('文件上传失败: ' + (error.response?.data?.message || error.response?.data || error.message), 'error');
         
         // 清空文件输入框
         fileInput.value.value = '';
+      } finally {
+        // 恢复上传按钮状态
+        if (fileButton) fileButton.classList.remove('disabled');
       }
     };
     
@@ -669,8 +815,11 @@ export default {
     // 滚动到底部
     const scrollToBottom = () => {
       if (messagesContainer.value) {
-        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
-        hasNewMessage.value = false;
+        // 使用RAF确保在下一帧执行滚动，减少闪烁
+        requestAnimationFrame(() => {
+          messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+          hasNewMessage.value = false;
+        });
       }
     };
     
@@ -678,7 +827,11 @@ export default {
     const checkScrollPosition = () => {
       if (messagesContainer.value) {
         const { scrollTop, scrollHeight, clientHeight } = messagesContainer.value;
-        isAtBottom.value = Math.abs(scrollHeight - scrollTop - clientHeight) < 50;
+        // 使用防抖，减少状态更新频率
+        if (scrollPositionDebounce) clearTimeout(scrollPositionDebounce);
+        scrollPositionDebounce = setTimeout(() => {
+          isAtBottom.value = Math.abs(scrollHeight - scrollTop - clientHeight) < 50;
+        }, 100);
       }
     };
     
@@ -990,6 +1143,12 @@ export default {
         return;
       }
       
+      // 确保API基础URL已设置
+      if (!window.apiBaseUrl) {
+        window.apiBaseUrl = 'http://localhost:5067';
+        console.log('初始化设置apiBaseUrl:', window.apiBaseUrl);
+      }
+      
       // 创建SignalR连接
       createConnection();
       
@@ -1045,6 +1204,11 @@ export default {
       if (summaryDebounceTimeout.value) {
         clearTimeout(summaryDebounceTimeout.value);
       }
+      
+      // 清除上传防抖超时
+      if (uploadClickTimeout) {
+        clearTimeout(uploadClickTimeout);
+      }
     });
     
     // 监听消息列表变化
@@ -1053,6 +1217,9 @@ export default {
         nextTick(() => scrollToBottom());
       }
     });
+    
+    // 使用防抖变量
+    let scrollPositionDebounce = null;
     
     return {
       // 用户信息
@@ -1125,7 +1292,11 @@ export default {
       getMessageClass,
       shouldShowDateSeparator,
       requestChatSummary,
-      formattedSummary
+      formattedSummary,
+      getFullImageUrl,
+      handleImageError,
+      triggerImageUpload,
+      triggerFileUpload
     };
   }
 };
@@ -1142,6 +1313,9 @@ export default {
   color: #333;
   overflow: hidden;
   position: relative;
+  /* 添加硬件加速 */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 /* 头部样式 */
@@ -1260,6 +1434,11 @@ export default {
   overflow-y: auto;
   padding: 20px;
   position: relative;
+  /* 添加平滑滚动效果 */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  /* 减少闪烁 */
+  backface-visibility: hidden;
 }
 
 .messages-wrapper {
@@ -1314,13 +1493,17 @@ export default {
   display: flex;
   flex-direction: column;
   margin-bottom: 15px;
-  animation: fadeIn 0.3s ease;
+  /* 使用不那么激进的动画 */
+  animation: fadeInSmooth 0.2s ease;
+  /* 添加硬件加速 */
+  transform: translateZ(0);
+  will-change: transform, opacity;
 }
 
-@keyframes fadeIn {
+@keyframes fadeInSmooth {
   from {
-    opacity: 0;
-    transform: translateY(10px);
+    opacity: 0.7;
+    transform: translateY(5px);
   }
   to {
     opacity: 1;
@@ -1567,16 +1750,20 @@ export default {
   display: flex;
   align-items: center;
   cursor: pointer;
-  animation: bounce 1s infinite alternate;
+  /* 替换为更轻微的动画，减少闪烁 */
+  animation: pulse 2s infinite;
   z-index: 5;
 }
 
-@keyframes bounce {
-  from {
-    transform: translateX(-50%) translateY(0);
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(22, 119, 255, 0.4);
   }
-  to {
-    transform: translateX(-50%) translateY(-5px);
+  70% {
+    box-shadow: 0 0 0 10px rgba(22, 119, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 119, 255, 0);
   }
 }
 
@@ -1920,8 +2107,10 @@ export default {
   cursor: pointer;
   position: relative;
   border-radius: 6px;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease; /* 减少过渡时间，提高响应速度 */
   background-color: #f0f2f5;
+  user-select: none; /* 防止触摸设备上的长按选择 */
+  touch-action: manipulation; /* 提高触摸响应速度 */
 }
 
 .tool-button:hover {
@@ -2032,7 +2221,9 @@ export default {
   width: 100%;
   height: 100%;
   opacity: 0;
-  cursor: pointer;
+  font-size: 0; /* 防止出现意外的可点击区域 */
+  z-index: -1; /* 将输入框放在按钮下面，让点击事件由按钮处理 */
+  pointer-events: none; /* 禁用输入框的直接交互，由按钮控制 */
 }
 
 .input-container {
@@ -2546,5 +2737,12 @@ export default {
 .chat-actions {
   display: flex;
   gap: 0.5rem;
+}
+
+/* 添加禁用状态 */
+.tool-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 </style> 

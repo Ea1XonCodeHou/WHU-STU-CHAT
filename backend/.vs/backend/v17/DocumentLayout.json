@@ -1,32 +1,32 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\",
+  "WorkspaceRootPath": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|e:\\vs2022projects-csharp\\teamwork\\backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lenovo\\AppData\\Local\\SourceServer\\53c94f5c3c2c7b66b9e5d05b8b1e5d88e429367ea9eb980a110bca1edd621599\\backend\\Program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\services\\groupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\services\\groupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:services\\groupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\services\\igroupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\services\\igroupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:services\\igroupservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\dtos\\groupdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|c:\\users\\noteles\\desktop\\sccch\\whu-stu-chat\\backend\\dtos\\groupdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8787E7AE-103E-4553-94EE-A8178F74A51C}|backend.csproj|solutionrelative:dtos\\groupdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -52,7 +52,9 @@
               "DocumentIndex": 3,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\lenovo\\AppData\\Local\\SourceServer\\53c94f5c3c2c7b66b9e5d05b8b1e5d88e429367ea9eb980a110bca1edd621599\\backend\\Program.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\lenovo\\AppData\\Local\\SourceServer\\53c94f5c3c2c7b66b9e5d05b8b1e5d88e429367ea9eb980a110bca1edd621599\\backend\\Program.cs",
               "ToolTip": "C:\\Users\\lenovo\\AppData\\Local\\SourceServer\\53c94f5c3c2c7b66b9e5d05b8b1e5d88e429367ea9eb980a110bca1edd621599\\backend\\Program.cs",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\lenovo\\AppData\\Local\\SourceServer\\53c94f5c3c2c7b66b9e5d05b8b1e5d88e429367ea9eb980a110bca1edd621599\\backend\\Program.cs",
               "ViewState": "AQIAAFQAAAAAAAAAAAAAAFMAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-19T12:37:12.917Z"
@@ -61,9 +63,9 @@
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "appsettings.Development.json",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\appsettings.Development.json",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\appsettings.Development.json",
               "RelativeDocumentMoniker": "appsettings.Development.json",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\appsettings.Development.json",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\appsettings.Development.json",
               "RelativeToolTip": "appsettings.Development.json",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
@@ -73,9 +75,9 @@
               "$type": "Document",
               "DocumentIndex": 5,
               "Title": "IGroupService.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Services\\IGroupService.cs",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\IGroupService.cs",
               "RelativeDocumentMoniker": "Services\\IGroupService.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Services\\IGroupService.cs",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\IGroupService.cs",
               "RelativeToolTip": "Services\\IGroupService.cs",
               "ViewState": "AgIAAGAAAAAAAAAAAAAowHIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
@@ -85,9 +87,9 @@
               "$type": "Document",
               "DocumentIndex": 4,
               "Title": "GroupService.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Services\\GroupService.cs",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\GroupService.cs",
               "RelativeDocumentMoniker": "Services\\GroupService.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Services\\GroupService.cs",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Services\\GroupService.cs",
               "RelativeToolTip": "Services\\GroupService.cs",
               "ViewState": "AQIAAIEAAAAAAAAAAAAAAAAAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
@@ -97,9 +99,9 @@
               "$type": "Document",
               "DocumentIndex": 6,
               "Title": "GroupDTO.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\GroupDTO.cs",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\DTOs\\GroupDTO.cs",
               "RelativeDocumentMoniker": "DTOs\\GroupDTO.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\DTOs\\GroupDTO.cs",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\DTOs\\GroupDTO.cs",
               "RelativeToolTip": "DTOs\\GroupDTO.cs",
               "ViewState": "AgIAABYAAAAAAAAAAAA4wC0AAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
@@ -109,11 +111,11 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "appsettings.json",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\appsettings.json",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\appsettings.json",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\appsettings.json",
               "RelativeToolTip": "appsettings.json",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABAAAAABAAAA",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAADAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2025-05-19T09:17:23.322Z",
               "EditorCaption": ""
@@ -122,9 +124,9 @@
               "$type": "Document",
               "DocumentIndex": 2,
               "Title": "Program.cs",
-              "DocumentMoniker": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Program.cs",
+              "DocumentMoniker": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "E:\\VS2022PROJECTS-CSharp\\Teamwork\\backend\\Program.cs",
+              "ToolTip": "C:\\Users\\noteles\\Desktop\\sccch\\WHU-STU-CHAT\\backend\\Program.cs",
               "RelativeToolTip": "Program.cs",
               "ViewState": "AQIAAFgAAAAAAAAAAAArwGoAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",

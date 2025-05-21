@@ -101,7 +101,7 @@
               <!-- 头像 -->
               <div class="message-avatar" v-if="message.senderId !== userId" @click.stop="showUserCard(message.senderId)">
                 <div class="avatar" v-if="message.senderAvatar">
-                  <img :src="message.senderAvatar" alt="用户头像" />
+                  <img :src="message.senderAvatar" alt="用户头像" @error="handleImageError" />
                 </div>
                 <div class="avatar default-avatar" v-else>
                   {{ message?.senderName?.charAt(0)?.toUpperCase() || '?' }}
@@ -122,7 +122,12 @@
                 
                 <!-- 图片消息 -->
                 <div v-else-if="message.messageType === 'image'" class="message-image">
-                  <img :src="message.fileUrl" alt="图片消息" @click="previewImage(message.fileUrl)" />
+                  <img 
+                    :src="getFullImageUrl(message.fileUrl)" 
+                    alt="图片消息" 
+                    @click="previewImage(message.fileUrl)" 
+                    @error="handleImageError"
+                    loading="lazy" />
                   <div class="image-info">{{ message.fileName }} ({{ formatFileSize(message.fileSize) }})</div>
                 </div>
                 
@@ -145,7 +150,7 @@
               <!-- 右侧头像(自己的消息) -->
               <div class="message-avatar self-avatar" v-if="message.senderId === userId">
                 <div class="avatar" v-if="userAvatar">
-                  <img :src="userAvatar" alt="用户头像" />
+                  <img :src="userAvatar" alt="用户头像" @error="handleImageError" />
                 </div>
                 <div class="avatar default-avatar" v-else>
                   {{ username?.charAt(0)?.toUpperCase() || '?' }}
@@ -209,7 +214,10 @@
     <!-- 图片预览弹窗 -->
     <div v-if="previewImageUrl" class="image-preview-modal" @click="closeImagePreview">
       <div class="image-preview-content">
-        <img :src="previewImageUrl" alt="图片预览" />
+        <img 
+          :src="getFullImageUrl(previewImageUrl)" 
+          alt="图片预览" 
+          @error="handleImageError" />
         <button class="close-preview" @click.stop="closeImagePreview">×</button>
       </div>
     </div>
@@ -500,17 +508,9 @@ export default {
         
         // 检查是否是图片消息
         const isImageMessage = message.content && (
-          message.content.startsWith('/temp/uploads/') || 
           message.content.startsWith('http') && 
-          (message.content.endsWith('.jpg') || message.content.endsWith('.jpeg') || message.content.endsWith('.png') || message.content.endsWith('.gif'))
+          (message.content.endsWith('.jpg') || message.content.endsWith('.jpeg') || message.content.endsWith('.png') || message.content.endsWith('.gif') || message.content.endsWith('.bmp') || message.content.endsWith('.webp'))
         );
-        
-        // 处理图片URL
-        const getFullImageUrl = (url) => {
-          if (!url) return null;
-          if (url.startsWith('http')) return url;
-          return `${window.apiBaseUrl}${url}`;
-        };
         
         // 将后端消息格式转换为前端需要的格式
         const formattedMessage = {
@@ -563,19 +563,11 @@ export default {
             
             // 检查是否是图片消息
             const isImageMessage = msg.content && (
-              msg.content.startsWith('/temp/uploads/') || 
               msg.content.startsWith('http') && 
-              (msg.content.endsWith('.jpg') || msg.content.endsWith('.jpeg') || msg.content.endsWith('.png') || msg.content.endsWith('.gif'))
+              (msg.content.endsWith('.jpg') || msg.content.endsWith('.jpeg') || msg.content.endsWith('.png') || msg.content.endsWith('.gif') || msg.content.endsWith('.bmp') || msg.content.endsWith('.webp'))
             );
             
-            // 处理图片URL
-            const getFullImageUrl = (url) => {
-              if (!url) return null;
-              if (url.startsWith('http')) return url;
-              return `${window.apiBaseUrl}${url}`;
-            };
-            
-            return {
+            const formattedMsg = {
               messageId: msg.messageId,
               content: msg.content,
               sendTime: msg.createTime,
@@ -588,6 +580,7 @@ export default {
               fileName: msg.fileName || (isImageMessage ? msg.content.split('/').pop() : null),
               fileSize: msg.fileSize || 0
             };
+            return formattedMsg;
           }).sort((a, b) => new Date(a.sendTime) - new Date(b.sendTime));
           messages.value = formattedMessages;
           
@@ -671,17 +664,9 @@ export default {
             
             // 检查是否是图片消息
             const isImageMessage = msg.content && (
-              msg.content.startsWith('/temp/uploads/') || 
               msg.content.startsWith('http') && 
-              (msg.content.endsWith('.jpg') || msg.content.endsWith('.jpeg') || msg.content.endsWith('.png') || msg.content.endsWith('.gif'))
+              (msg.content.endsWith('.jpg') || msg.content.endsWith('.jpeg') || msg.content.endsWith('.png') || msg.content.endsWith('.gif') || msg.content.endsWith('.bmp') || msg.content.endsWith('.webp'))
             );
-            
-            // 处理图片URL
-            const getFullImageUrl = (url) => {
-              if (!url) return null;
-              if (url.startsWith('http')) return url;
-              return `${window.apiBaseUrl}${url}`;
-            };
             
             const formattedMsg = {
               messageId: msg.messageId,
@@ -696,7 +681,6 @@ export default {
               fileName: msg.fileName || (isImageMessage ? msg.content.split('/').pop() : null),
               fileSize: msg.fileSize || 0
             };
-            console.log('格式化后的消息:', formattedMsg);
             return formattedMsg;
           }).sort((a, b) => new Date(a.sendTime) - new Date(b.sendTime));
           
@@ -1099,6 +1083,12 @@ export default {
       debouncedSearch();
     });
     
+    // 添加图片加载错误处理
+    const handleImageError = (event) => {
+      event.target.src = '/images/image-error.png'; // 替换为默认的错误图片
+      event.target.classList.add('image-load-error');
+    };
+    
     // 组件挂载时
     onMounted(() => {
       if (!userId.value || !username.value) {
@@ -1151,6 +1141,13 @@ export default {
       }
     });
     
+    // 处理图片URL的全局函数
+    const getFullImageUrl = (url) => {
+      if (!url) return null;
+      if (url.startsWith('http')) return url;
+      return `${window.apiBaseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+    };
+
     return {
       // 用户信息
       userId,
@@ -1227,6 +1224,8 @@ export default {
       shouldShowDateSeparator,
       handleGroupSearch,
       triggerImageUpload,
+      handleImageError,
+      getFullImageUrl,
     };
   }
 };

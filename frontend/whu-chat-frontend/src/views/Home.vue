@@ -410,6 +410,17 @@
                 输入对方的用户名，系统将自动搜索
               </p>
             </div>
+            <!-- 新增留言输入框 -->
+            <div class="form-group">
+              <label for="friendRequestMessage"><i class="fa-solid fa-comment-dots"></i> 留言</label>
+              <input
+                type="text"
+                id="friendRequestMessage"
+                v-model="friendRequestMessage"
+                placeholder="请求添加你为好友"
+                class="search-input"
+              >
+            </div>
             <div class="form-actions">
               <button class="action-button cancel" @click="showAddFriendModal = false">
                 <i class="fa-solid fa-times"></i> 取消
@@ -883,12 +894,14 @@ export default {
       try {
         const response = await axios.post('/api/notification/friend-request', {
           targetUsername: friendUsername.value,
-          requesterUsername: username.value
+          requesterUsername: username.value,
+          message: friendRequestMessage.value || '请求添加你为好友'
         });
         
         if (response.data && response.data.msg) {
           showNotification(response.data.msg, 'success');
           friendUsername.value = '';
+          friendRequestMessage.value = '';
           showAddFriendModal.value = false;
         }
       } catch (error) {
@@ -1439,6 +1452,8 @@ export default {
       };
     };
     
+    const friendRequestMessage = ref('');
+    
     return {
       // 用户信息
       userId,
@@ -1527,6 +1542,7 @@ export default {
       showNotification,
       rejectFriend,
       updateUnreadNotifications,
+      friendRequestMessage,
     };
   }
 };
@@ -3437,5 +3453,10 @@ export default {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.search-input::placeholder {
+  color: #bbb;
+  font-style: italic;
 }
 </style> 

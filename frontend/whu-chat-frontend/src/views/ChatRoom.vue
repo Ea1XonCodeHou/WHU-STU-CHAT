@@ -52,9 +52,10 @@
             
             <!-- 用户消息 -->
             <div v-else class="user-message" :class="{'self-message': message.senderId === userId}">
-              <!-- 头像 -->
+              <!-- 其他用户的头像 -->
               <div class="message-avatar" v-if="message.senderId !== userId" @click.stop="showUserCard(message.senderId)">
-                <div class="avatar default-avatar">
+                <img v-if="getUserAvatar(message.senderId)" :src="getUserAvatar(message.senderId)" alt="用户头像" class="avatar-image" />
+                <div v-else class="default-avatar">
                   {{ message.senderName.charAt(0).toUpperCase() }}
                 </div>
               </div>
@@ -66,18 +67,16 @@
                   <span class="message-time">{{ formatTime(message.sendTime) }}</span>
                 </div>
                 
-                <!-- 文本消息 -->
+                <!-- 消息类型内容 -->
                 <div v-if="message.messageType === 'text'" class="message-text">
                   {{ message.content }}
                 </div>
                 
-                <!-- 图片消息 -->
                 <div v-else-if="message.messageType === 'image'" class="message-image">
                   <img :src="getFullImageUrl(message.fileUrl)" alt="图片消息" @click="previewImage(message.fileUrl)" @error="handleImageError" />
                   <div class="image-info">{{ message.fileName }} ({{ formatFileSize(message.fileSize) }})</div>
                 </div>
                 
-                <!-- 文件消息 -->
                 <div v-else-if="message.messageType === 'file'" class="message-file" @click="downloadFile(message.fileUrl, message.fileName)">
                   <div class="file-icon"></div>
                   <div class="file-info">
@@ -87,15 +86,15 @@
                   <div class="download-icon"></div>
                 </div>
                 
-                <!-- 表情消息 -->
                 <div v-else-if="message.messageType === 'emoji'" class="message-emoji">
                   {{ message.content }}
                 </div>
               </div>
               
-              <!-- 右侧头像(自己的消息) -->
+              <!-- 自己的头像 -->
               <div class="message-avatar self-avatar" v-if="message.senderId === userId">
-                <div class="avatar default-avatar">
+                <img v-if="userAvatar" :src="userAvatar" alt="用户头像" class="avatar-image" />
+                <div v-else class="default-avatar">
                   {{ username.charAt(0).toUpperCase() }}
                 </div>
               </div>
@@ -121,7 +120,7 @@
             <div class="user-list">
               <div v-for="user in onlineUsers" :key="user.id" class="user-item" @click="showUserCard(user.id)">
                 <div class="user-avatar">
-                  <img v-if="user.avatarUrl" :src="user.avatarUrl" alt="用户头像" />
+                  <img v-if="user.avatarUrl" :src="processAvatarUrl(user.avatarUrl)" alt="用户头像" class="avatar-image" />
                   <div v-else class="default-avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
                 </div>
                 <div class="user-details">
@@ -255,6 +254,10 @@ export default {
     const userId = ref(parseInt(localStorage.getItem('userId') || '0'));
     const username = ref(localStorage.getItem('username') || '访客');
     const userAvatar = ref(localStorage.getItem('userAvatar') || '');
+    if (userAvatar.value && !userAvatar.value.startsWith('http')) {
+      userAvatar.value = userAvatar.value.startsWith('/') ? userAvatar.value : `/${userAvatar.value}`;
+      userAvatar.value = `${window.apiBaseUrl}${userAvatar.value}`;
+    }
     
     // 处理图片URL
     const getFullImageUrl = (url) => {
@@ -300,7 +303,6 @@ export default {
       event.target.style.maxHeight = '100px';
       event.target.alt = '图片加载失败';
     };
-    
     // 聊天室信息
     const roomId = computed(() => parseInt(props.id));
     const roomName = ref('公共聊天室');
@@ -321,6 +323,9 @@ export default {
     
     // 在线用户
     const onlineUsers = ref([]);
+    
+    // 用户头像缓存，用于提高性能
+    const userAvatarCache = ref({});
     
     // 表情相关
     const showEmojiPanel = ref(false);
@@ -405,7 +410,93 @@ export default {
     const summaryDebounceTimeout = ref(null);
     const lastSummaryTime = ref(0);
     const messageCountSinceLastSummary = ref(0);
-
+    
+    // 处理头像URL
+    const processAvatarUrl = (avatarUrl) => {
+      if (!avatarUrl) return null;
+      
+      if (!avatarUrl.startsWith('http')) {
+        avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
+        avatarUrl = `${window.apiBaseUrl}${avatarUrl}`;
+      }
+      
+      return avatarUrl;
+    };
+    
+    // 获取用户头像
+    const getUserAvatar = (userId) => {
+      // 如果是当前用户，直接返回userAvatar
+      if (userId === parseInt(localStorage.getItem('userId'))) {
+        return userAvatar.value;
+      }
+      
+      // 如果缓存中有，直接返回（即使是null也返回，防止重复请求）
+      if (userId in userAvatarCache.value) {
+        return userAvatarCache.value[userId];
+      }
+      
+      // 从在线用户列表中查找
+      const user = onlineUsers.value.find(user => user.id === userId);
+      if (user && user.avatarUrl) {
+        const processedUrl = processAvatarUrl(user.avatarUrl);
+        userAvatarCache.value[userId] = processedUrl;
+        return processedUrl;
+      }
+      
+      // 如果找不到，且没有正在获取，尝试从服务器获取
+      if (!userAvatarCache.value[`loading_${userId}`]) {
+        // 设置初始值为null，防止重复请求
+        userAvatarCache.value[userId] = null;
+        // 使用setTimeout将请求放入下一个事件循环，避免在渲染期间触发请求
+        setTimeout(() => {
+          fetchUserAvatar(userId);
+        }, 0);
+      }
+      return null;
+    };
+    
+    // 从服务器获取用户头像
+    const fetchUserAvatar = async (userId) => {
+      // 防止重复请求，添加标记
+      if (userAvatarCache.value[`loading_${userId}`]) {
+        return;
+      }
+      
+      try {
+        // 设置加载标记
+        userAvatarCache.value[`loading_${userId}`] = true;
+        
+        const response = await axios.get(`${window.apiBaseUrl}/api/user/${userId}`);
+        if (response.data && response.data.code === 200) {
+          const userData = response.data.data;
+          if (userData && userData.avatar) {
+            const processedUrl = processAvatarUrl(userData.avatar);
+            userAvatarCache.value[userId] = processedUrl;
+            // 强制更新组件
+            nextTick(() => {
+              const index = onlineUsers.value.findIndex(user => user.id === userId);
+              if (index !== -1) {
+                onlineUsers.value[index] = { ...onlineUsers.value[index] };
+              }
+            });
+          } else {
+            // 即使没有头像也存储null，避免重复请求
+            userAvatarCache.value[userId] = null;
+          }
+        } else {
+          // 响应异常也缓存，避免重复请求
+          userAvatarCache.value[userId] = null;
+        }
+      } catch (error) {
+        console.error('获取用户头像失败:', error);
+        // 错误情况下也设置为null，防止持续请求
+        userAvatarCache.value[userId] = null;
+      } finally {
+        // 清除加载标记
+        userAvatarCache.value[`loading_${userId}`] = false;
+      }
+    };
+    
     // 创建SignalR连接
     const createConnection = () => {
       // 获取正确的API基础URL
@@ -704,15 +795,11 @@ export default {
         return;
       }
       
-      // 检查是否已有等待执行的点击
+      // 防止重复触发
       if (uploadClickTimeout) {
-        console.log('上传操作已触发，请稍候');
-        return;
+        clearTimeout(uploadClickTimeout);
       }
       
-      console.log('触发图片上传点击事件');
-      
-      // 使用防抖处理点击事件
       uploadClickTimeout = setTimeout(() => {
         uploadClickTimeout = null;
         
@@ -720,13 +807,69 @@ export default {
         if (imageInput.value) {
           // 直接设置value为空（重置），确保相同文件可以被再次选中
           imageInput.value.value = '';
-          // 点击触发文件选择
-          imageInput.value.click();
+          
+          try {
+            // 使用MouseEvent构造函数创建原生点击事件
+            const clickEvent = new MouseEvent('click', {
+              bubbles: false,  // 不冒泡
+              cancelable: true,
+              view: window
+            });
+            
+            // 直接在input元素上触发点击事件
+            imageInput.value.dispatchEvent(clickEvent);
+          } catch (error) {
+            console.error('触发文件选择器失败:', error);
+            // 降级方案
+            imageInput.value.click();
+          }
         } else {
           console.warn('找不到图片输入框引用');
           showNotification('上传组件未就绪，请刷新页面重试', 'error');
         }
-      }, 300);
+      }, 100); // 降低延迟时间
+    };
+    
+    // 添加触发文件上传点击的辅助方法
+    const triggerFileUpload = () => {
+      if (!isConnected.value) {
+        showNotification('未连接到服务器，无法发送文件', 'error');
+        return;
+      }
+      
+      // 防止重复触发
+      if (uploadClickTimeout) {
+        clearTimeout(uploadClickTimeout);
+      }
+      
+      uploadClickTimeout = setTimeout(() => {
+        uploadClickTimeout = null;
+        
+        // 确保输入框引用存在并处于可用状态
+        if (fileInput.value) {
+          // 直接设置value为空（重置），确保相同文件可以被再次选中
+          fileInput.value.value = '';
+          
+          try {
+            // 使用MouseEvent构造函数创建原生点击事件
+            const clickEvent = new MouseEvent('click', {
+              bubbles: false,  // 不冒泡
+              cancelable: true,
+              view: window
+            });
+            
+            // 直接在input元素上触发点击事件
+            fileInput.value.dispatchEvent(clickEvent);
+          } catch (error) {
+            console.error('触发文件选择器失败:', error);
+            // 降级方案
+            fileInput.value.click();
+          }
+        } else {
+          console.warn('找不到文件输入框引用');
+          showNotification('上传组件未就绪，请刷新页面重试', 'error');
+        }
+      }, 100); // 降低延迟时间
     };
     
     // 修改上传文件函数
@@ -1275,6 +1418,10 @@ export default {
       isUserFriend,
       handleFriendRequestSent,
       
+      // 头像处理
+      processAvatarUrl,
+      getUserAvatar,
+      
       // 方法
       sendMessage,
       insertEmoji,
@@ -1296,7 +1443,7 @@ export default {
       getFullImageUrl,
       handleImageError,
       triggerImageUpload,
-      triggerFileUpload
+      triggerFileUpload,
     };
   }
 };
@@ -1323,9 +1470,11 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 10px 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #e5e5e5;
+  height: 60px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   z-index: 10;
 }
 
@@ -1545,27 +1694,53 @@ export default {
 .user-message {
   display: flex;
   margin-bottom: 20px;
+  align-items: flex-start;
 }
 
-.self-message-container .user-message {
+.self-message {
   flex-direction: row-reverse;
 }
 
 .message-avatar {
   width: 40px;
   height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
   margin: 0 10px;
   flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.message-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.self-avatar {
+  margin-left: 10px;
+  margin-right: 0;
 }
 
 .message-content {
   max-width: 60%;
-  display: flex;
-  flex-direction: column;
 }
 
-.self-message-container .message-content {
+.self-message .message-content {
   align-items: flex-end;
+}
+
+.default-avatar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1677ff, #69c0ff);
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
 }
 
 .message-info {
@@ -1585,7 +1760,7 @@ export default {
   color: #bbb;
 }
 
-.self-message-container .message-time {
+.self-message .message-time {
   text-align: right;
 }
 
@@ -2222,7 +2397,6 @@ export default {
   height: 100%;
   opacity: 0;
   font-size: 0; /* 防止出现意外的可点击区域 */
-  z-index: -1; /* 将输入框放在按钮下面，让点击事件由按钮处理 */
   pointer-events: none; /* 禁用输入框的直接交互，由按钮控制 */
 }
 
@@ -2745,4 +2919,41 @@ export default {
   cursor: not-allowed;
   pointer-events: none;
 }
-</style> 
+
+/* 修改头像样式 */
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* 调整自己的消息样式 */
+.self-message {
+  flex-direction: row-reverse;
+}
+
+.self-message .message-content {
+  margin-right: 10px;
+  margin-left: 0;
+}
+
+.message-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.self-avatar {
+  margin-left: 10px;
+  margin-right: 0;
+}
+
+</style>  

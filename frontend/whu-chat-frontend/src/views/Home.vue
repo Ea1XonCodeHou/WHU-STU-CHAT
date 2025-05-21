@@ -890,14 +890,16 @@ export default {
         showNotification('请输入用户名', 'error');
         return;
       }
-      
+      if (friendUsername.value === username.value) {
+        showNotification('不能添加自己为好友', 'error');
+        return;
+      }
       try {
         const response = await axios.post('/api/notification/friend-request', {
           targetUsername: friendUsername.value,
           requesterUsername: username.value,
           message: friendRequestMessage.value || '请求添加你为好友'
         });
-        
         if (response.data && response.data.msg) {
           showNotification(response.data.msg, 'success');
           friendUsername.value = '';

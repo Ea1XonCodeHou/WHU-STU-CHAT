@@ -190,6 +190,8 @@
 
 <script>
 import axios from 'axios';
+import { ElMessageBox } from 'element-plus';
+import 'element-plus/theme-chalk/el-message-box.css';
 
 export default {
   name: 'RegisterView',
@@ -452,8 +454,40 @@ export default {
           
           if (response.data.code === 200) {
             // 注册成功
-            this.successMessage = '账号注册成功！即将跳转到登录页面...';
-            
+            ElMessageBox.alert(
+              `
+                <div class="register-success-popup">
+                  <div class="success-icon">
+                    <span class="material-icon">check_circle</span>
+                  </div>
+                  <div class="success-title">注册成功!</div>
+                  <div class="success-desc">欢迎加入武汉大学校园互助社区<br>请前往登录页面开始体验</div>
+                  <button class="el-button el-button--primary" id="go-login-btn" style="margin-top: 16px;">返回登录</button>
+                </div>
+              `,
+              '', // 不显示标题
+              {
+                customClass: 'whu-register-success-dialog',
+                showConfirmButton: false,
+                showClose: false,
+                closeOnClickModal: false,
+                closeOnPressEscape: false,
+                dangerouslyUseHTMLString: true,
+                callback: () => {
+                  this.$router.push('/login');
+                }
+              }
+            );
+            // 监听按钮点击事件
+            this.$nextTick(() => {
+              const btn = document.getElementById('go-login-btn');
+              if (btn) {
+                btn.onclick = () => {
+                  ElMessageBox.close();
+                  this.$router.push('/login');
+                };
+              }
+            });
             // 清空表单
             this.formData = {
               username: '',
@@ -463,11 +497,6 @@ export default {
               confirmPassword: '',
               agreeTerms: false
             };
-            
-            // 3秒后跳转到登录页面
-            setTimeout(() => {
-              this.$router.push('/login');
-            }, 3000);
           } else {
             // 注册失败
             this.errorMessage = response.data.msg || '注册失败，请稍后再试';
@@ -1180,5 +1209,78 @@ export default {
   .form-title {
     font-size: 1.8rem;
   }
+}
+</style>
+
+<style>
+/* 美化Element Plus注册成功弹窗 */
+.whu-register-success-dialog .el-message-box {
+  border-radius: 28px !important;
+  background: linear-gradient(135deg, #f8f9fa 0%, #eaf0fb 100%) !important;
+  box-shadow: 0 8px 32px rgba(52, 152, 219, 0.10) !important;
+  border: none !important;
+  outline: none !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.whu-register-success-dialog .el-message-box__content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  width: 100%;
+  padding: 0 !important;
+}
+.register-success-popup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px 8px 24px;
+  text-align: center;
+  width: 100%;
+}
+.register-success-popup .success-icon {
+  font-size: 64px;
+  color: #52c41a;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.register-success-popup .success-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1677ff;
+  margin-bottom: 8px;
+  text-align: center;
+  width: 100%;
+}
+.register-success-popup .success-desc {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 8px;
+  text-align: center;
+  line-height: 1.6;
+  width: 100%;
+}
+.whu-register-success-dialog .el-message-box__btns {
+  display: none !important;
+}
+.whu-register-success-dialog .el-button--primary {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 48px !important;
+  line-height: 1 !important;
+  padding: 0 40px !important;
+  font-size: 16px !important;
+}
+.whu-register-success-dialog .el-button--primary:hover {
+  background: linear-gradient(135deg, #42a5f5 0%, #1976d2 100%) !important;
 }
 </style> 

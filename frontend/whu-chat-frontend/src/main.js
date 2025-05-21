@@ -150,22 +150,8 @@ window.showNotification = (title, body, type = 'private') => {
 
 // 加载用户设置
 const loadUserSettings = () => {
-  // 深色模式
-  const darkMode = localStorage.getItem('setting_darkMode') === 'true';
-  if (darkMode) {
-    document.documentElement.classList.add('dark-mode');
-    document.body.classList.add('dark-mode');
-  } else {
-    document.documentElement.classList.remove('dark-mode');
-    document.body.classList.remove('dark-mode');
-  }
-  
-  // 声音和通知设置
-  window.allowMessageSound = localStorage.getItem('setting_messageSound') !== 'false';
-  window.allowNotifications = localStorage.getItem('setting_newMessageNotification') !== 'false';
-  window.privateChatMute = localStorage.getItem('setting_privateChatMute') === 'true';
-  window.groupChatMute = localStorage.getItem('setting_groupChatMute') === 'true';
-  window.systemNotificationMute = localStorage.getItem('setting_systemNotificationMute') === 'true';
+  // 在线状态设置
+  window.showMyOnlineStatus = localStorage.getItem('setting_showMyOnlineStatus') !== 'false';
 };
 
 app.mount("#app");

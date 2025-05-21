@@ -10,64 +10,12 @@
       
       <div class="modal-body">
         <div class="settings-section">
-          <h4 class="section-title">用户界面设置</h4>
-          
-          <div class="setting-item">
-            <span class="setting-label">深色模式</span>
-            <label class="toggle-switch">
-              <input type="checkbox" v-model="settings.darkMode">
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-item">
-            <span class="setting-label">消息提示音</span>
-            <label class="toggle-switch">
-              <input type="checkbox" v-model="settings.messageSound">
-              <span class="slider"></span>
-            </label>
-          </div>
-          
           <h4 class="section-title">隐私设置</h4>
           
           <div class="setting-item">
             <span class="setting-label">显示在线状态</span>
             <label class="toggle-switch">
               <input type="checkbox" v-model="settings.showMyOnlineStatus">
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-item">
-            <span class="setting-label">消息通知</span>
-            <label class="toggle-switch">
-              <input type="checkbox" v-model="settings.newMessageNotification">
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <h4 class="section-title">消息提醒设置</h4>
-          
-          <div class="setting-item">
-            <span class="setting-label">私聊消息免打扰</span>
-            <label class="toggle-switch">
-              <input type="checkbox" v-model="settings.privateChatMute">
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-item">
-            <span class="setting-label">群聊消息免打扰</span>
-            <label class="toggle-switch">
-              <input type="checkbox" v-model="settings.groupChatMute">
-              <span class="slider"></span>
-            </label>
-          </div>
-          
-          <div class="setting-item">
-            <span class="setting-label">系统通知免打扰</span>
-            <label class="toggle-switch">
-              <input type="checkbox" v-model="settings.systemNotificationMute">
               <span class="slider"></span>
             </label>
           </div>
@@ -89,7 +37,7 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
 export default {
@@ -106,24 +54,14 @@ export default {
     
     // 设置项
     const settings = ref({
-      darkMode: localStorage.getItem('setting_darkMode') === 'true',
-      messageSound: localStorage.getItem('setting_messageSound') === 'true',
-      showMyOnlineStatus: localStorage.getItem('setting_showMyOnlineStatus') === 'true',
-      newMessageNotification: localStorage.getItem('setting_newMessageNotification') === 'true',
-      privateChatMute: localStorage.getItem('setting_privateChatMute') === 'true',
-      groupChatMute: localStorage.getItem('setting_groupChatMute') === 'true',
-      systemNotificationMute: localStorage.getItem('setting_systemNotificationMute') === 'true'
+      showMyOnlineStatus: localStorage.getItem('setting_showMyOnlineStatus') === 'true'
     });
-    
-    // 原始设置（用于取消操作）
-    const originalSettings = ref({});
     
     // 保存按钮状态
     const isSaving = ref(false);
     
     // 关闭模态框
     const closeModal = () => {
-      // 重置为原来的设置，不应用修改
       if (userId.value) {
         loadSettings();
       }
@@ -133,38 +71,13 @@ export default {
     // 从服务器加载设置
     const loadSettings = async () => {
       try {
-        // 确保我们有用户ID
         if (!userId.value) return;
         
-        console.log(`正在加载用户 ${userId.value} 的设置...`);
-        
-        // 使用GET请求获取所有用户设置
         const response = await axios.get(`/api/user/${userId.value}/settings`);
         const userSettings = response.data;
         
-        // 处理返回的设置
         if (userSettings) {
-          // 将服务器设置值映射到本地设置对象
-          const mappings = {
-            'setting_darkMode': 'darkMode',
-            'setting_messageSound': 'messageSound',
-            'setting_showMyOnlineStatus': 'showMyOnlineStatus',
-            'setting_newMessageNotification': 'newMessageNotification',
-            'setting_privateChatMute': 'privateChatMute',
-            'setting_groupChatMute': 'groupChatMute',
-            'setting_systemNotificationMute': 'systemNotificationMute'
-          };
-          
-          // 遍历服务器返回的所有设置
-          Object.entries(userSettings).forEach(([key, value]) => {
-            const localKey = mappings[key];
-            if (localKey && settings.value.hasOwnProperty(localKey)) {
-              // 将字符串的 "true"/"false" 转换为布尔值
-              settings.value[localKey] = value === 'true';
-            }
-          });
-          
-          console.log('设置加载成功:', settings.value);
+          settings.value.showMyOnlineStatus = userSettings['setting_showMyOnlineStatus'] === 'true';
         }
       } catch (error) {
         console.error('加载设置失败:', error);
@@ -173,50 +86,8 @@ export default {
     
     // 应用设置效果
     const applySettings = async () => {
-      console.log('正在应用设置:', settings.value);
-      
-      // 1. 应用深色模式
-      if (settings.value.darkMode) {
-        document.documentElement.classList.add('dark-mode');
-        document.body.classList.add('dark-mode');
-      } else {
-        document.documentElement.classList.remove('dark-mode');
-        document.body.classList.remove('dark-mode');
-      }
-      localStorage.setItem('setting_darkMode', settings.value.darkMode.toString());
-      
-      // 2. 设置消息声音通知
-      window.allowMessageSound = settings.value.messageSound;
-      localStorage.setItem('setting_messageSound', settings.value.messageSound.toString());
-      
-      // 3. 设置在线状态可见性
       localStorage.setItem('setting_showMyOnlineStatus', settings.value.showMyOnlineStatus.toString());
-      // 将在线状态变更发送到后端
       await updateOnlineStatusVisibility(settings.value.showMyOnlineStatus);
-      
-      // 4. 设置消息通知
-      window.allowNotifications = settings.value.newMessageNotification;
-      localStorage.setItem('setting_newMessageNotification', settings.value.newMessageNotification.toString());
-      
-      // 5. 如果设置了消息通知，请求通知权限
-      if (settings.value.newMessageNotification && Notification && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-        try {
-          const permission = await Notification.requestPermission();
-          console.log('通知权限:', permission);
-        } catch (error) {
-          console.error('请求通知权限失败:', error);
-        }
-      }
-      
-      // 6. 设置消息免打扰
-      localStorage.setItem('setting_privateChatMute', settings.value.privateChatMute.toString());
-      localStorage.setItem('setting_groupChatMute', settings.value.groupChatMute.toString());
-      localStorage.setItem('setting_systemNotificationMute', settings.value.systemNotificationMute.toString());
-      window.privateChatMute = settings.value.privateChatMute;
-      window.groupChatMute = settings.value.groupChatMute;
-      window.systemNotificationMute = settings.value.systemNotificationMute;
-      
-      // 7. 触发设置更新事件
       emit('settings-updated', settings.value);
     };
     
@@ -229,11 +100,10 @@ export default {
           return;
         }
         
-        // 发送请求更新用户在线状态可见性
         await axios.post(`/api/user/${userId}/status`, {
           userId: userId,
-          isOnline: true, // 用户当前在线
-          isVisible: isVisible // 是否显示在线状态
+          isOnline: true,
+          isVisible: isVisible
         });
         
         console.log('用户在线状态可见性已更新:', isVisible);
@@ -247,27 +117,13 @@ export default {
       isSaving.value = true;
       
       try {
-        // 应用设置效果
         await applySettings();
         
-        // 保存每项设置到数据库
-        for (const [key, value] of Object.entries(settings.value)) {
-          const settingKey = `setting_${key}`;
-          await axios.post(`/api/user/${userId.value}/settings`, {
-            userId: userId.value,
-            settingKey: settingKey,
-            settingValue: value.toString()
-          });
-        }
-        
-        // 测试通知效果
-        if (settings.value.messageSound) {
-          window.playMessageSound();
-        }
-        
-        if (settings.value.newMessageNotification) {
-          window.showNotification('设置已保存', '你的设置已成功保存并生效');
-        }
+        await axios.post(`/api/user/${userId.value}/settings`, {
+          userId: userId.value,
+          settingKey: 'setting_showMyOnlineStatus',
+          settingValue: settings.value.showMyOnlineStatus.toString()
+        });
         
         alert('设置已保存');
       } catch (error) {
@@ -280,7 +136,6 @@ export default {
     
     // 组件挂载时
     onMounted(() => {
-      // 加载服务器设置
       if (userId.value) {
         loadSettings();
       }
@@ -438,34 +293,27 @@ input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
-}
-
 .save-button {
+  width: 100%;
+  padding: 10px;
   background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
   color: white;
   border: none;
-  padding: 10px 20px;
   border-radius: 4px;
+  font-size: 14px;
   cursor: pointer;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 100px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s;
 }
 
-.save-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(71, 118, 230, 0.3);
+.save-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(71, 118, 230, 0.2);
 }
 
 .save-button:disabled {
-  opacity: 0.7;
+  background: #ccc;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 </style> 

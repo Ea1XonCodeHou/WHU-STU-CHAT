@@ -143,17 +143,5 @@ export function initNotifications() {
     sendNotification(title, body, icon, onClick, type);
   
   // 设置默认状态
-  window.allowMessageSound = localStorage.getItem('setting_messageSound') === 'true';
-  window.allowNotifications = localStorage.getItem('setting_newMessageNotification') === 'true';
-  window.privateChatMute = localStorage.getItem('setting_privateChatMute') === 'true';
-  window.groupChatMute = localStorage.getItem('setting_groupChatMute') === 'true';
-  window.systemNotificationMute = localStorage.getItem('setting_systemNotificationMute') === 'true';
-  
-  // 如果允许通知且未获得权限，请求权限
-  if (window.allowNotifications && 
-      Notification && 
-      Notification.permission !== 'granted' && 
-      Notification.permission !== 'denied') {
-    requestNotificationPermission();
-  }
+  window.showMyOnlineStatus = localStorage.getItem('setting_showMyOnlineStatus') !== 'false';
 } 

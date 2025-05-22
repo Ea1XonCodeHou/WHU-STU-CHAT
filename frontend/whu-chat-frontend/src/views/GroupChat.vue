@@ -618,8 +618,10 @@ export default {
         connectionStatus.value = '已连接';
         console.log('SignalR连接已建立');
         
-        // 连接成功后加入群组
-        await joinGroup();
+        // 连接成功后加入群组（只有在有当前群组时才加入）
+        if (currentGroup.value?.groupId) {
+          await joinGroup(currentGroup.value.groupId);
+        }
         
         // 启动自动刷新功能
         startAutoRefreshMessages();
@@ -693,15 +695,33 @@ export default {
     // 加载用户群组列表
     const loadUserGroups = async () => {
       try {
+        console.log('开始加载用户群组列表，用户ID:', userId.value);
         const response = await axios.get(`${window.apiBaseUrl}/api/Group/user/${userId.value}`);
+        console.log('获取群组列表响应:', response.data);
+        
         if (response.data && response.data.code === 200) {
-          groups.value = response.data.data;
+          if (Array.isArray(response.data.data)) {
+            groups.value = response.data.data;
+            console.log('成功加载群组列表:', groups.value);
+          } else {
+            console.error('群组数据格式不正确:', response.data.data);
+            showNotification('群组数据格式不正确', 'error');
+          }
         } else {
-          throw new Error(response.data?.msg || '获取群组列表失败');
+          console.error('获取群组列表失败:', response.data?.msg || '未知错误');
+          showNotification('获取群组列表失败: ' + (response.data?.msg || '未知错误'), 'error');
         }
       } catch (error) {
         console.error('加载群组列表失败:', error);
-        showNotification('加载群组列表失败: ' + error.message, 'error');
+        if (error.response) {
+          console.error('错误响应:', error.response.data);
+          showNotification('加载群组列表失败: ' + (error.response.data?.msg || error.message), 'error');
+        } else if (error.request) {
+          console.error('未收到响应:', error.request);
+          showNotification('服务器未响应，请检查网络连接', 'error');
+        } else {
+          showNotification('加载群组列表失败: ' + error.message, 'error');
+        }
       }
     };
     
@@ -780,18 +800,33 @@ export default {
         showNotification('尚未连接到服务器', 'error');
         return;
       }
+
+      if (!userId.value || !username.value) {
+        console.error('用户信息不完整:', { userId: userId.value, username: username.value });
+        showNotification('用户信息不完整，请重新登录', 'error');
+        return;
+      }
+
+      if (!groupId) {
+        console.error('群组ID无效:', groupId);
+        showNotification('群组ID无效', 'error');
+        return;
+      }
       
       try {
+        console.log('尝试加入群组:', { userId: userId.value, username: username.value, groupId });
         await connection.value.invoke('JoinGroup', userId.value, username.value, groupId);
         console.log(`成功加入群组 ${groupId}`);
       } catch (error) {
+        console.error('加入群组失败:', error);
         // 忽略用户已在群组中的错误
         if (error.message && error.message.includes('用户已在群组中')) {
           console.log(`用户已在群组 ${groupId} 中`);
           return;
         }
-        console.error('加入群组失败:', error);
-        showNotification('加入群组失败: ' + error, 'error');
+        // 显示更详细的错误信息
+        const errorMessage = error.message || '未知错误';
+        showNotification(`加入群组失败: ${errorMessage}`, 'error');
       }
     };
     
@@ -1194,12 +1229,16 @@ export default {
     }
     
     // 组件挂载时
-    onMounted(() => {
+    onMounted(async () => {
       if (!userId.value || !username.value) {
         router.push('/login');
         return;
       }
       
+      // 先加载群组列表
+      await loadUserGroups();
+      
+      // 然后创建连接
       createConnection();
       
       if (messagesContainer.value) {

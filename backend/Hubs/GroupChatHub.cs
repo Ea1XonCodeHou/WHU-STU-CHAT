@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using System.Linq;
 using backend.DTOs;
 using backend.Services;
 using Microsoft.AspNetCore.SignalR;
@@ -27,11 +28,43 @@ namespace backend.Hubs
             {
                 _logger.LogInformation($"用户 {username}({userId}) 尝试加入群组 {groupId}");
 
+                // 验证参数
+                if (userId <= 0)
+                {
+                    _logger.LogWarning($"无效的用户ID: {userId}");
+                    await Clients.Caller.SendAsync("Error", "无效的用户ID");
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(username))
+                {
+                    _logger.LogWarning($"用户 {userId} 的用户名为空");
+                    await Clients.Caller.SendAsync("Error", "用户名为空");
+                    return;
+                }
+
+                if (groupId <= 0)
+                {
+                    _logger.LogWarning($"无效的群组ID: {groupId}");
+                    await Clients.Caller.SendAsync("Error", "无效的群组ID");
+                    return;
+                }
+
+                // 检查群组是否存在
                 var group = await _groupService.GetGroupAsync(groupId);
                 if (group == null)
                 {
                     _logger.LogWarning($"群组 {groupId} 不存在");
                     await Clients.Caller.SendAsync("Error", "群组不存在");
+                    return;
+                }
+
+                // 检查用户是否已经是群组成员
+                var groupUsers = await _groupService.GetGroupUsersAsync(groupId);
+                if (!groupUsers.Any(u => u.UserId == userId))
+                {
+                    _logger.LogWarning($"用户 {username}({userId}) 不是群组 {groupId} 的成员");
+                    await Clients.Caller.SendAsync("Error", "您不是该群组的成员");
                     return;
                 }
 
@@ -50,8 +83,6 @@ namespace backend.Hubs
 
                 // 设置用户全局在线状态
                 _groupService.SetUserOnline(userId, true);
-
-                
 
                 // 获取群组历史消息
                 var messages = await _groupService.GetGroupMessagesAsync(groupId, 20);
@@ -79,7 +110,7 @@ namespace backend.Hubs
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"用户加入群组时发生错误: {ex.Message}");
-                await Clients.Caller.SendAsync("Error", "加入群组失败: " + ex.Message);
+                await Clients.Caller.SendAsync("Error", $"加入群组失败: {ex.Message}");
             }
         }
 

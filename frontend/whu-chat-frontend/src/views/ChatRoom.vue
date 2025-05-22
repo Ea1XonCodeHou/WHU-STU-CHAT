@@ -52,15 +52,27 @@
             
             <!-- 用户消息 -->
             <div v-else class="user-message" :class="{'self-message': message.senderId === userId}">
-              <!-- 其他用户的头像 -->
-              <div class="message-avatar" v-if="message.senderId !== userId" @click.stop="showUserCard(message.senderId)">
-                <img v-if="getUserAvatar(message.senderId)" :src="getUserAvatar(message.senderId)" alt="用户头像" class="avatar-image" />
-                <div v-else class="default-avatar">
-                  {{ message.senderName.charAt(0).toUpperCase() }}
-                </div>
+              <!-- 统一的头像显示区域 (作为第一个子元素) -->
+              <div class="message-avatar"
+                   :class="{'self-avatar': message.senderId === userId}"
+                   @click.stop="message.senderId !== userId ? showUserCard(message.senderId) : null">
+                <template v-if="message.senderId === userId">
+                  <!-- 自己的头像 -->
+                  <img v-if="userAvatar" :src="userAvatar" alt="用户头像" class="avatar-image" @error="handleImageError" />
+                  <div v-else class="default-avatar">
+                    {{ username.charAt(0).toUpperCase() }}
+                  </div>
+                </template>
+                <template v-else>
+                  <!-- 其他用户的头像 -->
+                  <img v-if="getUserAvatar(message.senderId)" :src="getUserAvatar(message.senderId)" alt="用户头像" class="avatar-image" @error="handleImageError" />
+                  <div v-else class="default-avatar">
+                    {{ message.senderName ? message.senderName.charAt(0).toUpperCase() : '?' }}
+                  </div>
+                </template>
               </div>
               
-              <!-- 消息内容 -->
+              <!-- 消息内容 (作为第二个子元素) -->
               <div class="message-content">
                 <div class="message-info">
                   <span class="message-sender" v-if="message.senderId !== userId" @click.stop="showUserCard(message.senderId)">{{ message.senderName }}</span>
@@ -90,14 +102,7 @@
                   {{ message.content }}
                 </div>
               </div>
-              
-              <!-- 自己的头像 -->
-              <div class="message-avatar self-avatar" v-if="message.senderId === userId">
-                <img v-if="userAvatar" :src="userAvatar" alt="用户头像" class="avatar-image" />
-                <div v-else class="default-avatar">
-                  {{ username.charAt(0).toUpperCase() }}
-                </div>
-              </div>
+              <!-- 原自己的头像逻辑已合并到上面的统一头像显示区域 -->
             </div>
           </div>
           

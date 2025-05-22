@@ -1,5 +1,13 @@
 <template>
   <div class="member-benefits-container">
+    <!-- 返回按钮 -->
+    <div class="back-to-home">
+      <button class="back-btn" @click="goToHome">
+        <i class="back-icon"></i>
+        返回主页
+      </button>
+    </div>
+    
     <!-- 顶部标题区域 -->
     <div class="header-section">
       <h1 class="main-title">会员权益中心</h1>
@@ -532,6 +540,11 @@ export default {
       showQRCode();
     };
     
+    // 返回主页
+    const goToHome = () => {
+      router.push('/home');
+    };
+    
     // 组件销毁时清除定时器
     onUnmounted(() => {
       if (countdownTimer) clearInterval(countdownTimer);
@@ -559,7 +572,8 @@ export default {
       formatDate,
       selectPlan,
       processPurchase,
-      cancelPayment
+      cancelPayment,
+      goToHome
     };
   }
 };
@@ -572,6 +586,64 @@ export default {
   padding: 30px 20px;
   color: #333;
   font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  position: relative;
+}
+
+/* 返回按钮样式 */
+.back-to-home {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  background-color: #f5f7fa;
+  border: 1px solid #e0e3e9;
+  border-radius: 20px;
+  padding: 8px 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #333;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.back-btn:hover {
+  background-color: #e0e3e9;
+  transform: translateY(-2px);
+}
+
+.back-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  position: relative;
+  display: inline-block;
+}
+
+.back-icon:before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 3px;
+  width: 10px;
+  height: 1px;
+  background-color: #333;
+}
+
+.back-icon:after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 3px;
+  width: 6px;
+  height: 6px;
+  border-left: 1px solid #333;
+  border-bottom: 1px solid #333;
+  transform: rotate(45deg);
 }
 
 /* 顶部标题区域 */

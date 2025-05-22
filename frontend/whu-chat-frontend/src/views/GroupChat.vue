@@ -99,56 +99,52 @@
             <!-- 用户消息 -->
             <div v-else class="user-message" :class="{'self-message': message.senderId === userId}">
               <!-- 头像 -->
-              <div class="message-avatar" v-if="message.senderId !== userId" @click.stop="showUserCard(message.senderId)">
-                <div class="avatar" v-if="message.senderAvatar">
+              <div class="message-avatar" @click.stop="showUserCard(message.senderId)">
+                <div class="avatar" v-if="message.senderId === userId && userAvatar">
+                  <img :src="userAvatar" alt="用户头像" @error="handleImageError" />
+                </div>
+                 <div class="avatar" v-else-if="message.senderId !== userId && message.senderAvatar">
                   <img :src="message.senderAvatar" alt="用户头像" @error="handleImageError" />
                 </div>
                 <div class="avatar default-avatar" v-else>
-                  {{ message?.senderName?.charAt(0)?.toUpperCase() || '?' }}
+                  {{ (message.senderId === userId ? username : message?.senderName)?.charAt(0)?.toUpperCase() || '?' }}
                 </div>
               </div>
-              <!-- 消息内容 -->
+
+              <!-- 消息内容区 -->
               <div class="message-content">
-                <div class="message-info">
-                  <span class="message-sender" v-if="message.senderId !== userId" @click.stop="showUserCard(message.senderId)">{{ message.senderName }}</span>
-                  <span class="message-time">{{ formatTime(message.sendTime) }}</span>
-                </div>
-                <!-- 文本消息 -->
-                <div v-if="message.messageType === 'text'" class="message-text">
-                  {{ message.content }}
-                </div>
-                <!-- 图片消息 -->
-                <div v-else-if="message.messageType === 'image'" class="message-image">
-                  <img 
-                    :src="getFullImageUrl(message.fileUrl)" 
-                    alt="图片消息" 
-                    @click="previewImage(message.fileUrl)" 
-                    @error="handleImageError"
-                    loading="lazy" />
-                  <div class="image-info">{{ message.fileName }} ({{ formatFileSize(message.fileSize) }})</div>
-                </div>
-                <!-- 文件消息 -->
-                <div v-else-if="message.messageType === 'file'" class="message-file" @click="downloadFile(message.fileUrl, message.fileName)">
-                  <div class="file-icon"></div>
-                  <div class="file-info">
-                    <div class="file-name">{{ message.fileName }}</div>
-                    <div class="file-size">{{ formatFileSize(message.fileSize) }}</div>
+                 <div class="message-info">
+                    <span class="message-sender" v-if="message.senderId !== userId" @click.stop="showUserCard(message.senderId)">{{ message.senderName }}</span>
+                    <span class="message-time">{{ formatTime(message.sendTime) }}</span>
                   </div>
-                  <div class="download-icon"></div>
-                </div>
-                <!-- 表情消息 -->
-                <div v-else-if="message.messageType === 'emoji'" class="message-emoji">
-                  {{ message.content }}
-                </div>
-              </div>
-              <!-- 右侧头像(自己的消息) -->
-              <div class="self-avatar" v-if="message.senderId === userId">
-                <div class="avatar" v-if="userAvatar">
-                  <img :src="userAvatar" alt="用户头像" @error="handleImageError" />
-                </div>
-                <div class="avatar default-avatar" v-else>
-                  {{ username?.charAt(0)?.toUpperCase() || '?' }}
-                </div>
+
+                  <!-- 文本消息 -->
+                  <div v-if="message.messageType === 'text'" class="message-text">
+                    {{ message.content }}
+                  </div>
+                  <!-- 图片消息 -->
+                  <div v-else-if="message.messageType === 'image'" class="message-image">
+                    <img
+                      :src="getFullImageUrl(message.fileUrl)"
+                      alt="图片消息"
+                      @click="previewImage(message.fileUrl)"
+                      @error="handleImageError"
+                      loading="lazy" />
+                    <div class="image-info">{{ message.fileName }} ({{ formatFileSize(message.fileSize) }})</div>
+                  </div>
+                  <!-- 文件消息 -->
+                  <div v-else-if="message.messageType === 'file'" class="message-file" @click="downloadFile(message.fileUrl, message.fileName)">
+                    <div class="file-icon"></div>
+                    <div class="file-info">
+                      <div class="file-name">{{ message.fileName }}</div>
+                      <div class="file-size">{{ formatFileSize(message.fileSize) }}</div>
+                    </div>
+                    <div class="download-icon"></div>
+                  </div>
+                  <!-- 表情消息 -->
+                  <div v-else-if="message.messageType === 'emoji'" class="message-emoji">
+                    {{ message.content }}
+                  </div>
               </div>
             </div>
           </div>
@@ -1664,15 +1660,16 @@ export default {
 
 .user-message {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 10px;
+  margin-bottom: 16px;
 }
 
 .user-message.self-message {
   flex-direction: row-reverse;
 }
 
-.message-avatar, .self-avatar {
+.message-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -1681,9 +1678,10 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.message-avatar img, .self-avatar img {
+.message-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1691,30 +1689,13 @@ export default {
 }
 
 .message-content {
-  max-width: 400px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  max-width: 70%;
 }
 
 .user-message.self-message .message-content {
   align-items: flex-end;
-  text-align: right;
-}
-
-.message-text {
-  background: #fff;
-  color: #333;
-  padding: 10px 16px;
-  border-radius: 16px;
-  font-size: 15px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-  word-break: break-all;
-}
-
-.user-message.self-message .message-text {
-  background: #1890ff;
-  color: #fff;
 }
 
 .message-info {
@@ -1726,15 +1707,38 @@ export default {
   color: #666;
 }
 
-.self-message .message-info {
-  flex-direction: row-reverse;
+.user-message.self-message .message-info {
+  justify-content: flex-end;
+}
+
+.message-text {
+  background: #fff;
+  color: #333;
+  padding: 10px 16px;
+  border-radius: 2px 16px 16px 16px;
+  font-size: 15px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  word-break: break-all;
+}
+
+.user-message.self-message .message-text {
+  background: #1890ff;
+  color: #fff;
+  border-radius: 16px 2px 16px 16px;
+}
+
+.message-image {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 .message-image img {
-  max-width: 300px;
-  max-height: 200px;
-  border-radius: 8px;
-  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .image-info {
@@ -2074,20 +2078,6 @@ export default {
 .summary-hint,
 .summary-error {
   display: none;
-}
-
-.message-image {
-  max-width: 300px;
-  max-height: 300px;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.message-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .image-preview-modal {

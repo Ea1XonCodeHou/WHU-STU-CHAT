@@ -4,14 +4,17 @@
     <header class="chat-header">
       <div class="chat-info">
         <div class="avatar-container">
-          <img v-if="friendInfo.avatar" :src="friendInfo.avatar" class="avatar" :alt="friendInfo.username" />
-          <div v-else class="avatar">{{ friendInfo.username ? friendInfo.username.charAt(0).toUpperCase() : 'U' }}</div>
-          <div class="status-indicator" :class="friendInfo.status || 'offline'"></div>
+          <img v-if="userAvatar" :src="userAvatar" class="avatar" :alt="username" @error="handleImageError"/>
+          <div v-else class="avatar">{{ username ? username.charAt(0).toUpperCase() : 'U' }}</div>
+          <!-- 状态指示器可以保留，或者根据自己的在线状态调整 -->
+          <!-- <div class="status-indicator" :class="friendInfo.status || 'offline'"></div> -->
         </div>
         <div class="user-details">
-          <div class="username">{{ friendInfo.username || '未知用户' }}</div>
-          <div class="status-text">{{ friendInfo.status === 'online' ? '在线' : '离线' }}</div>
-          <div v-if="friendInfo.signature" class="signature">{{ friendInfo.signature }}</div>
+          <div class="username">{{ username || '我的账户' }}</div>
+          <!-- 状态文本可以修改为显示自己的状态，或移除 -->
+          <!-- <div class="status-text">{{ friendInfo.status === 'online' ? '在线' : '离线' }}</div> -->
+          <!-- 签名通常是好友的，自己的签名可以考虑从其他地方获取或不显示 -->
+          <!-- <div v-if="friendInfo.signature" class="signature">{{ friendInfo.signature }}</div> -->
         </div>
       </div>
       <div class="header-actions">
@@ -331,7 +334,6 @@ export default {
       showNotification('好友请求已发送', 'success');
     };
     
-    // 加载好友列表
     const loadFriends = async () => {
       try {
         const response = await axios.get(
@@ -345,42 +347,26 @@ export default {
         
         if (response.data && response.data.code === 200 && response.data.data) {
           friends.value = response.data.data.map(friend => {
-            // 处理头像URL
             let avatarUrl = friend.avatar || '';
             if (avatarUrl && !avatarUrl.startsWith('http')) {
               avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
               avatarUrl = `${window.apiBaseUrl}${avatarUrl}`;
             }
-            
             return {
               ...friend,
-              userId: friend.userId || friend.id, // 确保userId字段存在
-              avatar: avatarUrl // 使用处理后的头像URL
+              userId: friend.userId || friend.id,
+              avatar: avatarUrl,
+              status: friend.status || 'offline',
+              signature: friend.signature || ''
             };
           });
           filteredFriends.value = [...friends.value];
-          
-          console.log('加载的好友列表:', friends.value);
-          
-          // 如果有当前选中的好友，更新好友信息
-          if (currentFriendId.value) {
-            const currentFriend = friends.value.find(f => f.userId === currentFriendId.value);
-            if (currentFriend) {
-              friendInfo.value = {
-                username: currentFriend.username,
-                avatar: currentFriend.avatar,
-                status: currentFriend.status || 'offline',
-                signature: currentFriend.signature
-              };
-            }
-          }
+          console.log('好友列表已加载:', friends.value);
         } else {
           console.error('获取好友列表失败:', response.data?.msg || '未知错误');
-          showNotification('获取好友列表失败', 'error');
         }
       } catch (error) {
         console.error('加载好友列表失败:', error);
-        showNotification('加载好友列表失败', 'error');
       }
     };
     
@@ -996,23 +982,71 @@ export default {
       event.target.classList.add('image-load-error');
     };
     
+    // Nueva función para buscar y asignar avatar para un amigo específico
+    const fetchAndAssignAvatarForFriend = async (friendIdToFetch) => {
+      try {
+        const response = await axios.get(
+          `${window.apiBaseUrl}/api/user/${friendIdToFetch}`,
+          { headers: { 'UserId': userId.value.toString() } }
+        );
+        if (response.data && response.data.code === 200 && response.data.data) {
+          const userData = response.data.data;
+          let avatarUrl = userData.avatar || '';
+          if (avatarUrl && !avatarUrl.startsWith('http')) {
+            avatarUrl = avatarUrl.startsWith('/') ? avatarUrl : `/${avatarUrl}`;
+            avatarUrl = `${window.apiBaseUrl}${avatarUrl}`;
+          }
+
+          const friendInList = friends.value.find(f => f.userId === friendIdToFetch);
+          if (friendInList) {
+            friendInList.avatar = avatarUrl;
+            friendInList.status = userData.status || 'offline';
+          }
+          // Actualizar también filteredFriends si es una copia reactiva separada
+          const friendInFilteredList = filteredFriends.value.find(f => f.userId === friendIdToFetch);
+           if (friendInFilteredList) {
+            friendInFilteredList.avatar = avatarUrl;
+            friendInFilteredList.status = userData.status || 'offline';
+          }
+        }
+      } catch (error) {
+        console.error(`加载好友 ${friendIdToFetch} 的头像失败:`, error);
+      }
+    };
+
     onMounted(async () => {
-      // 先加载好友列表
-      await loadFriends();
+      await loadFriends(); // Carga inicial de amigos
+
+      // Después de la carga inicial, iterar y asegurar que todos los avatares se obtengan si faltan
+      const avatarFetchPromises = friends.value
+        .filter(friend => !friend.avatar) // Solo buscar para aquellos que realmente les falta un avatar
+        .map(friend => fetchAndAssignAvatarForFriend(friend.userId));
       
-      // 如果URL中有好友ID，立即加载该好友信息
+      if (avatarFetchPromises.length > 0) {
+        await Promise.all(avatarFetchPromises);
+        console.log('所有缺失的好友头像已尝试加载完成。');
+      }
+
       if (currentFriendId.value) {
-        await loadFriendInfo(currentFriendId.value);
+        // Asegurar que la información del amigo actual también se cargue/actualice
+        const currentFriendData = friends.value.find(f => f.userId === currentFriendId.value);
+        if (currentFriendData) {
+             selectFriend(currentFriendData); // Esto llamará a loadFriendInfo si es necesario o actualizará la UI
+        } else {
+            // Si el amigo actual no está en la lista (podría suceder si el ID viene de la URL y la lista está vacía/desactualizada)
+            await loadFriendInfo(currentFriendId.value);
+        }
       }
       
-      // 初始化SignalR连接
       await setupSignalR();
       
-      // 初始化连接后，如果有当前好友ID，加载历史消息
       if (currentFriendId.value && connection.value && isConnected.value) {
-        // 确保已加入聊天
-        await connection.value.invoke('JoinPrivateChat', currentFriendId.value);
-        await loadChatHistory();
+        try {
+            await connection.value.invoke('JoinPrivateChat', currentFriendId.value);
+            await loadChatHistory();
+        } catch (error) {
+            console.error("onMounted: 加入私聊或加载历史记录失败", error)
+        }
       }
       
       document.addEventListener('click', handleClickOutside);
@@ -1048,6 +1082,23 @@ export default {
       emojis,
       fileInput,
       imageInput,
+      previewImageUrl,
+      showingUserCard,
+      selectedUserId,
+      friendsList,
+      loadFriendsList,
+      isUserFriend,
+      showUserCard,
+      closeUserCard,
+      handleFriendRequestSent,
+      getFullImageUrl,
+      handleImageError,
+      fetchAndAssignAvatarForFriend,
+      loadFriendInfo,
+      setupSignalR,
+      loadChatHistory,
+      handleClickOutside,
+      showNotification,
       handleFriendSearch,
       selectFriend,
       sendMessage,
@@ -1064,21 +1115,10 @@ export default {
       handleFileUpload,
       downloadFile,
       previewImage,
-      previewImageUrl,
       closeImagePreview,
       triggerImageUpload,
       handleImageUpload,
       formatMessageUrl,
-      showingUserCard,
-      selectedUserId,
-      friendsList,
-      loadFriendsList,
-      isUserFriend,
-      showUserCard,
-      closeUserCard,
-      handleFriendRequestSent,
-      getFullImageUrl,
-      handleImageError,
     };
   }
 };

@@ -539,11 +539,13 @@ export default {
           // 只显示当前聊天对象的消息
           if ((message.senderId === currentFriendId.value && message.receiverId === userId.value) || 
               (message.senderId === userId.value && message.receiverId === currentFriendId.value)) {
-            // 确保消息有适当的头像信息
-            if (message.senderId === currentFriendId.value) {
-              message.senderAvatar = friendInfo.value.avatar;
-            } else if (message.senderId === userId.value) {
-              message.senderAvatar = userAvatar.value;
+            // 如果后端没有提供头像，才使用本地信息
+            if (!message.senderAvatar) {
+              if (message.senderId === currentFriendId.value) {
+                message.senderAvatar = friendInfo.value.avatar;
+              } else if (message.senderId === userId.value) {
+                message.senderAvatar = userAvatar.value;
+              }
             }
             
             // 处理表情消息

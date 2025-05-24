@@ -33,6 +33,11 @@ namespace backend.DTOs
         public string SenderName { get; set; }
 
         /// <summary>
+        /// 发送者头像URL
+        /// </summary>
+        public string SenderAvatar { get; set; }
+
+        /// <summary>
         /// 接收者ID（用于私聊）
         /// </summary>
         public int ReceiverId { get; set; }

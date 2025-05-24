@@ -29,7 +29,7 @@ namespace backend.Controllers
         /// <param name="file">上传的文件</param>
         /// <returns>文件URL及相关信息</returns>
         [HttpPost("upload")]
-        [Consumes("multipart/form-data")] // 明确指定接受的媒体类型
+        [Consumes("multipart/form-data")]
         [RequestSizeLimit(100 * 1024 * 1024)] // 限制100MB
         [RequestFormLimits(MultipartBodyLengthLimit = 100 * 1024 * 1024)] // 限制100MB
         public async Task<IActionResult> UploadFile([FromForm] IFormFile file)
@@ -46,11 +46,21 @@ namespace backend.Controllers
 
                 // 检查文件类型
                 var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-                string[] allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
+                string[] allowedExtensions = { 
+                    // 图片文件
+                    ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp",
+                    // 文档文件
+                    ".txt", ".md", ".doc", ".docx", ".pdf", ".xls", ".xlsx", ".ppt", ".pptx",
+                    // 压缩文件
+                    ".zip", ".rar", ".7z",
+                    // 其他常见文件
+                    ".csv", ".json", ".xml"
+                };
+                
                 bool isValidExtension = Array.Exists(allowedExtensions, ext => ext == extension);
                 if (!isValidExtension)
                 {
-                    return BadRequest("不支持的文件类型，请上传jpg、jpeg、png、gif、bmp或webp格式的图片");
+                    return BadRequest("不支持的文件类型，请上传支持的文件格式");
                 }
 
                 // 检查文件大小限制（10MB）

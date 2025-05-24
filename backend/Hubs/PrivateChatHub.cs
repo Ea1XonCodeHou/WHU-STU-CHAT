@@ -139,6 +139,7 @@ namespace backend.Hubs
                 {
                     var senderInfo = await _userService.GetUserByIdAsync(senderId);
                     message.SenderName = senderInfo?.Username ?? "未知用户";
+                    message.SenderAvatar = senderInfo?.AvatarUrl;
                 }
                 
                 // 发送消息到私聊组

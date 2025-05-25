@@ -6,6 +6,7 @@ using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace backend.Hubs
 {
@@ -14,11 +15,13 @@ namespace backend.Hubs
         private readonly ILogger<ChatHub> _logger;
         private readonly IChatService _chatService;
         private static readonly ConcurrentDictionary<string, UserConnection> _connections = new ConcurrentDictionary<string, UserConnection>();
+        private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public ChatHub(ILogger<ChatHub> logger, IChatService chatService)
+        public ChatHub(ILogger<ChatHub> logger, IChatService chatService, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _chatService = chatService;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         // 用户加入聊天室
@@ -54,6 +57,19 @@ namespace backend.Hubs
                 // 设置用户在线状态
                 _chatService.SetUserOnline(userId, true);
                 
+                // 更新用户状态到数据库
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
+                    var statusDto = new UserStatusDTO
+                    {
+                        UserId = userId,
+                        IsOnline = true,
+                        IsVisible = true // 默认设置为可见
+                    };
+                    await userService.UpdateUserStatusAsync(statusDto);
+                }
+                
                 // 将用户加入到在线用户列表
                 var userDto = new UserDTO
                 {
@@ -73,6 +89,12 @@ namespace backend.Hubs
                 
                 _logger.LogInformation($"已向用户 {username}({userId}) 发送 {messages.Count} 条历史消息");
 
+                // 获取并发送在线用户列表
+                var onlineUsers = await _chatService.GetRoomOnlineUsersAsync(roomId);
+                await Clients.Group($"Room_{roomId}").SendAsync("UpdateOnlineUsers", onlineUsers);
+                
+                _logger.LogInformation($"已向聊天室 {roomId} 发送在线用户列表，共 {onlineUsers.Count} 人");
+
                 // 发送系统消息，通知其他用户已加入
                 var joinMessage = new MessageDTO
                 {
@@ -90,12 +112,6 @@ namespace backend.Hubs
                 
                 _logger.LogInformation($"已向聊天室 {roomId} 发送用户 {username}({userId}) 加入的系统消息");
                 
-                // 更新在线用户列表
-                var onlineUsers = await _chatService.GetRoomOnlineUsersAsync(roomId);
-                await Clients.Group($"Room_{roomId}").SendAsync("UpdateOnlineUsers", onlineUsers);
-                
-                _logger.LogInformation($"已向聊天室 {roomId} 发送更新后的在线用户列表，共有 {onlineUsers.Count} 人");
-
                 _logger.LogInformation($"用户 {username}({userId}) 加入聊天室 {roomName}({roomId}) 的全部流程已完成");
             }
             catch (Exception ex)

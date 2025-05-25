@@ -150,8 +150,17 @@ window.showNotification = (title, body, type = 'private') => {
 
 // 加载用户设置
 const loadUserSettings = () => {
-  // 在线状态设置
-  window.showMyOnlineStatus = localStorage.getItem('setting_showMyOnlineStatus') !== 'false';
+  // 在线状态设置 - 默认为true（显示在线状态）
+  const savedOnlineStatus = localStorage.getItem('setting_showMyOnlineStatus');
+  if (savedOnlineStatus === null || savedOnlineStatus === undefined) {
+    // 如果没有保存过设置，默认设置为true
+    localStorage.setItem('setting_showMyOnlineStatus', 'true');
+    window.showMyOnlineStatus = true;
+    console.log('设置默认在线状态显示为: true');
+  } else {
+    window.showMyOnlineStatus = savedOnlineStatus === 'true';
+    console.log('加载已保存的在线状态显示设置:', window.showMyOnlineStatus);
+  }
 };
 
 app.mount("#app");

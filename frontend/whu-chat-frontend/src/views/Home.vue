@@ -806,6 +806,32 @@ export default {
     // 定时更新在线状态
     let statusUpdateInterval = null;
     
+    // 设置用户在线状态
+    const setUserOnlineStatus = async () => {
+      try {
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+          console.warn('用户ID不存在，无法设置在线状态');
+          return;
+        }
+        
+        const apiBaseUrl = window.apiBaseUrl || '';
+        
+        // 检查用户设置，默认为显示在线状态
+        const showOnlineStatus = localStorage.getItem('setting_showMyOnlineStatus') !== 'false';
+        
+        await axios.post(`${apiBaseUrl}/api/user/${userId}/status`, {
+          userId: parseInt(userId),
+          isOnline: true,
+          isVisible: showOnlineStatus
+        });
+        
+        console.log('用户在线状态已设置为：在线');
+      } catch (error) {
+        console.error('设置用户在线状态失败:', error);
+      }
+    };
+    
     const forumCategories = ref([
       {
         id: 301,
@@ -1314,6 +1340,9 @@ export default {
       }
       
       console.log('当前 API 基础 URL:', window.apiBaseUrl); // 添加日志
+      
+      // 自动设置用户为在线状态
+      await setUserOnlineStatus();
       
       // 自动加载数据
       fetchFriends(); // 加载好友列表

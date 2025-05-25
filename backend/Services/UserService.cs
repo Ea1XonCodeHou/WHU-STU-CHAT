@@ -101,6 +101,15 @@ namespace backend.Services
                         updateCommand.Parameters.AddWithValue("@UserId", userId);
                         await updateCommand.ExecuteNonQueryAsync();
                         
+                        // 自动设置用户为在线状态
+                        var statusDto = new UserStatusDTO
+                        {
+                            UserId = userId,
+                            IsOnline = true,
+                            IsVisible = true // 默认设置为可见
+                        };
+                        await UpdateUserStatusAsync(statusDto);
+                        
                         // 生成令牌
                         var token = GenerateToken(userId, username);
                         var expireTime = DateTime.Now.AddDays(loginDto.RememberMe ? 7 : 1);
@@ -113,7 +122,8 @@ namespace backend.Services
                                 Username = username,
                                 Email = email,
                                 Phone = phone,
-                                Avatar = avatar
+                                Avatar = avatar,
+                                Status = "online" // 设置状态为在线
                             },
                             Token = token,
                             ExpireTime = expireTime

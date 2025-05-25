@@ -35,12 +35,12 @@ namespace backend.Hubs
                 // 设置用户在线状态
                 _chatService.SetUserOnline(userId, true);
                 
-                // 更新用户状态到数据库
+                // 更新用户状态到数据库 - 默认设置为可见
                 var statusDto = new UserStatusDTO
                 {
                     UserId = userId,
                     IsOnline = true,
-                    IsVisible = true
+                    IsVisible = true // 默认设置为可见
                 };
                 await _userService.UpdateUserStatusAsync(statusDto);
                 

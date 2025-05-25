@@ -142,6 +142,14 @@ export function initNotifications() {
   window.sendNotification = (title, body, icon, onClick, type) => 
     sendNotification(title, body, icon, onClick, type);
   
-  // 设置默认状态
-  window.showMyOnlineStatus = localStorage.getItem('setting_showMyOnlineStatus') !== 'false';
+  // 设置默认状态 - 默认显示在线状态
+  const savedOnlineStatus = localStorage.getItem('setting_showMyOnlineStatus');
+  if (savedOnlineStatus === null || savedOnlineStatus === undefined) {
+    localStorage.setItem('setting_showMyOnlineStatus', 'true');
+    window.showMyOnlineStatus = true;
+    console.log('通知工具：设置默认在线状态显示为 true');
+  } else {
+    window.showMyOnlineStatus = savedOnlineStatus === 'true';
+    console.log('通知工具：加载已保存的在线状态显示设置:', window.showMyOnlineStatus);
+  }
 } 

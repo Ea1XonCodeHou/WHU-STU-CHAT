@@ -52,9 +52,9 @@ export default {
   setup(props, { emit }) {
     const userId = ref(localStorage.getItem('userId') || '');
     
-    // 设置项
+    // 设置项 - 确保默认为true
     const settings = ref({
-      showMyOnlineStatus: localStorage.getItem('setting_showMyOnlineStatus') === 'true'
+      showMyOnlineStatus: true // 默认为true
     });
     
     // 保存按钮状态
@@ -62,9 +62,7 @@ export default {
     
     // 关闭模态框
     const closeModal = () => {
-      if (userId.value) {
-        loadSettings();
-      }
+      // 移除自动加载设置的逻辑，避免意外修改
       emit('close');
     };
     
@@ -73,14 +71,38 @@ export default {
       try {
         if (!userId.value) return;
         
-        const response = await axios.get(`/api/user/${userId.value}/settings`);
-        const userSettings = response.data;
+        // 首先从localStorage获取设置，如果没有则设置默认值
+        const localSetting = localStorage.getItem('setting_showMyOnlineStatus');
+        if (localSetting === null) {
+          // 如果localStorage中没有设置，设置默认值为true
+          localStorage.setItem('setting_showMyOnlineStatus', 'true');
+          settings.value.showMyOnlineStatus = true;
+        } else {
+          // 如果localStorage中有设置，使用该设置
+          settings.value.showMyOnlineStatus = localSetting === 'true';
+        }
         
-        if (userSettings) {
-          settings.value.showMyOnlineStatus = userSettings['setting_showMyOnlineStatus'] === 'true';
+        // 尝试从服务器加载设置（可选）
+        try {
+          const response = await axios.get(`/api/user/${userId.value}/settings`);
+          if (response.data && response.data.data) {
+            const userSettings = response.data.data;
+            if (userSettings['setting_showMyOnlineStatus'] !== undefined) {
+              const serverSetting = userSettings['setting_showMyOnlineStatus'] === 'true';
+              settings.value.showMyOnlineStatus = serverSetting;
+              // 同步到localStorage
+              localStorage.setItem('setting_showMyOnlineStatus', serverSetting.toString());
+            }
+          }
+        } catch (serverError) {
+          console.log('从服务器加载设置失败，使用本地设置:', serverError);
+          // 如果服务器加载失败，保持本地设置不变
         }
       } catch (error) {
         console.error('加载设置失败:', error);
+        // 如果加载失败，确保使用默认值
+        settings.value.showMyOnlineStatus = true;
+        localStorage.setItem('setting_showMyOnlineStatus', 'true');
       }
     };
     
